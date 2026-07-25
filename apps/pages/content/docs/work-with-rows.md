@@ -119,6 +119,9 @@ a complete create-or-update and timeout-recovery pattern.
 For cleanup jobs, use the same exact-key contract inside a reversible
 [AI data-cleaning workflow](/blog/ai-data-cleaning-agent) that separates raw rows,
 proposed changes, approval, and verified publication.
+For product and stock workflows, the
+[AI inventory agent guide](/blog/ai-agent-inventory-management) applies that contract
+to catalogs, source observations, action proposals, and destination read-back.
 
 Patch by row id:
 

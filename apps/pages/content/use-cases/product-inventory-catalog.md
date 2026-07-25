@@ -9,6 +9,9 @@ keywords: product catalog, inventory catalog, Rowset use case
 Use Rowset when a trusted agent needs to maintain product records, supplier
 notes, links, prices, and snapshots without a custom catalog app.
 
+For a workflow that reconciles source observations and prepares controlled
+inventory actions, follow the [AI inventory agent guide](/blog/ai-agent-inventory-management).
+
 ## Starter shape
 
 Create a `products` dataset indexed by `sku`.
