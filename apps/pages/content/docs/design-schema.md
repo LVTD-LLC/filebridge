@@ -92,6 +92,10 @@ Use JSON metadata for rules that machines should parse:
 }
 ```
 
+The [AI inventory agent guide](/blog/ai-agent-inventory-management) shows a
+three-dataset schema for product records, inventory observations, and controlled
+action proposals.
+
 ## Evolve schema in place
 
 Use schema mutation tools when an active dataset needs to change:

@@ -16,6 +16,13 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-07-25
+
+### Added
+- Added an AI inventory-agent implementation guide with stable product identity,
+  separate observation and proposal records, approval boundaries, retry handling,
+  and destination read-back.
+
 ## 2026-07-24
 
 ### Added
