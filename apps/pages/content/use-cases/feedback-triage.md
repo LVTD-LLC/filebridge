@@ -37,6 +37,12 @@ Tell the agent how to pick themes, how to set severity, and when to mark
 feedback as duplicate. Use `duplicate_of` to preserve individual customer
 evidence while keeping roadmap discussion focused.
 
+For a complete implementation pattern, follow the
+[AI customer feedback analysis workflow](/blog/ai-customer-feedback-analysis).
+It separates source evidence, versioned model analysis, review decisions, and
+approved actions so a summary never becomes the only record of what customers
+said.
+
 ## Connect it
 
 Use [MCP access](/docs/connect-mcp) for trusted agent triage. Use the

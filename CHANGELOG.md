@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-07-26
+
+### Added
+- Added a reviewable AI customer-feedback analysis guide that separates source
+  evidence, versioned model output, human decisions, and verified follow-up.
+
 ## 2026-07-25
 
 ### Added
