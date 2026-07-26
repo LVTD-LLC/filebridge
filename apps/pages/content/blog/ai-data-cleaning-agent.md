@@ -179,6 +179,11 @@ After publication, rerun the profile and compare it with the contract:
 
 The clean dataset is not correct because the agent says the task succeeded. It is correct when independent checks show that the approved transformations produced the expected state.
 
+The same source-and-proposal boundary applies to qualitative inputs. The
+[AI customer feedback analysis workflow](/blog/ai-customer-feedback-analysis)
+shows how to preserve each comment, version classifications, review uncertain
+themes, and promote only approved decisions.
+
 ## A worked Rowset pattern
 
 Rowset does not read an arbitrary source, clean it automatically, or replace pandas. Your agent can read a CSV, spreadsheet, or upstream API with its own tools, then use Rowset as the private operational surface for the workflow.
