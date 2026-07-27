@@ -1362,10 +1362,14 @@ def _row_filter_fields(
     columns: list[dict[str, object]] | None = None,
 ) -> list[dict[str, object]]:
     fields = []
+    column_type_labels = dict(DatasetColumnType.choices)
     if columns is None:
         columns = column_definitions(dataset.headers, dataset.column_schema)
     for index, column in enumerate(columns):
         column_type = column_value_type(column)
+        is_formula = (
+            include_column_descriptions and column.get("calculation") == CALCULATION_FORMULA
+        )
         param_name = f"{ROW_FILTER_PARAM_PREFIX}{index}"
         operator_param_name = f"{ROW_FILTER_OPERATOR_PARAM_PREFIX}{index}"
         value = request.GET.get(param_name, "").strip()
@@ -1390,6 +1394,11 @@ def _row_filter_fields(
                 "type": column_type,
                 "type_label": column["type_label"],
                 "description": (column["description"] if include_column_descriptions else ""),
+                "is_formula": is_formula,
+                "formula": column.get("formula", "") if is_formula else "",
+                "formula_result_type_label": (
+                    column_type_labels.get(column_type, column_type.title()) if is_formula else ""
+                ),
                 "param_name": param_name,
                 "value": selected_values[0] if selected_values else value,
                 "selected_values": selected_values,
