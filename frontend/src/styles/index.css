@@ -240,7 +240,7 @@
   }
 
   .fb-formula-value {
-    @apply inline-flex items-center gap-1.5 font-semibold text-emerald-700 hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200;
+    @apply inline-flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-300;
   }
 
   .docs-code-blocks pre {
