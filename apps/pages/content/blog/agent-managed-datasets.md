@@ -82,6 +82,10 @@ when the session ends.
 The test is simple: can a new trusted agent inspect the dataset and do the right
 thing without a long re-explanation from the user?
 
+If you already have a table or export, use the
+[AI-ready data checklist](/blog/ai-ready-data) to audit its purpose, identity,
+schema, provenance, access, and verification path before an agent writes to it.
+
 The dataset usually needs five properties.
 
 ### 1. A stable index

@@ -2,7 +2,7 @@
   "product": "Rowset",
   "domain": "https://rowset.lvtd.dev",
   "created_at": "2026-07-04",
-  "updated_at": "2026-07-26",
+  "updated_at": "2026-07-27",
   "mode": "measured_reaudit",
   "source": "blended",
   "sources": [
@@ -194,6 +194,7 @@
     }
   },
   "keywords": [
+    {"keyword": "what is ai-ready data", "source": "dataforseo", "search_volume": 110, "keyword_difficulty": 6, "cpc": 14.14, "intent": "informational", "as_of": "2026-07-27"},
     {"keyword": "ai customer feedback analysis", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": null, "cpc": 12.9, "intent": "informational", "as_of": "2026-07-26"},
     {"keyword": "ai feedback analysis", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": null, "cpc": null, "intent": "informational", "as_of": "2026-07-26"},
     {"keyword": "ai agent project management", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": 0, "cpc": 9.38, "intent": "commercial", "as_of": "2026-07-26"},
@@ -226,6 +227,14 @@
     {"keyword": "database for ai agents", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": 7, "cpc": 19.47, "intent": "commercial", "as_of": "2026-07-15"}
   ],
   "opportunities": [
+    {
+      "cluster": "ai-ready data",
+      "target_url": "/blog/ai-ready-data",
+      "status": "shipped",
+      "priority": 10,
+      "signals": {"primary_volume": 110, "primary_kd": 6, "primary_cpc": 14.14},
+      "notes": "Shipped 2026-07-27 as a definition-led practical guide. The post distinguishes training, retrieval, and operational-agent readiness with a seven-question test."
+    },
     {
       "cluster": "ai customer feedback analysis",
       "target_url": "/blog/ai-customer-feedback-analysis",

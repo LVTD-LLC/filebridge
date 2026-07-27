@@ -33,6 +33,7 @@
 | 2026-07-24 | AI Agent Task Management: Build a Durable Task Board | how-to / operational guide | `/blog/ai-agent-task-management` | AI agent task management | 10 | n/a | task-board use case, schema design, MCP, Dataset API, HITL, idempotency, audit trail, pricing | #354 |
 | 2026-07-25 | AI Agent for Inventory Management: A Safe Workflow | how-to / operational guide | `/blog/ai-agent-inventory-management` | AI agent for inventory management | 20 | n/a | inventory use case, schema design, row operations, MCP, Dataset API, idempotency, pricing | #356 |
 | 2026-07-26 | AI Customer Feedback Analysis: A Reviewable Workflow | how-to / operational guide | `/blog/ai-customer-feedback-analysis` | AI customer feedback analysis | 10 | n/a | feedback triage, dataset instructions, schema design, MCP, Dataset API, HITL, idempotency, safe sharing, pricing | #357 |
+| 2026-07-27 | What Is AI-Ready Data? A Practical Agent Checklist | definition / decision guide | `/blog/ai-ready-data` | what is AI-ready data | 110 | 6 | schema design, index-column guide, MCP, Dataset API, idempotency, HITL, safe sharing, QA tracker, pricing | #358 |
 
 ---
 
@@ -55,6 +56,7 @@
 | 13 | How to analyze customer feedback with AI safely | how-to / operational guide | AI customer feedback analysis | 10 | n/a | informational / commercial | shipped (19) | Shipped 2026-07-26 as `/blog/ai-customer-feedback-analysis`; differentiated with a source -> analysis -> decision -> action contract. |
 | 14 | How to use an AI agent for project management | how-to / operational guide | AI agent project management | 10 | 0 | commercial / implementation | 16 | Defer: winnable but materially overlaps `/blog/ai-agent-task-management`; revisit only with a distinct multi-project coordination surface. |
 | 15 | AI agent for customer service | pillar / commercial guide | AI agent for customer service | 720 | 14 | commercial / informational | 15 | Defer: measured demand is high, but Rowset is not a customer-service agent and lacks a credible product surface for the broader intent. |
+| 16 | What is AI-ready data? | definition / practical decision guide | what is AI-ready data | 110 | 6 | informational | shipped (20) | Shipped 2026-07-27 as `/blog/ai-ready-data`; differentiated with a seven-question readiness test for tool-using agents. |
 
 ---
 
@@ -62,7 +64,7 @@
 
 | Cluster / theme | Pieces shipped | Gaps still open |
 |---|---|---|
-| Agent-managed datasets | `/blog/agent-managed-datasets`, `/blog/choose-index-column-agent-rows`, `/blog/structure-dataset-instructions-ai-agents`, `/blog/rowset-id-vs-business-keys`, `/blog/relationship-modeling-agent-datasets`, `/blog/ai-agent-memory-vs-state`, `/blog/idempotent-ai-agent-updates`, `/blog/share-ai-agent-data-safely`, `/blog/human-in-the-loop-ai-agents`, `/blog/ai-agent-audit-trail`, `/blog/database-for-ai-agents`, `/blog/ai-data-cleaning-agent`, `/blog/ai-agent-crm`, `/blog/ai-agent-task-management`, `/blog/ai-agent-inventory-management`, `/blog/ai-customer-feedback-analysis` | Generated-index migration patterns |
+| Agent-managed datasets | `/blog/agent-managed-datasets`, `/blog/choose-index-column-agent-rows`, `/blog/structure-dataset-instructions-ai-agents`, `/blog/rowset-id-vs-business-keys`, `/blog/relationship-modeling-agent-datasets`, `/blog/ai-agent-memory-vs-state`, `/blog/idempotent-ai-agent-updates`, `/blog/share-ai-agent-data-safely`, `/blog/human-in-the-loop-ai-agents`, `/blog/ai-agent-audit-trail`, `/blog/database-for-ai-agents`, `/blog/ai-data-cleaning-agent`, `/blog/ai-agent-crm`, `/blog/ai-agent-task-management`, `/blog/ai-agent-inventory-management`, `/blog/ai-customer-feedback-analysis`, `/blog/ai-ready-data` | Generated-index migration patterns |
 | MCP and Dataset API | `/blog/mcp-vs-rest-ai-agents`, `/blog/connect-ai-agent-to-dataset-api`, `/blog/relationship-modeling-agent-datasets`, `/blog/ai-agent-inventory-management` | More REST/MCP setup examples with concrete datasets |
 | Spreadsheet/database alternatives | `/blog/airtable-alternatives`, `/blog/google-sheets-alternatives`, `/blog/baserow-alternatives`, `/blog/nocodb-alternatives`, `/blog/spreadsheet-database-for-ai-agents`, `/vs/airtable`, `/vs/google-sheets` | Migration examples for specific human-to-agent workflows |
 

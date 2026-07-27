@@ -71,6 +71,10 @@ Publish: patch only approved fields, then read each changed row back by supplier
 
 Put the contract next to the data rather than leaving it in one chat. In Rowset, dataset instructions and semantic column descriptions give later agent runs the same rules. The [schema-design guide](/docs/design-schema) covers types and column meaning, while the [dataset-instructions guide](/blog/structure-dataset-instructions-ai-agents) covers allowed actions and escalation rules.
 
+Cleaning improves values, but an operational agent also needs stable identity,
+provenance, bounded access, and verification. Use the
+[AI-ready data checklist](/blog/ai-ready-data) to test that wider contract.
+
 NIST's AI Risk Management Framework treats testing, evaluation, verification, and validation as lifecycle activities rather than a final checkbox ([NIST AI RMF and Resource Center, checked July 2026](https://airc.nist.gov/)). For data cleaning, that means defining the test before the transformation and repeating it after publication.
 
 ## 2. Preserve the raw source and stable identity
