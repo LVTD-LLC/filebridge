@@ -362,6 +362,53 @@ def test_formula_comparison_coerces_text_literal_to_typed_operand(api_client, pr
     ]
 
 
+@pytest.mark.parametrize(
+    ("source_name", "source_type", "formula"),
+    [
+        ("last_contact", "date", '{last_contact} = "unknown"'),
+        ("amount", "number", '{amount} = "unknown"'),
+    ],
+)
+def test_formula_comparison_safely_handles_invalid_text_operand(
+    api_client,
+    profile,
+    source_name,
+    source_type,
+    formula,
+):
+    dataset = create_personal_crm_dataset(profile)
+    if source_name == "amount":
+        dataset.headers.append(source_name)
+        dataset.column_schema[source_name] = {"type": source_type}
+        dataset.save(update_fields=["headers", "column_schema"])
+        rows = list(dataset.rows.order_by("row_number"))
+        rows[0].data[source_name] = "10.5"
+        rows[1].data[source_name] = "20"
+        DatasetRow.objects.bulk_update(rows, ["data"])
+
+    response = api_client.post(
+        f"/api/datasets/{dataset.key}/columns",
+        data={
+            "name": "invalid_literal_comparison",
+            "column_type": {
+                "type": "calculated",
+                "calculation": "formula",
+                "result_type": "boolean",
+                "formula": formula,
+            },
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    rows_response = api_client.get(f"/api/datasets/{dataset.key}/rows")
+    assert rows_response.status_code == 200
+    assert [row["data"]["invalid_literal_comparison"] for row in rows_response.json()["rows"]] == [
+        "false",
+        "false",
+    ]
+
+
 def test_formula_compiler_supports_if_or_not_and_now(api_client, profile):
     dataset = create_personal_crm_dataset(profile)
 

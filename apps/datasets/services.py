@@ -1290,8 +1290,24 @@ def _formula_comparison(left: _CompiledFormula, operator: str, right: _CompiledF
         "<=": LessThanOrEqual,
     }
     if operator == "!=":
-        return ~Exact(left.expression, right.expression)
-    return comparisons[operator](left.expression, right.expression)
+        comparison = ~Exact(left.expression, right.expression)
+    else:
+        comparison = comparisons[operator](left.expression, right.expression)
+    return Coalesce(
+        comparison,
+        Value(False),
+        output_field=BooleanField(),
+    )
+
+
+def _safe_comparison_text_operand(
+    operand: _CompiledFormula,
+    result_type: str,
+) -> _CompiledFormula:
+    return _CompiledFormula(
+        _safe_text_cast(operand.expression, result_type),
+        result_type,
+    )
 
 
 def _coerce_comparison_operands(
@@ -1311,9 +1327,9 @@ def _coerce_comparison_operands(
             _cast_compiled_formula(right, DatasetColumnType.DATETIME),
         )
     if left.result_type == DatasetColumnType.TEXT:
-        return _cast_compiled_formula(left, right.result_type), right
+        return _safe_comparison_text_operand(left, right.result_type), right
     if right.result_type == DatasetColumnType.TEXT:
-        return left, _cast_compiled_formula(right, left.result_type)
+        return left, _safe_comparison_text_operand(right, left.result_type)
     raise DatasetValidationError(
         f"Cannot compare {left.result_type} and {right.result_type} values."
     )
