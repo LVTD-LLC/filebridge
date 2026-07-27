@@ -602,6 +602,7 @@ class TestHomeView:
         assert response.status_code == 200
         assert "Design" in content
         assert "Colorize" in content
+        assert "formula results" in content
         assert 'name="choice_colorization_enabled"' in content
 
     def test_settings_view_updates_choice_colorization_preference(self, auth_client, profile):

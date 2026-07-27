@@ -239,6 +239,10 @@
     @apply border-pink-200 bg-pink-50 text-pink-900 dark:border-pink-800 dark:bg-pink-950 dark:text-pink-100;
   }
 
+  .fb-formula-value {
+    @apply inline-flex items-center gap-1.5 font-semibold text-emerald-700 hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200;
+  }
+
   .docs-code-blocks pre {
     @apply border border-slate-800 bg-slate-950 text-slate-50;
   }

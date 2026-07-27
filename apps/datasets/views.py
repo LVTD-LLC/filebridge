@@ -802,11 +802,15 @@ def _row_cells(
     image_assets: dict[tuple[int, str], DatasetAsset] | None = None,
     public_context: bool = False,
     colorize_tags: bool = False,
+    colorize_calculated: bool = False,
 ) -> list[dict[str, object]]:
     ordered_keys = [*headers, *[key for key in row_data if key not in headers]]
     columns = column_definitions(headers, column_schema or {})
     descriptions = {column["name"]: column["description"] for column in columns}
     column_types = {column["name"]: column["type"] for column in columns}
+    formula_column_names = {
+        column["name"] for column in columns if column.get("calculation") == CALCULATION_FORMULA
+    }
     relationship_links = relationship_links or {}
     reference_lookup = reference_lookup or {}
     image_assets = image_assets or {}
@@ -820,6 +824,8 @@ def _row_cells(
             "description": descriptions.get(header, ""),
             "value": value,
         }
+        if colorize_calculated and header in formula_column_names and value:
+            cell["is_colorized_formula"] = True
         _apply_tag_cell_payload(
             cell,
             column_type=column_types.get(header),
@@ -863,6 +869,7 @@ def _row_table_cells(
     public_context: bool = False,
     choice_value_accent_classes: dict[str, dict[str, str]] | None = None,
     colorize_tags: bool = False,
+    colorize_calculated: bool = False,
 ) -> list[dict[str, object]]:
     reference_lookup = reference_lookup or {}
     image_assets = image_assets or {}
@@ -870,9 +877,10 @@ def _row_table_cells(
     audio_columns = set(audio_columns_from_schema(headers, column_schema))
     if choice_value_accent_classes is None:
         choice_value_accent_classes = {}
-    column_types = {
-        column["name"]: column["type"]
-        for column in column_definitions(headers, column_schema or {})
+    columns = column_definitions(headers, column_schema or {})
+    column_types = {column["name"]: column["type"] for column in columns}
+    formula_column_names = {
+        column["name"] for column in columns if column.get("calculation") == CALCULATION_FORMULA
     }
     cells = []
     row_detail_primary_assigned = False
@@ -882,6 +890,8 @@ def _row_table_cells(
             "value": display_value,
             "is_first": index == 0,
         }
+        if colorize_calculated and header in formula_column_names and display_value:
+            cell["is_colorized_formula"] = True
         _apply_tag_cell_payload(
             cell,
             column_type=column_types.get(header),
@@ -2094,6 +2104,7 @@ class DatasetDetailView(LoginRequiredMixin, DetailView):
                 row_number=row.row_number,
                 choice_value_accent_classes=choice_value_accent_classes,
                 colorize_tags=colorization_enabled,
+                colorize_calculated=colorization_enabled,
             )
             rows_with_values.append(
                 {
@@ -2135,6 +2146,7 @@ class DatasetDetailView(LoginRequiredMixin, DetailView):
                     reference_lookup=reference_lookup,
                     choice_value_accent_classes=choice_value_accent_classes,
                     colorize_tags=colorization_enabled,
+                    colorize_calculated=colorization_enabled,
                 )
                 rows_with_values.append(
                     {
@@ -2309,6 +2321,7 @@ class DatasetRowDetailView(LoginRequiredMixin, DetailView):
                 row_id=row.id,
                 image_assets=_image_asset_lookup(dataset, [row]),
                 colorize_tags=self.request.user.profile.choice_colorization_enabled,
+                colorize_calculated=self.request.user.profile.choice_colorization_enabled,
             ),
             form_values,
             allow_edit=row_is_editable,

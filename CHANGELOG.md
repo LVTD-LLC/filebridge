@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-07-28
+
+### Changed
+- Formula results now use a distinct calculated-value treatment in authenticated
+  dataset views when the user's Colorize preference is enabled.
+
 ## 2026-07-27
 
 ### Added
