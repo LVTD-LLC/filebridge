@@ -281,6 +281,21 @@ def test_dataset_relationship_count_calculated_column_reads_live_counts(api_clie
         "calculation": "relationship_count",
         "relationship_key": relationship_key,
     }
+    formula_response = api_client.post(
+        f"/api/datasets/{people.key}/columns",
+        data={
+            "name": "has_connections",
+            "column_type": {
+                "type": "calculated",
+                "calculation": "formula",
+                "result_type": "boolean",
+                "formula": "{connection_count} > 0",
+            },
+        },
+        content_type="application/json",
+    )
+    assert formula_response.status_code == 400
+    assert "cannot reference relationship-count column" in formula_response.json()["detail"]
     people.refresh_from_db()
     assert people.rows.filter(data__has_key="connection_count").exists() is False
 

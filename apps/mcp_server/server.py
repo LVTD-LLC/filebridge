@@ -90,6 +90,11 @@ from rowset.utils import get_rowset_logger
 logger = get_rowset_logger(__name__)
 AGENT_API_KEY_PROFILE_ATTR = "_rowset_agent_api_key"
 DATASET_IDENTIFIER_DESCRIPTION = "Rowset dataset key, public key, or Rowset dataset/row URL."
+FORMULA_COLUMN_DESCRIPTION = (
+    'For a row formula, pass {"type": "calculated", "calculation": "formula", '
+    '"result_type": "date", "formula": "DATEADD({last_contact}, 3, \\"weeks\\")"}. '
+    "Formula functions include IF, SWITCH, AND, OR, NOT, DATEADD, TODAY, and NOW. "
+)
 RETRYABLE_ERROR_CODES = {
     "RATE_LIMITED",
     "ROWSET_SERVICE_ERROR",
@@ -1152,7 +1157,8 @@ def create_dataset(
             description=(
                 "Optional mapping from header name to semantic column type or metadata. "
                 "Supported types include text, tags, image, audio, choice, integer, number, "
-                "currency, boolean, date, datetime, email, url, and reference. For choice "
+                "currency, boolean, date, datetime, email, url, reference, and calculated. "
+                "For choice "
                 "columns, pass metadata "
                 "like "
                 '{"type": "choice", "choices": ["Ready to do", "Doing", "Done"]}. '
@@ -1160,6 +1166,7 @@ def create_dataset(
                 "string unchanged and renders nonblank segments as UI pills. "
                 'For a dataset or project reference column, pass {"type": "reference", '
                 '"target": "dataset"} or {"type": "reference", "target": "project"}. '
+                f"{FORMULA_COLUMN_DESCRIPTION}"
                 'Add "description" to any metadata object to give agents column context.'
             ),
         ),
@@ -1297,7 +1304,9 @@ def update_dataset_column_types(
                 '"target": "dataset"} or '
                 '{"type": "reference", "target": "project"}. For a calculated count from an '
                 'incoming relationship, pass {"type": "calculated", "calculation": '
-                '"relationship_count", "relationship_key": "..."}. Add '
+                '"relationship_count", "relationship_key": "..."}. '
+                f"{FORMULA_COLUMN_DESCRIPTION}"
+                "Add "
                 '"description" to any metadata object to give agents column context.'
             ),
         ),
@@ -1349,7 +1358,9 @@ def add_column(
                 '"target": "dataset"} or '
                 '{"type": "reference", "target": "project"}. For a calculated count from an '
                 'incoming relationship, pass {"type": "calculated", "calculation": '
-                '"relationship_count", "relationship_key": "..."}. Add '
+                '"relationship_count", "relationship_key": "..."}. '
+                f"{FORMULA_COLUMN_DESCRIPTION}"
+                "Add "
                 '"description" to the metadata object to give agents column context.'
             ),
         ),

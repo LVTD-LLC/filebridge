@@ -70,6 +70,7 @@ from apps.datasets.formulas import (
     FormulaExpression,
     FormulaLiteral,
     FormulaValidationError,
+    formula_column_references,
     parse_formula,
     validate_formula_dependencies,
 )
@@ -1134,7 +1135,11 @@ def calculated_formula_columns(
 
 
 def column_value_type(column: dict[str, Any]) -> str:
-    return _formula_column_result_type(column)
+    if column["type"] != DatasetColumnType.CALCULATED:
+        return str(column["type"])
+    if column.get("calculation") == CALCULATION_RELATIONSHIP_COUNT:
+        return DatasetColumnType.INTEGER
+    return str(column["result_type"])
 
 
 def validate_calculated_formula_columns(
@@ -1223,10 +1228,11 @@ def _safe_text_cast(expression, result_type: str):
         DatasetColumnType.CURRENCY,
     }:
         output_field = _formula_output_field(result_type)
+        normalized_text = _normalized_numeric_text_expression(text_expression)
         return Case(
             When(
-                Regex(text_expression, Value(ROW_NUMERIC_SORT_PATTERN)),
-                then=Cast(text_expression, output_field),
+                Regex(normalized_text, Value(ROW_NUMERIC_SORT_PATTERN)),
+                then=Cast(normalized_text, output_field),
             ),
             default=Value(None, output_field=output_field),
             output_field=output_field,
@@ -1237,6 +1243,14 @@ def _safe_text_cast(expression, result_type: str):
             When(
                 Regex(text_expression, Value(ROW_DATETIME_SORT_PATTERN)),
                 then=Cast(text_expression, output_field),
+            ),
+            When(
+                Regex(text_expression, Value(ROW_SLASH_YMD_DATETIME_SORT_PATTERN)),
+                then=Cast(_slash_ymd_datetime_text_expression(text_expression), output_field),
+            ),
+            When(
+                Regex(text_expression, Value(ROW_SLASH_MDY_DATETIME_SORT_PATTERN)),
+                then=Cast(_slash_mdy_datetime_text_expression(text_expression), output_field),
             ),
             default=Value(None, output_field=output_field),
             output_field=output_field,
@@ -1258,23 +1272,16 @@ def _safe_text_cast(expression, result_type: str):
     return text_expression
 
 
-def _formula_column_result_type(column: dict[str, Any]) -> str:
-    if column["type"] != DatasetColumnType.CALCULATED:
-        return str(column["type"])
-    if column.get("calculation") == CALCULATION_RELATIONSHIP_COUNT:
-        return DatasetColumnType.INTEGER
-    return str(column["result_type"])
-
-
 def _formula_truthy(compiled: _CompiledFormula):
     if compiled.result_type == DatasetColumnType.BOOLEAN:
-        return Exact(compiled.expression, Value(True))
+        return compiled.expression
     if compiled.result_type == DatasetColumnType.TEXT:
         return ~Exact(Trim(Cast(compiled.expression, TextField())), Value(""))
     return IsNull(compiled.expression, False)
 
 
 def _formula_comparison(left: _CompiledFormula, operator: str, right: _CompiledFormula):
+    left, right = _coerce_comparison_operands(left, right)
     comparisons = {
         "=": Exact,
         ">": GreaterThan,
@@ -1285,6 +1292,46 @@ def _formula_comparison(left: _CompiledFormula, operator: str, right: _CompiledF
     if operator == "!=":
         return ~Exact(left.expression, right.expression)
     return comparisons[operator](left.expression, right.expression)
+
+
+def _coerce_comparison_operands(
+    left: _CompiledFormula,
+    right: _CompiledFormula,
+) -> tuple[_CompiledFormula, _CompiledFormula]:
+    if left.result_type == right.result_type:
+        return left, right
+    if left.result_type in ROW_NUMERIC_SORT_TYPES and right.result_type in ROW_NUMERIC_SORT_TYPES:
+        return (
+            _cast_compiled_formula(left, DatasetColumnType.NUMBER),
+            _cast_compiled_formula(right, DatasetColumnType.NUMBER),
+        )
+    if left.result_type in ROW_DATETIME_SORT_TYPES and right.result_type in ROW_DATETIME_SORT_TYPES:
+        return (
+            _cast_compiled_formula(left, DatasetColumnType.DATETIME),
+            _cast_compiled_formula(right, DatasetColumnType.DATETIME),
+        )
+    if left.result_type == DatasetColumnType.TEXT:
+        return _cast_compiled_formula(left, right.result_type), right
+    if right.result_type == DatasetColumnType.TEXT:
+        return left, _cast_compiled_formula(right, left.result_type)
+    raise DatasetValidationError(
+        f"Cannot compare {left.result_type} and {right.result_type} values."
+    )
+
+
+def _coerce_case_results(
+    results: list[_CompiledFormula],
+) -> tuple[list[_CompiledFormula], str]:
+    result_types = {result.result_type for result in results}
+    if len(result_types) == 1:
+        return results, results[0].result_type
+    if result_types <= ROW_NUMERIC_SORT_TYPES:
+        result_type = DatasetColumnType.NUMBER
+    elif result_types <= ROW_DATETIME_SORT_TYPES:
+        result_type = DatasetColumnType.DATETIME
+    else:
+        result_type = DatasetColumnType.TEXT
+    return [_cast_compiled_formula(result, result_type) for result in results], result_type
 
 
 def _formula_dateadd(
@@ -1337,15 +1384,19 @@ def _formula_case_expression(
 ) -> _CompiledFormula:
     if call.name == "IF":
         condition = _formula_truthy(compile_expression(call.arguments[0]))
-        truthy = compile_expression(call.arguments[1])
-        falsey = compile_expression(call.arguments[2])
+        (truthy, falsey), result_type = _coerce_case_results(
+            [
+                compile_expression(call.arguments[1]),
+                compile_expression(call.arguments[2]),
+            ]
+        )
         return _CompiledFormula(
             Case(
                 When(condition, then=truthy.expression),
                 default=falsey.expression,
-                output_field=_formula_output_field(truthy.result_type),
+                output_field=_formula_output_field(result_type),
             ),
-            truthy.result_type,
+            result_type,
         )
 
     selected = compile_expression(call.arguments[0])
@@ -1353,23 +1404,33 @@ def _formula_case_expression(
     default_expression = None
     if len(remaining) % 2 == 1:
         default_expression = compile_expression(remaining.pop())
-    pairs = zip(remaining[::2], remaining[1::2], strict=True)
+    compiled_pairs = [
+        (compile_expression(match_expression), compile_expression(result_expression))
+        for match_expression, result_expression in zip(
+            remaining[::2],
+            remaining[1::2],
+            strict=True,
+        )
+    ]
+    case_results = [result for _, result in compiled_pairs]
+    if default_expression is not None:
+        case_results.append(default_expression)
+    coerced_results, result_type = _coerce_case_results(case_results)
+    pair_results = iter(coerced_results)
     whens = []
-    result_type = default_expression.result_type if default_expression else DatasetColumnType.TEXT
-    for match_expression, result_expression in pairs:
-        match = compile_expression(match_expression)
-        result = compile_expression(result_expression)
-        result_type = result.result_type
+    for match, _result in compiled_pairs:
+        result = next(pair_results)
         whens.append(
             When(
-                Exact(selected.expression, match.expression),
+                _formula_comparison(selected, "=", match),
                 then=result.expression,
             )
         )
+    coerced_default = next(pair_results) if default_expression is not None else None
     output_field = _formula_output_field(result_type)
     default = (
-        default_expression.expression
-        if default_expression is not None
+        coerced_default.expression
+        if coerced_default is not None
         else Value(None, output_field=output_field)
     )
     return _CompiledFormula(
@@ -1381,13 +1442,27 @@ def _formula_case_expression(
 def _cast_compiled_formula(compiled: _CompiledFormula, result_type: str) -> _CompiledFormula:
     if result_type == DatasetColumnType.BOOLEAN:
         return _CompiledFormula(_formula_truthy(compiled), result_type)
-    if compiled.result_type == result_type and result_type not in {
-        DatasetColumnType.DATE,
-        DatasetColumnType.DATETIME,
-    }:
+    if compiled.result_type == result_type:
+        if result_type in ROW_DATETIME_SORT_TYPES:
+            return _CompiledFormula(
+                Cast(compiled.expression, _formula_output_field(result_type)),
+                result_type,
+            )
         return compiled
+    if result_type == DatasetColumnType.TEXT:
+        return _CompiledFormula(Cast(compiled.expression, TextField()), result_type)
+    if compiled.result_type in ROW_NUMERIC_SORT_TYPES and result_type in ROW_NUMERIC_SORT_TYPES:
+        return _CompiledFormula(
+            Cast(compiled.expression, _formula_output_field(result_type)),
+            result_type,
+        )
+    if compiled.result_type in ROW_DATETIME_SORT_TYPES and result_type in ROW_DATETIME_SORT_TYPES:
+        return _CompiledFormula(
+            Cast(compiled.expression, _formula_output_field(result_type)),
+            result_type,
+        )
     return _CompiledFormula(
-        Cast(compiled.expression, _formula_output_field(result_type)),
+        _safe_text_cast(compiled.expression, result_type),
         result_type,
     )
 
@@ -1402,6 +1477,17 @@ class _FormulaCompiler:
         self.column_map = {
             column["name"]: column for column in column_definitions(headers, column_schema)
         }
+        for formula_name, expression in self.parsed_formulas.items():
+            for referenced_name in formula_column_references(expression):
+                referenced_column = self.column_map[referenced_name]
+                if (
+                    referenced_column["type"] == DatasetColumnType.CALCULATED
+                    and referenced_column.get("calculation") == CALCULATION_RELATIONSHIP_COUNT
+                ):
+                    raise DatasetValidationError(
+                        f"Formula column '{formula_name}' cannot reference relationship-count "
+                        f"column '{referenced_name}'."
+                    )
         self.relationship_expressions = self._relationship_expressions()
         self.compiled_columns: dict[str, _CompiledFormula] = {}
 
@@ -1428,7 +1514,7 @@ class _FormulaCompiler:
         if cached is not None:
             return cached
         column = self.column_map[header]
-        result_type = _formula_column_result_type(column)
+        result_type = column_value_type(column)
         if header in self.parsed_formulas:
             compiled = _cast_compiled_formula(
                 self.compile_expression(self.parsed_formulas[header]),
@@ -1514,31 +1600,19 @@ def calculated_formula_value_expressions(
     headers: list[str] | None = None,
     column_schema: dict | None = None,
 ) -> dict[str, Any]:
-    selected_headers = headers or dataset.headers
+    selected_headers = headers if headers is not None else dataset.headers
     selected_schema = column_schema if column_schema is not None else dataset.column_schema
     return _FormulaCompiler(dataset, selected_headers, selected_schema).expressions()
 
 
 def calculated_column_value_expressions(dataset) -> dict[str, Any]:
-    columns_by_relationship_key = _relationship_count_columns_by_relationship_key(
+    compiler = _FormulaCompiler(
+        dataset,
         dataset.headers,
         dataset.column_schema,
     )
-    relationships = _calculated_relationships_by_key(dataset, columns_by_relationship_key.keys())
-    expressions = calculated_formula_value_expressions(dataset)
-    for relationship_key, columns in columns_by_relationship_key.items():
-        relationship = relationships.get(relationship_key)
-        if relationship is None:
-            for column in columns:
-                expressions[column["name"]] = Value(
-                    None,
-                    output_field=IntegerField(),
-                )
-            continue
-
-        count_expression = _relationship_count_expression(relationship)
-        for column in columns:
-            expressions[column["name"]] = count_expression
+    expressions = dict(compiler.relationship_expressions)
+    expressions.update(compiler.expressions())
     return expressions
 
 
@@ -1615,6 +1689,40 @@ def _calculated_value_text(value: object) -> str:
     return str(value)
 
 
+def _apply_formula_values(
+    dataset,
+    rows: list,
+    formula_columns: list[dict[str, Any]],
+    values_by_row_id: dict[int, dict[str, str]],
+) -> None:
+    formula_expressions = calculated_formula_value_expressions(dataset)
+    aliases = {
+        calculated_column_query_alias(header): expression
+        for header, expression in formula_expressions.items()
+    }
+    rows_needing_formula_query = []
+    for row in rows:
+        if row.id is None:
+            continue
+        if not all(hasattr(row, alias) for alias in aliases):
+            rows_needing_formula_query.append(row)
+            continue
+        row_values = values_by_row_id.setdefault(row.id, {})
+        for column in formula_columns:
+            alias = calculated_column_query_alias(column["name"])
+            row_values[column["name"]] = _calculated_value_text(getattr(row, alias))
+
+    for result in (
+        DatasetRow.objects.filter(id__in=[row.id for row in rows_needing_formula_query])
+        .annotate(**aliases)
+        .values("id", *aliases)
+    ):
+        row_values = values_by_row_id.setdefault(result["id"], {})
+        for column in formula_columns:
+            alias = calculated_column_query_alias(column["name"])
+            row_values[column["name"]] = _calculated_value_text(result[alias])
+
+
 def calculated_row_values_for_rows(dataset, rows) -> dict[int, dict[str, str]]:
     row_list = list(rows)
     columns_by_relationship_key = _relationship_count_columns_by_relationship_key(
@@ -1644,20 +1752,7 @@ def calculated_row_values_for_rows(dataset, rows) -> dict[int, dict[str, str]]:
             _relationship_count_rows(relationship, index_values),
         )
     if formula_columns:
-        formula_expressions = calculated_formula_value_expressions(dataset)
-        aliases = {
-            calculated_column_query_alias(header): expression
-            for header, expression in formula_expressions.items()
-        }
-        for result in (
-            DatasetRow.objects.filter(id__in=[row.id for row in row_list if row.id is not None])
-            .annotate(**aliases)
-            .values("id", *aliases)
-        ):
-            row_values = values_by_row_id.setdefault(result["id"], {})
-            for column in formula_columns:
-                alias = calculated_column_query_alias(column["name"])
-                row_values[column["name"]] = _calculated_value_text(result[alias])
+        _apply_formula_values(dataset, row_list, formula_columns, values_by_row_id)
     return values_by_row_id
 
 

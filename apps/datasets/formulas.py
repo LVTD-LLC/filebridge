@@ -44,6 +44,7 @@ SUPPORTED_FORMULA_FUNCTIONS = {
     "TODAY",
 }
 MAX_FORMULA_LENGTH = 4000
+MAX_FORMULA_DEPTH = 32
 COMPARISON_OPERATORS = (">=", "<=", "!=", "=", ">", "<")
 NUMBER_PATTERN = re.compile(r"-?\d+(?:\.\d+)?")
 IDENTIFIER_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
@@ -53,6 +54,7 @@ class _FormulaParser:
     def __init__(self, formula: str):
         self.formula = formula
         self.position = 0
+        self.depth = 0
 
     def parse(self) -> FormulaExpression:
         self._skip_whitespace()
@@ -73,13 +75,21 @@ class _FormulaParser:
             self.position += 1
 
     def _parse_expression(self) -> FormulaExpression:
-        left = self._parse_primary()
-        self._skip_whitespace()
-        operator = self._match_operator()
-        if operator is None:
-            return left
-        right = self._parse_primary()
-        return FormulaComparison(left=left, operator=operator, right=right)
+        self.depth += 1
+        if self.depth > MAX_FORMULA_DEPTH:
+            raise FormulaValidationError(
+                f"Formula nesting cannot exceed {MAX_FORMULA_DEPTH} levels."
+            )
+        try:
+            left = self._parse_primary()
+            self._skip_whitespace()
+            operator = self._match_operator()
+            if operator is None:
+                return left
+            right = self._parse_primary()
+            return FormulaComparison(left=left, operator=operator, right=right)
+        finally:
+            self.depth -= 1
 
     def _parse_primary(self) -> FormulaExpression:
         self._skip_whitespace()

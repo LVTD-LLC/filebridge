@@ -437,6 +437,31 @@ stored values are outside the allowed choices. Updating an existing column to
 `image` fails unless stored values are blank or existing Rowset asset
 references.
 
+Formula columns are read-only values evaluated from each row when data is read,
+filtered, sorted, or exported. Update an existing formula column with the same
+`column_types` envelope:
+
+```json
+{
+  "column_types": {
+    "next_contact": {
+      "type": "calculated",
+      "calculation": "formula",
+      "result_type": "date",
+      "formula": "DATEADD({last_contact}, 3, \"weeks\")"
+    }
+  }
+}
+```
+
+Supported formula functions are `IF`, `SWITCH`, `AND`, `OR`, `NOT`, `DATEADD`,
+`TODAY`, and `NOW`. Formula result types are `text`, `integer`, `number`,
+`currency`, `boolean`, `date`, and `datetime`. Column references use braces,
+such as `{last_contact}`. Row writes ignore calculated values, formulas cannot
+form dependency cycles, and formula columns cannot reference relationship-count
+columns. Referenced source columns cannot be renamed or dropped until the
+formula is updated or removed.
+
 ## Attach an image
 
 Use the image attach endpoints after the target row exists. The request body
@@ -555,6 +580,21 @@ Content-Type: application/json
     "type": "choice",
     "description": "Controls whether this row can be shared outside the team",
     "choices": ["internal", "shared"]
+  }
+}
+```
+
+To add a formula column, use the same endpoint with calculated column metadata
+and omit `default_value`:
+
+```json
+{
+  "name": "is_due",
+  "column_type": {
+    "type": "calculated",
+    "calculation": "formula",
+    "result_type": "boolean",
+    "formula": "AND({next_contact}, TODAY() >= {next_contact})"
   }
 }
 ```

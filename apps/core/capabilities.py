@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
-CAPABILITY_VERSION = "2026-07-17"
+CAPABILITY_VERSION = "2026-07-27"
 
 
 class CapabilitySelectionError(ValueError):
@@ -210,6 +210,12 @@ ROWSET_CAPABILITIES = (
                 'Use {"type": "calculated", "calculation": "relationship_count", '
                 '"relationship_key": "..."} on the target dataset to count source rows '
                 "from an incoming relationship."
+            ),
+            (
+                'Use {"type": "calculated", "calculation": "formula", '
+                '"result_type": "date", "formula": '
+                '"DATEADD({last_contact}, 3, \\"weeks\\")"} for read-only row formulas. '
+                "Supported functions are IF, SWITCH, AND, OR, NOT, DATEADD, TODAY, and NOW."
             ),
             (
                 'Use {"type": "reference", "target": "dataset"} when a column stores '

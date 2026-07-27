@@ -21,6 +21,9 @@ deployment or release cut date.
 ### Added
 - Added an AI-ready data guide with a seven-question operational checklist for
   agent identity, schema, provenance, permissions, and verification.
+- Added typed, read-only formula columns with live row evaluation, dependency
+  validation, filtering, sorting, exports, REST and MCP metadata, and a
+  progressively enhanced dataset-settings editor.
 
 ## 2026-07-26
 

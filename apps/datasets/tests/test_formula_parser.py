@@ -35,3 +35,10 @@ def test_parse_formula_builds_calls_comparisons_and_column_references():
 def test_parse_formula_rejects_invalid_or_unsupported_expressions(formula, message):
     with pytest.raises(FormulaValidationError, match=re.escape(message)):
         parse_formula(formula)
+
+
+def test_parse_formula_rejects_excessive_nesting():
+    formula = f"{'NOT(' * 40}TRUE{')' * 40}"
+
+    with pytest.raises(FormulaValidationError, match="nesting cannot exceed 32 levels"):
+        parse_formula(formula)

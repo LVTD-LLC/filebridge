@@ -54,10 +54,13 @@ spreadsheet write-back as active product capabilities.
   `update_dataset_metadata`.
 - Persist semantic column metadata with `update_dataset_column_types`.
 - Supported column types: `text`, `tags`, `choice`, `integer`, `number`, `currency`,
-  `boolean`, `date`, `datetime`, `email`, and `url`.
+  `boolean`, `date`, `datetime`, `email`, `url`, `reference`, and `calculated`.
 - Use column descriptions when an agent should not infer meaning from a header.
 - Use `tags` for comma-separated string values that should render as individual
   pills without changing row data returned through MCP or REST.
+- Formula columns are read-only live values. Set `calculation` to `formula`,
+  provide a `result_type` and formula expression, and use `IF`, `SWITCH`, `AND`,
+  `OR`, `NOT`, `DATEADD`, `TODAY`, or `NOW`.
 
 ### Schema changes
 
@@ -65,8 +68,8 @@ spreadsheet write-back as active product capabilities.
 - Rename columns with `rename_column`.
 - Drop non-index columns with `drop_column`.
 - Reorder columns with `reorder_columns`.
-- Relationship columns and target index columns must be unlinked before
-  destructive schema changes.
+- Relationship columns, target index columns, and columns referenced by formulas
+  must be unlinked or updated before destructive schema changes.
 
 ### Relationships
 
