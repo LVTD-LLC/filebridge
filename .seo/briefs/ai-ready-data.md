@@ -107,8 +107,8 @@ Outbound:
 
 Inbound additions:
 
-- `/docs/design-schema`
 - `/blog/agent-managed-datasets`
+- `/blog/ai-data-cleaning-agent`
 
 ## AI SEO check
 
