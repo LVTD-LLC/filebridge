@@ -58,6 +58,7 @@ from apps.datasets.embeddings import (
     EmbeddingProviderError,
     get_embedding_provider,
 )
+from apps.datasets.formulas import formula_column_references, parse_formula
 from apps.datasets.history import record_dataset_mutation
 from apps.datasets.models import (
     DATASET_ASSET_STORAGE_ALIAS,
@@ -75,6 +76,7 @@ from apps.datasets.public_previews import (
     update_public_preview_settings,
 )
 from apps.datasets.services import (
+    CALCULATION_FORMULA,
     COLUMN_SCHEMA_REFERENCE_TARGET_KEY,
     COLUMN_SCHEMA_TYPE_KEY,
     DATASET_REFERENCE_TARGET,
@@ -87,6 +89,8 @@ from apps.datasets.services import (
     apply_dataset_rows_query,
     audio_columns_from_schema,
     calculated_column_names,
+    calculated_formula_columns,
+    calculated_formula_value_expressions,
     calculated_relationship_count_columns,
     calculated_row_values_for_rows,
     choice_constraints_from_schema,
@@ -2232,6 +2236,15 @@ def _validate_existing_calculated_columns(
     headers: list[str],
     column_schema: dict,
 ) -> None:
+    try:
+        calculated_formula_value_expressions(
+            dataset,
+            headers=headers,
+            column_schema=column_schema,
+        )
+    except DatasetValidationError as exc:
+        raise DatasetServiceError(400, str(exc)) from exc
+
     columns = calculated_relationship_count_columns(headers, column_schema)
     if not columns:
         return
@@ -2255,18 +2268,28 @@ def _validate_existing_calculated_columns(
             )
 
 
-def _raise_if_schema_has_calculated_columns(headers: list[str], column_schema: dict) -> None:
-    column_names = sorted(calculated_column_names(headers, column_schema))
-    if not column_names:
-        return
-    joined = ", ".join(column_names)
-    raise DatasetServiceError(
-        400,
-        (
-            "Calculated columns require an existing dataset relationship. Create the dataset, "
-            f"create the relationship, then add calculated column(s): {joined}."
-        ),
+def _validate_new_dataset_calculated_columns(headers: list[str], column_schema: dict) -> None:
+    column_names = sorted(
+        column["name"] for column in calculated_relationship_count_columns(headers, column_schema)
     )
+    if column_names:
+        joined = ", ".join(column_names)
+        raise DatasetServiceError(
+            400,
+            (
+                "Calculated relationship counts require an existing dataset relationship. "
+                "Create the dataset, create the relationship, then add calculated column(s): "
+                f"{joined}."
+            ),
+        )
+    try:
+        calculated_formula_value_expressions(
+            None,
+            headers=headers,
+            column_schema=column_schema,
+        )
+    except DatasetValidationError as exc:
+        raise DatasetServiceError(400, str(exc)) from exc
 
 
 def _validate_existing_audio_values(dataset: Dataset, column_schema: dict) -> None:
@@ -2395,7 +2418,12 @@ def create_profile_dataset(
         rows=normalized_rows,
         column_types=column_types,
     )
-    _raise_if_schema_has_calculated_columns(dataset_headers, column_schema)
+    _validate_new_dataset_calculated_columns(dataset_headers, column_schema)
+    writable_headers = [
+        header
+        for header in dataset_headers
+        if header not in calculated_column_names(dataset_headers, column_schema)
+    ]
     _validate_choice_rows(base_headers, column_schema, normalized_rows)
     _validate_image_rows(base_headers, column_schema, normalized_rows)
     _validate_audio_rows(base_headers, column_schema, normalized_rows)
@@ -2414,13 +2442,17 @@ def create_profile_dataset(
             index_value = str(row_number)
             serialized_data = {
                 index_column: index_value,
-                **{header: row_data.get(header, "") for header in base_headers},
+                **{
+                    header: row_data.get(header, "")
+                    for header in writable_headers
+                    if header != index_column
+                },
             }
         else:
             index_value = row_data.get(index_column, "").strip()
             if not index_value:
                 raise DatasetServiceError(400, f"Index column '{index_column}' is required.")
-            serialized_data = {header: row_data.get(header, "") for header in dataset_headers}
+            serialized_data = {header: row_data.get(header, "") for header in writable_headers}
 
         if index_value in seen_index_values:
             raise DatasetServiceError(
@@ -2567,6 +2599,40 @@ def update_profile_dataset_column_types(
         "message": "Column types updated.",
         "dataset": serialize_dataset_summary(dataset),
     }
+
+
+def update_profile_dataset_formula_column(
+    profile: Profile,
+    dataset_key: str,
+    *,
+    name: str,
+    result_type: str,
+    formula: str,
+) -> dict:
+    with transaction.atomic():
+        dataset = _get_profile_dataset_from_queryset(
+            Dataset.objects.select_for_update(),
+            profile,
+            dataset_key,
+        )
+        formula_names = {
+            column["name"]
+            for column in calculated_formula_columns(dataset.headers, dataset.column_schema)
+        }
+        if name not in formula_names:
+            raise DatasetServiceError(400, "Formula column not found.")
+        return update_profile_dataset_column_types(
+            profile,
+            dataset_key,
+            {
+                name: {
+                    "type": DatasetColumnType.CALCULATED,
+                    "calculation": CALCULATION_FORMULA,
+                    "result_type": result_type,
+                    "formula": formula,
+                }
+            },
+        )
 
 
 def _dataset_metadata_state(dataset: Dataset) -> dict[str, Any]:
@@ -2881,6 +2947,22 @@ def add_profile_dataset_column(
     }
 
 
+def _raise_if_column_is_referenced_by_formula(dataset: Dataset, column_name: str) -> None:
+    for formula_column in calculated_formula_columns(
+        dataset.headers,
+        dataset.column_schema,
+    ):
+        references = formula_column_references(parse_formula(formula_column["formula"]))
+        if column_name in references:
+            raise DatasetServiceError(
+                409,
+                (
+                    f"Column '{column_name}' is referenced by formula column "
+                    f"'{formula_column['name']}'. Update or drop the formula column first."
+                ),
+            )
+
+
 def rename_profile_dataset_column(
     profile: Profile,
     dataset_key: str,
@@ -2894,6 +2976,7 @@ def rename_profile_dataset_column(
         dataset = get_active_profile_dataset_for_update(profile, dataset_key)
         old_column_name = _normalize_existing_column_name(dataset, old_name)
         _raise_if_column_participates_in_relationship(dataset, old_column_name)
+        _raise_if_column_is_referenced_by_formula(dataset, old_column_name)
         if dataset.index_generated and old_column_name == dataset.index_column:
             raise DatasetServiceError(
                 400,
@@ -2978,6 +3061,7 @@ def drop_profile_dataset_column(
         dataset = get_active_profile_dataset_for_update(profile, dataset_key)
         column_name = _normalize_existing_column_name(dataset, name)
         _raise_if_column_participates_in_relationship(dataset, column_name)
+        _raise_if_column_is_referenced_by_formula(dataset, column_name)
         if column_name == dataset.index_column:
             raise DatasetServiceError(
                 400,

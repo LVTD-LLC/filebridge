@@ -24,11 +24,11 @@ email addresses, or `person_id` when one person can have several addresses.
 
 People dataset indexed by email or person_id.
 
-| email | name | company | relationship_stage | last_interaction | next_action | notes |
+| email | name | company | contact_category | last_interaction | next_contact | notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| alex@example.com | Alex Morgan | Northstar Labs | follow up | 2026-07-01 | Send pricing notes | Asked for implementation examples |
-| sam@studio.dev | Sam Lee | Studio Dev | warm | 2026-06-24 | Share demo recap | Intro from May conference |
-| nora@acme.com | Nora Patel | Acme | waiting | 2026-06-28 | Check in after demo | Wants security details |
+| alex@example.com | Alex Morgan | Northstar Labs | A | 2026-07-01 | 2026-07-22 | Asked for implementation examples |
+| sam@studio.dev | Sam Lee | Studio Dev | B | 2026-06-24 | 2026-08-24 | Intro from May conference |
+| nora@acme.com | Nora Patel | Acme | C | 2026-06-28 | 2026-12-28 | Wants security details |
 
 ## Agent jobs
 
@@ -43,6 +43,27 @@ Add instructions that define stage meanings, follow-up rules, and what counts as
 private notes. Mark `email` as an email column, `last_interaction` as a date,
 and `next_action` as free text. Keep the agent honest: it should update rows
 only from trusted notes or direct user instruction.
+
+## Calculate follow-up dates
+
+Create `next_contact` as a date formula when each contact category has a fixed
+cadence:
+
+```text
+SWITCH(
+  {contact_category},
+  "A", DATEADD({last_interaction}, 3, "weeks"),
+  "B", DATEADD({last_interaction}, 2, "months"),
+  "C", DATEADD({last_interaction}, 6, "months"),
+  "D", DATEADD({last_interaction}, 12, "months")
+)
+```
+
+Add a boolean formula such as
+`AND({next_contact}, TODAY() >= {next_contact})` to make due contacts directly
+filterable through MCP, REST, and the dataset view. Formula columns calculate
+live and remain read-only; your agent only updates source fields such as
+`last_interaction` and `contact_category`.
 
 ## Connect it
 

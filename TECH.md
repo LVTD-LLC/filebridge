@@ -80,7 +80,9 @@ contents.
 - Stored row data is string-keyed by dataset headers.
 - Semantic column metadata supports hidden column descriptions plus `text`,
   `tags`, `choice`, `integer`, `number`, `currency`, `boolean`, `date`, `datetime`,
-  `email`, and `url` types.
+  `email`, `url`, `reference`, image/audio asset, and read-only calculated types.
+- Calculated formula columns use a validated expression language and compile to
+  database expressions for live reads, filters, sorting, previews, and exports.
 
 ## API And MCP Rules
 

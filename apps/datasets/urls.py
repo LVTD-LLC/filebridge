@@ -107,6 +107,11 @@ urlpatterns = [
         name="dataset_create_relationship_count_column",
     ),
     path(
+        "datasets/<uuid:dataset_key>/settings/formulas/",
+        views.dataset_upsert_formula_column,
+        name="dataset_upsert_formula_column",
+    ),
+    path(
         "datasets/<uuid:dataset_key>/settings/metadata/",
         views.dataset_update_metadata,
         name="dataset_update_metadata",

@@ -54,6 +54,13 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="#formula-columns-panel"
+                                   class="fb-focus block rounded-md px-3 py-2 font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-slate-900 dark:hover:text-white">
+                                    Formula columns
+                                    <span class="mt-0.5 block text-xs font-normal leading-5 text-slate-500 dark:text-slate-400">Live calculated values</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="#public-preview"
                                    class="fb-focus block rounded-md px-3 py-2 font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-slate-900 dark:hover:text-white">
                                     Public preview
@@ -365,6 +372,7 @@
                                 </div>
                             </form>
                         </section>
+                        {% include "components/dataset_formula_columns_panel.html" %}
                     </section>
                     <section class="space-y-4" aria-labelledby="sharing-settings-group-heading">
                         <div class="border-b border-slate-200 pb-3 dark:border-slate-800">

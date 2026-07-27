@@ -37,6 +37,7 @@ from apps.api.services import (
     search_profile_projects,
     search_profile_rows,
     update_profile_dataset_column_types,
+    update_profile_dataset_formula_column,
     update_profile_dataset_metadata,
     update_profile_dataset_project,
     update_profile_dataset_public_preview,
@@ -56,9 +57,11 @@ from apps.datasets.public_previews import (
     set_public_dataset_request_context,
 )
 from apps.datasets.services import (
+    CALCULATION_FORMULA,
     CALCULATION_RELATIONSHIP_COUNT,
     DATASET_ASSET_CACHE_CONTROL,
     DATASET_REFERENCE_TARGET,
+    FORMULA_RESULT_TYPES,
     PROJECT_REFERENCE_TARGET,
     ROW_DEFAULT_SORT,
     ROW_FILTER_ABOVE,
@@ -70,9 +73,11 @@ from apps.datasets.services import (
     apply_dataset_row_query,
     audio_columns_from_schema,
     calculated_column_names,
+    calculated_formula_columns,
     calculated_relationship_count_columns,
     calculated_row_values_for_rows,
     column_definitions,
+    column_value_type,
     dataset_asset_key_from_ref,
     dataset_row_data_with_calculated_values,
     dataset_row_filter_operators,
@@ -1350,7 +1355,7 @@ def _row_filter_fields(
     if columns is None:
         columns = column_definitions(dataset.headers, dataset.column_schema)
     for index, column in enumerate(columns):
-        column_type = column["type"]
+        column_type = column_value_type(column)
         param_name = f"{ROW_FILTER_PARAM_PREFIX}{index}"
         operator_param_name = f"{ROW_FILTER_OPERATOR_PARAM_PREFIX}{index}"
         value = request.GET.get(param_name, "").strip()
@@ -1393,14 +1398,12 @@ def _row_filter_fields(
                 "is_choice": column_type == DatasetColumnType.CHOICE,
                 "is_number": column_type
                 in {
-                    DatasetColumnType.CALCULATED,
                     DatasetColumnType.INTEGER,
                     DatasetColumnType.NUMBER,
                 },
                 "is_currency": column_type == DatasetColumnType.CURRENCY,
                 "is_numeric_filter": column_type
                 in {
-                    DatasetColumnType.CALCULATED,
                     DatasetColumnType.CURRENCY,
                     DatasetColumnType.INTEGER,
                     DatasetColumnType.NUMBER,
@@ -1559,6 +1562,35 @@ def _relationship_count_column_suggestion(relationship, headers: list[str]) -> s
         candidate = f"{base}_count_{suffix}"
         suffix += 1
     return candidate
+
+
+def _formula_columns_context(
+    dataset: Dataset,
+    *,
+    form_values: dict[str, str] | None = None,
+    formula_message: str = "",
+    formula_error: str = "",
+) -> dict:
+    return {
+        "dataset": dataset,
+        "formula_columns": calculated_formula_columns(
+            dataset.headers,
+            dataset.column_schema,
+        ),
+        "formula_result_type_choices": [
+            (value, label)
+            for value, label in DatasetColumnType.choices
+            if value in FORMULA_RESULT_TYPES
+        ],
+        "formula_form": form_values
+        or {
+            "name": "",
+            "result_type": DatasetColumnType.TEXT,
+            "formula": "",
+        },
+        "formula_message": formula_message,
+        "formula_error": formula_error,
+    }
 
 
 class DatasetListView(LoginRequiredMixin, ListView):
@@ -2399,6 +2431,7 @@ class DatasetSettingsView(LoginRequiredMixin, DetailView):
             sort_keys=True,
         )
         context.update(_dataset_relationship_context(self.object))
+        context.update(_formula_columns_context(self.object))
         return context
 
 
@@ -2682,6 +2715,76 @@ def dataset_create_relationship_count_column(request, dataset_key, relationship_
         messages.success(request, "Calculated count column added.")
 
     return redirect("dataset_settings", dataset_key=dataset_key)
+
+
+@login_required
+@require_POST
+@vary_on_headers("HX-Request")
+def dataset_upsert_formula_column(request, dataset_key):
+    dataset = get_object_or_404(
+        _owned_dataset_queryset(request.user.profile),
+        key=dataset_key,
+        archived_at__isnull=True,
+    )
+    existing_name = request.POST.get("existing_name", "").strip()
+    form_values = {
+        "name": request.POST.get("name", "").strip(),
+        "result_type": request.POST.get("result_type", "").strip(),
+        "formula": request.POST.get("formula", "").strip(),
+    }
+    formula_spec = {
+        "type": DatasetColumnType.CALCULATED,
+        "calculation": CALCULATION_FORMULA,
+        "result_type": form_values["result_type"],
+        "formula": form_values["formula"],
+    }
+    try:
+        if existing_name:
+            update_profile_dataset_formula_column(
+                request.user.profile,
+                str(dataset.key),
+                name=existing_name,
+                result_type=form_values["result_type"],
+                formula=form_values["formula"],
+            )
+            success_message = "Formula column updated."
+        else:
+            add_profile_dataset_column(
+                request.user.profile,
+                str(dataset.key),
+                name=form_values["name"],
+                column_type=formula_spec,
+            )
+            success_message = "Formula column added."
+    except DatasetServiceError as exc:
+        if exc.status_code == 404:
+            raise Http404(exc.message) from exc
+        error_message = exc.message
+        if request.htmx:
+            return render(
+                request,
+                "components/dataset_formula_columns_panel.html",
+                _formula_columns_context(
+                    dataset,
+                    form_values=form_values,
+                    formula_error=error_message,
+                ),
+            )
+        messages.error(request, error_message)
+    else:
+        if request.htmx:
+            dataset.refresh_from_db()
+            return render(
+                request,
+                "components/dataset_formula_columns_panel.html",
+                _formula_columns_context(
+                    dataset,
+                    formula_message=success_message,
+                ),
+            )
+        messages.success(request, success_message)
+
+    return redirect("dataset_settings", dataset_key=dataset.key)
 
 
 @login_required

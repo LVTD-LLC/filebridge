@@ -23,6 +23,20 @@ def test_capabilities_payload_includes_core_rowset_surfaces():
     assert {capability["id"] for capability in payload["capabilities"]} >= {"rows"}
 
 
+def test_capabilities_payload_describes_formula_columns():
+    payload = rowset_capabilities_payload(topics=["schema"])
+    dataset_context = next(
+        capability
+        for capability in payload["capabilities"]
+        if capability["id"] == "dataset_context"
+    )
+    notes = " ".join(dataset_context["notes"])
+
+    assert '"calculation": "formula"' in notes
+    assert "DATEADD" in notes
+    assert "NOW" in notes
+
+
 def test_capabilities_payload_rejects_unknown_use_case_feature_references(monkeypatch):
     monkeypatch.setattr(
         capabilities,

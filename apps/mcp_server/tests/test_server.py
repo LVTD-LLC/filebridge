@@ -614,6 +614,24 @@ def test_tags_column_type_is_explained_in_live_mcp_tool_schemas():
     anyio.run(run)
 
 
+def test_formula_column_type_is_explained_in_live_mcp_tool_schemas():
+    async def run():
+        async with Client(mcp) as client:
+            tools = {tool.name: tool for tool in await client.list_tools()}
+
+        for tool_name, property_name in (
+            ("create_dataset", "column_types"),
+            ("update_dataset_column_types", "column_types"),
+            ("add_column", "column_type"),
+        ):
+            description = tools[tool_name].inputSchema["properties"][property_name]["description"]
+            assert '"calculation": "formula"' in description
+            assert '"result_type": "date"' in description
+            assert "DATEADD" in description
+
+    anyio.run(run)
+
+
 def test_agent_collection_tools_have_small_exact_pagination_schemas():
     async def run():
         async with Client(mcp) as client:

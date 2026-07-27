@@ -22,7 +22,8 @@ COLUMN_TYPE_DESCRIPTION = (
     "values. Metadata supports type, "
     "description, image and audio columns, choice columns with choices, reference columns with "
     'target "dataset" or "project", and calculated relationship_count columns with '
-    "relationship_key."
+    'relationship_key. Row formulas use calculation "formula", a result_type, and a formula '
+    "expression with IF, SWITCH, AND, OR, NOT, DATEADD, TODAY, or NOW."
 )
 
 
