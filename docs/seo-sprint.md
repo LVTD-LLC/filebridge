@@ -39,7 +39,7 @@ The plan changed materially since the July 4 initialization:
 | 8 | Ship `/blog/connect-ai-agent-to-dataset-api` | Product guide | completed | #244 |
 | 9 | Retarget `/docs/database-mcp-server` around the `mcp database` cluster | Existing-page boost | completed | #343 |
 | 10 | Ship `/blog/spreadsheet-database-for-ai-agents` | Decision guide | completed | #349 |
-| 11 | Build the off-page starter target list and submission backlog | Off-page | pending | - |
+| 11 | Build the off-page starter target list and submission backlog | Off-page | completed | `scribe/seo-phase-11-backlink-research-20260727` (PR TBD) |
 | 12 | Ship `/vs/airtable` when a sales/use-case trigger exists | Compare | completed | #277 |
 | 13 | Review the fresh idempotency and agent-memory posts after 30 days of GSC data | Observation gate | pending | not before 2026-08-14 |
 | 14 | Ship `/vs/google-sheets` as the next requested comparison | Compare | completed | #280 |
@@ -236,6 +236,15 @@ agent-managed dataset guides.
 **Scope:** create `.seo/backlink-targets.json` with MCP directories, open-source/agent tool lists, database-MCP roundups, relevant product directories, and pages already linking to adjacent tools. Research and prepare submissions; do not send outreach or publish submissions without the required approval.
 
 **Quality gate:** every target has a source URL, relevance, target Rowset page, submission/contact path, status, and next action.
+
+**Completed 2026-07-27:** built a source-verified backlog of 16 qualified targets
+across the official MCP Registry, active MCP directories, a 91,000-star community
+list, open-source and software directories, launch surfaces, and current database
+MCP roundups. Each target records live requirements, cost/link caveats, the Rowset
+page to promote, status, and a concrete next action. The backlog also excludes
+read-only aggregators, a reference-only repository, weak/spammy directories, and
+premature review profiles. No listing, upstream pull request, outreach message, or
+paid submission was sent.
 
 ### Phase 12 - Rowset vs Airtable, Triggered by Use Rather Than Volume
 

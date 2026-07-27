@@ -1,0 +1,499 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-27",
+  "phase": 11,
+  "product": "Rowset",
+  "domain": "rowset.lvtd.dev",
+  "status": "research_complete_no_submissions_sent",
+  "baseline": {
+    "source": "dataforseo",
+    "as_of": "2026-07-27",
+    "confidence": "measured",
+    "rank": 7,
+    "backlinks": 2,
+    "referring_domains": 1,
+    "broken_backlinks": 1,
+    "notes": "DataForSEO now detects one referring domain. This remains a very low-authority baseline, so the first priority is trusted MCP ecosystem distribution rather than high-volume generic directory submission."
+  },
+  "research_method": {
+    "dataforseo": {
+      "status": "connected",
+      "used_for": [
+        "Rowset backlink baseline",
+        "referring-domain samples for Baserow, NocoDB, and Grist",
+        "live Google US SERPs for MCP directories, database MCP roundups, AI-agent directories, and Airtable alternatives",
+        "domain rank, referring-domain, backlink, and spam-score checks for shortlisted targets"
+      ]
+    },
+    "exa": {
+      "status": "connected",
+      "used_for": [
+        "MCP submission-path discovery",
+        "database MCP roundup discovery",
+        "open-source alternative directory discovery"
+      ]
+    },
+    "firecrawl": {
+      "status": "connected",
+      "used_for": [
+        "live extraction of official registry, MCP directory, Smithery, and SaaSHub submission requirements"
+      ]
+    },
+    "jina": {
+      "status": "connected",
+      "used_for": [
+        "live extraction of database MCP and general MCP listicles before qualification"
+      ]
+    },
+    "github": {
+      "status": "connected",
+      "used_for": [
+        "community-list contribution rules, repository activity, stars, and recent merged submissions"
+      ]
+    },
+    "qualification_rules": [
+      "Prefer MCP-native surfaces and source-backed editorial targets over generic launch directories.",
+      "Keep Rowset positioned as an agent-managed dataset layer, not a direct SQL proxy or spreadsheet replacement.",
+      "Record paid, nofollow, account-age, authentication, and packaging constraints before submission.",
+      "Do not submit, publish, open upstream pull requests, or send outreach during this research phase."
+    ]
+  },
+  "priority_order": [
+    "official-mcp-registry",
+    "punkpeye-awesome-mcp-servers",
+    "mcp-directory",
+    "glama",
+    "mcpservers-org",
+    "mcp-so",
+    "saashub",
+    "alternativeto",
+    "openalternative",
+    "opensourcealternative-to",
+    "product-hunt",
+    "mcp-directory-database-roundup",
+    "developers-digest-mcp-directory",
+    "bill-doerrfeld-database-mcp-roundup",
+    "k2view-awesome-mcp-roundup",
+    "smithery"
+  ],
+  "targets": [
+    {
+      "id": "official-mcp-registry",
+      "bucket": "mcp_registry",
+      "name": "Official MCP Registry",
+      "domain": "modelcontextprotocol.io",
+      "source_url": "https://modelcontextprotocol.io/registry/remote-servers",
+      "submission_or_contact_url": "https://modelcontextprotocol.io/registry/quickstart",
+      "target_rowset_page": "https://rowset.lvtd.dev/docs/database-mcp-server",
+      "relevance": "The canonical registry supports remote Streamable HTTP servers and secret HTTP-header configuration. Registry entries can also propagate to downstream aggregators.",
+      "evidence": "Official documentation shows a remotes entry for Streamable HTTP and a headers array for required secret credentials. DataForSEO reports domain rank 529 and 21,933 referring domains.",
+      "requirements": [
+        "Create a valid server.json entry for https://rowset.lvtd.dev/mcp/",
+        "Declare the required Authorization header as a secret",
+        "Choose and verify a namespace, likely through GitHub or DNS authentication",
+        "Publish with mcp-publisher and verify the registry API result"
+      ],
+      "cost": "free",
+      "link_expectation": "canonical ecosystem listing with downstream distribution; exact link attributes vary by aggregator",
+      "priority": "P0",
+      "status": "qualified_blocked_by_registry_manifest",
+      "next_action": "Open a separate implementation PR for server.json and registry validation, then obtain Rasul's approval before running the public publish command."
+    },
+    {
+      "id": "punkpeye-awesome-mcp-servers",
+      "bucket": "community_list",
+      "name": "punkpeye/awesome-mcp-servers",
+      "domain": "github.com",
+      "source_url": "https://github.com/punkpeye/awesome-mcp-servers",
+      "submission_or_contact_url": "https://github.com/punkpeye/awesome-mcp-servers/blob/main/CONTRIBUTING.md",
+      "target_rowset_page": "https://rowset.lvtd.dev/docs/database-mcp-server",
+      "relevance": "The 91,000-star list has active Database and Data Platform categories and explicitly accepts one-server pull requests.",
+      "evidence": "GitHub showed 91,454 stars, same-day repository activity, recent merged server additions, and contribution rules for a linked repository plus a concise categorized description.",
+      "requirements": [
+        "Add one alphabetized Rowset entry under Data Platforms rather than direct Databases",
+        "Link the Rowset GitHub repository",
+        "Describe the hosted MCP and agent-managed dataset boundary accurately",
+        "Use the repository's one-server-per-line format"
+      ],
+      "cost": "free",
+      "link_expectation": "dofollow GitHub README link to the Rowset repository; strong discovery and secondary citation value",
+      "priority": "P0",
+      "status": "qualified_ready_for_upstream_pr",
+      "next_action": "Draft the exact list entry and open an upstream PR only after Rasul approves the public submission."
+    },
+    {
+      "id": "mcp-directory",
+      "bucket": "mcp_directory",
+      "name": "MCP.Directory",
+      "domain": "mcp.directory",
+      "source_url": "https://mcp.directory/submit",
+      "submission_or_contact_url": "https://mcp.directory/submit",
+      "target_rowset_page": "https://rowset.lvtd.dev/docs/database-mcp-server",
+      "relevance": "MCP-native directory with dedicated Databases, Analytics and Data, Remote Server, and publisher surfaces.",
+      "evidence": "The live form accepts a GitHub repository, optional package fields, a short description, and optional email, then reviews within 24 hours. DataForSEO reports rank 144 and 218 referring domains.",
+      "requirements": [
+        "GitHub repository URL",
+        "Short description positioning Rowset as an agent-managed dataset backend",
+        "Optional notification email"
+      ],
+      "cost": "free",
+      "link_expectation": "listing and discovery link; link attribute is not stated",
+      "priority": "P0",
+      "status": "qualified_ready",
+      "next_action": "Submit the GitHub repository and request Databases plus Analytics and Data categorization after approval."
+    },
+    {
+      "id": "glama",
+      "bucket": "mcp_directory",
+      "name": "Glama MCP Registry",
+      "domain": "glama.ai",
+      "source_url": "https://glama.ai/",
+      "submission_or_contact_url": "https://glama.ai/mcp/servers",
+      "target_rowset_page": "https://rowset.lvtd.dev/docs/database-mcp-server",
+      "relevance": "Large MCP registry with server, connector, tool, database, and remote-server discovery surfaces.",
+      "evidence": "Glama's live site says maintainers can list a server for free from a GitHub repository. DataForSEO reports rank 478, 2,107 referring domains, and spam score 3.",
+      "requirements": [
+        "Sign in and choose Add Server",
+        "Connect the LVTD-LLC/rowset repository",
+        "Provide test credentials or contact support if the authenticated hosted endpoint cannot be scanned",
+        "Claim the resulting listing with maintainer verification"
+      ],
+      "cost": "free listing; hosting is separate",
+      "link_expectation": "public server page with repository and product discovery links",
+      "priority": "P0",
+      "status": "qualified_requires_account_and_scan",
+      "next_action": "Attempt the GitHub-based Add Server flow after approval; stop before providing any production credential if a safe test account is not available."
+    },
+    {
+      "id": "mcpservers-org",
+      "bucket": "mcp_directory",
+      "name": "Awesome MCP Servers",
+      "domain": "mcpservers.org",
+      "source_url": "https://mcpservers.org/submit",
+      "submission_or_contact_url": "https://mcpservers.org/submit",
+      "target_rowset_page": "https://rowset.lvtd.dev/docs/database-mcp-server",
+      "relevance": "MCP-native directory with explicit Database and Remote Server categories.",
+      "evidence": "The live form asks for name, short description, GitHub or docs link, category, and contact email. DataForSEO reports rank 271 and 1,287 referring domains.",
+      "requirements": [
+        "Use the Database category",
+        "Link the MCP guide or GitHub repository",
+        "Provide a contact email"
+      ],
+      "cost": "free; optional $39 premium review",
+      "link_expectation": "free listing; the site reserves a dofollow link for premium submissions",
+      "priority": "P1",
+      "status": "qualified_ready_free_nofollow_or_unknown",
+      "next_action": "Use the free submission first; do not pay for premium review without a separate ROI decision."
+    },
+    {
+      "id": "mcp-so",
+      "bucket": "mcp_directory",
+      "name": "MCP.so",
+      "domain": "mcp.so",
+      "source_url": "https://mcp.so/submit?type=server",
+      "submission_or_contact_url": "https://mcp.so/submit?type=remote-server",
+      "target_rowset_page": "https://rowset.lvtd.dev/docs/database-mcp-server",
+      "relevance": "High-visibility MCP marketplace with a separate remote-server submission path.",
+      "evidence": "The live flow accepts a repository URL and name. DataForSEO reports rank 363 and 1,956 referring domains.",
+      "requirements": [
+        "Use Remote Server rather than local MCP Server",
+        "Provide repository URL and Rowset name",
+        "Verify the approved listing accurately explains bearer-key authentication"
+      ],
+      "cost": "free queued review; optional $39 premium",
+      "link_expectation": "free listings are explicitly nofollow; premium listings are dofollow",
+      "priority": "P1",
+      "status": "qualified_ready_for_free_submission",
+      "next_action": "Use the free remote-server submission after approval; do not purchase premium placement during the first pass."
+    },
+    {
+      "id": "saashub",
+      "bucket": "software_directory",
+      "name": "SaaSHub",
+      "domain": "saashub.com",
+      "source_url": "https://www.saashub.com/services/submit",
+      "submission_or_contact_url": "https://www.saashub.com/services/submit",
+      "target_rowset_page": "https://rowset.lvtd.dev/",
+      "relevance": "Established software-alternatives directory that accepts released SaaS products and asks submitters to name competitors.",
+      "evidence": "The live form accepts SaaS products, requires a working product URL, recommends categories and competitors, and offers domain-email verification. DataForSEO reports rank 575 and 11,188 referring domains.",
+      "requirements": [
+        "Create or use a SaaSHub account",
+        "Submit the production homepage",
+        "Choose API Tools, Developer Tools, and Database-adjacent categories where available",
+        "List Airtable, Baserow, NocoDB, and Grist as adjacent products without claiming feature parity",
+        "Verify with a rowset.lvtd.dev or lvtd.dev email if supported"
+      ],
+      "cost": "free",
+      "link_expectation": "product profile and alternatives discovery; exact link attribute is not stated by SaaSHub",
+      "priority": "P1",
+      "status": "qualified_requires_account",
+      "next_action": "Prepare the profile copy and screenshots, then submit after approval."
+    },
+    {
+      "id": "alternativeto",
+      "bucket": "software_directory",
+      "name": "AlternativeTo",
+      "domain": "alternativeto.net",
+      "source_url": "https://alternativeto.net/faq/",
+      "submission_or_contact_url": "https://alternativeto.net/",
+      "target_rowset_page": "https://rowset.lvtd.dev/",
+      "relevance": "Large software-alternatives database where Rowset can be related to Airtable, Baserow, NocoDB, and Grist while preserving its narrower agent-backend positioning.",
+      "evidence": "The official FAQ documents Suggest new application and Suggest Alternatives flows and a one-week wait for new accounts. DataForSEO reports rank 512 and 37,514 referring domains.",
+      "requirements": [
+        "Use a personal account at least one week old",
+        "Submit Rowset as a web application with open-source and self-hosted attributes",
+        "Suggest only defensible adjacent products",
+        "Use a description that explicitly says Rowset is not a full no-code app builder"
+      ],
+      "cost": "free",
+      "link_expectation": "software profile with official website link",
+      "priority": "P1",
+      "status": "qualified_requires_mature_account",
+      "next_action": "Check whether Rasul already has an eligible account; otherwise create one only with approval and wait one week before submission."
+    },
+    {
+      "id": "openalternative",
+      "bucket": "open_source_directory",
+      "name": "OpenAlternative",
+      "domain": "openalternative.co",
+      "source_url": "https://openalternative.co/about",
+      "submission_or_contact_url": "https://openalternative.co/submit",
+      "target_rowset_page": "https://rowset.lvtd.dev/",
+      "relevance": "Curated open-source alternatives directory that includes self-hosted software and already appears among Baserow's referring domains.",
+      "evidence": "The live site exposes a signed-in submission flow. DataForSEO competitor research found openalternative.co among Baserow's referring domains; the domain has rank 387 and 874 referring domains.",
+      "requirements": [
+        "Sign in to the submitter dashboard",
+        "Provide the LVTD-LLC/rowset repository and hosted product URL",
+        "Position Rowset as an open-source, self-hostable agent dataset backend",
+        "Use Airtable or Baserow only as adjacent comparison anchors"
+      ],
+      "cost": "free submission path appears available; approval is curated",
+      "link_expectation": "public project and repository links",
+      "priority": "P1",
+      "status": "qualified_requires_account",
+      "next_action": "Prepare project metadata and submit after approval."
+    },
+    {
+      "id": "opensourcealternative-to",
+      "bucket": "open_source_directory",
+      "name": "OpenSourceAlternative.to",
+      "domain": "opensourcealternative.to",
+      "source_url": "https://www.opensourcealternative.to/submit",
+      "submission_or_contact_url": "https://www.opensourcealternative.to/submit",
+      "target_rowset_page": "https://rowset.lvtd.dev/",
+      "relevance": "Open-source and self-hosted directory with an explicit proprietary-alternative mapping.",
+      "evidence": "The live form requires website, repository, and proprietary comparison fields. DataForSEO reports rank 276 and 903 referring domains.",
+      "requirements": [
+        "Provide email, website, repository, and one proprietary comparison",
+        "Use Airtable as the closest proprietary comparison but preserve Rowset's narrower scope",
+        "Choose between the free waitlist and paid review"
+      ],
+      "cost": "free waitlist with stated 6+ month delay; optional $29 review",
+      "link_expectation": "directory project and repository links if approved",
+      "priority": "P2",
+      "status": "qualified_ready_for_free_waitlist",
+      "next_action": "Use the free waitlist after approval; do not purchase expedited review in the first pass."
+    },
+    {
+      "id": "product-hunt",
+      "bucket": "launch_directory",
+      "name": "Product Hunt",
+      "domain": "producthunt.com",
+      "source_url": "https://www.producthunt.com/launch",
+      "submission_or_contact_url": "https://www.producthunt.com/launch/preparing-for-launch",
+      "target_rowset_page": "https://rowset.lvtd.dev/",
+      "relevance": "High-authority product-discovery surface that can provide a durable profile and launch-day distribution when Rowset has a launch story worth coordinating.",
+      "evidence": "Product Hunt's official guide says launches are free, use personal accounts, and can be scheduled up to one month ahead. DataForSEO reports rank 684 and 136,148 referring domains.",
+      "requirements": [
+        "Use a personal Product Hunt account",
+        "Confirm Rowset has not already been submitted",
+        "Prepare logo, gallery, tagline, description, maker comment, and launch-day support",
+        "Coordinate timing as a separate launch rather than a background directory submission"
+      ],
+      "cost": "free",
+      "link_expectation": "product profile and launch page with website link",
+      "priority": "P2",
+      "status": "qualified_deferred_to_launch_plan",
+      "next_action": "Treat as a separate launch project; do not submit casually as part of the directory batch."
+    },
+    {
+      "id": "mcp-directory-database-roundup",
+      "bucket": "editorial_listicle",
+      "name": "MCP.Directory: Best Database MCP Servers in 2026",
+      "domain": "mcp.directory",
+      "source_url": "https://mcp.directory/blog/best-database-mcp-servers-2026",
+      "submission_or_contact_url": "https://mcp.directory/contact",
+      "target_rowset_page": "https://rowset.lvtd.dev/docs/database-mcp-server",
+      "relevance": "The article ranks for database MCP queries and already explains the direct-database model. Rowset can add a distinct agent-managed dataset option rather than displacing a direct SQL server.",
+      "evidence": "Jina extraction verified a current 10-product roundup, decision tree, comparison matrix, and explicit database-model segmentation.",
+      "requirements": [
+        "Get the MCP.Directory listing approved first",
+        "Pitch an additional decision branch for hosted agent-managed datasets",
+        "Lead with the direct-database versus Rowset boundary and link to the existing guide",
+        "Do not claim Rowset is a universal SQL connector"
+      ],
+      "cost": "editorial outreach",
+      "link_expectation": "contextual editorial link if the article is updated",
+      "priority": "P1",
+      "status": "qualified_outreach_after_directory_listing",
+      "next_action": "Draft a short evidence-led correction/addition pitch after the directory listing is live; send only with approval."
+    },
+    {
+      "id": "developers-digest-mcp-directory",
+      "bucket": "editorial_listicle",
+      "name": "Developers Digest: The Best MCP Servers in 2026",
+      "domain": "developersdigest.tech",
+      "source_url": "https://www.developersdigest.tech/blog/mcp-servers-directory-2026",
+      "submission_or_contact_url": "https://www.developersdigest.tech/contact",
+      "target_rowset_page": "https://rowset.lvtd.dev/docs/database-mcp-server",
+      "relevance": "Current 184-server directory and roundup aimed at developers comparing MCP tools.",
+      "evidence": "Jina extraction verified the article and linked searchable directory. The contact page explicitly accepts feedback and corrections by email. DataForSEO reports rank 217 and 320 referring domains.",
+      "requirements": [
+        "Provide a working remote MCP endpoint and repository",
+        "Pitch Rowset under database or data-platform tooling",
+        "Include one concrete setup example and the honest direct-database boundary"
+      ],
+      "cost": "editorial outreach; partnership options also exist but are not required",
+      "link_expectation": "directory or contextual editorial link if accepted",
+      "priority": "P2",
+      "status": "qualified_outreach",
+      "next_action": "Prepare a concise inclusion request for the directory; send only with approval."
+    },
+    {
+      "id": "bill-doerrfeld-database-mcp-roundup",
+      "bucket": "editorial_listicle",
+      "name": "Bill Doerrfeld / InfoWorld database MCP roundup",
+      "domain": "doerrfeld.io",
+      "source_url": "https://www.doerrfeld.io/reviewing-mcp-servers-to-connect-with-databases",
+      "submission_or_contact_url": "https://www.doerrfeld.io/contact",
+      "target_rowset_page": "https://rowset.lvtd.dev/docs/database-mcp-server",
+      "relevance": "The author covers database MCP architecture and maintains a direct contact path. Rowset offers an adjacent hosted dataset-layer angle for a future update or follow-up.",
+      "evidence": "Jina extraction verified the author's June 2026 database MCP research summary and linked InfoWorld roundup. DataForSEO reports rank 179 and 91 referring domains.",
+      "requirements": [
+        "Pitch as a distinct architecture option, not a missing direct database connector",
+        "Offer the open-source repository, hosted endpoint, and direct-versus-managed guide",
+        "Avoid requesting a link without a substantive editorial angle"
+      ],
+      "cost": "editorial outreach",
+      "link_expectation": "possible future article or update citation; lower certainty than directory submissions",
+      "priority": "P2",
+      "status": "qualified_outreach_low_certainty",
+      "next_action": "Draft a two-paragraph research note around agent-managed datasets; send only with approval."
+    },
+    {
+      "id": "k2view-awesome-mcp-roundup",
+      "bucket": "editorial_listicle",
+      "name": "K2view: Awesome MCP servers",
+      "domain": "k2view.com",
+      "source_url": "https://www.k2view.com/blog/awesome-mcp-servers",
+      "submission_or_contact_url": "https://www.k2view.com/contact",
+      "target_rowset_page": "https://rowset.lvtd.dev/docs/database-mcp-server",
+      "relevance": "The roundup evaluates enterprise-data, public-API, and database MCP options and includes a structured comparison table.",
+      "evidence": "Jina extraction verified the current 15-server comparison and its enterprise-data framing. DataForSEO reports rank 309 and 2,267 referring domains.",
+      "requirements": [
+        "Pitch Rowset as a small-team, agent-managed structured-data option",
+        "Acknowledge K2view's enterprise scope and avoid direct feature-equivalence claims",
+        "Provide the open-source repository and MCP decision guide"
+      ],
+      "cost": "editorial outreach",
+      "link_expectation": "possible contextual addition; vendor-owned editorial means acceptance is uncertain",
+      "priority": "P3",
+      "status": "qualified_outreach_low_certainty",
+      "next_action": "Keep as a second-wave pitch after Rowset has registry listings and usage proof."
+    },
+    {
+      "id": "smithery",
+      "bucket": "mcp_directory",
+      "name": "Smithery",
+      "domain": "smithery.ai",
+      "source_url": "https://smithery.ai/docs/build/publish",
+      "submission_or_contact_url": "https://smithery.ai/new",
+      "target_rowset_page": "https://rowset.lvtd.dev/docs/database-mcp-server",
+      "relevance": "Major MCP distribution surface for remote servers with server pages, scanning, and usage analytics.",
+      "evidence": "The live publication docs require Streamable HTTP and OAuth when authentication is required. Rowset currently uses bearer API keys rather than OAuth. DataForSEO reports rank 458 and 2,366 referring domains.",
+      "requirements": [
+        "Confirm whether Smithery URL publishing can safely collect a bearer API key through a configuration schema",
+        "If not, add OAuth support or a compatible static server card before publishing",
+        "Never expose a production Rowset API key to an unaudited scanner"
+      ],
+      "cost": "publication path appears free; compatibility work may require engineering",
+      "link_expectation": "public server page and marketplace discovery after compatibility is resolved",
+      "priority": "P3",
+      "status": "qualified_blocked_by_auth_compatibility",
+      "next_action": "Ask Smithery support whether bearer-header configuration is supported for authenticated remote servers; proceed only after a safe path is confirmed."
+    }
+  ],
+  "excluded_or_deferred": [
+    {
+      "name": "PulseMCP direct submission",
+      "source_url": "https://www.pulsemcp.com/api/docs/v0.1",
+      "reason": "PulseMCP documents its subregistry as read-only and does not implement a publish endpoint. Treat it as potential downstream distribution from the official MCP Registry, not a separate submission."
+    },
+    {
+      "name": "modelcontextprotocol/servers community listing PR",
+      "source_url": "https://github.com/modelcontextprotocol/servers",
+      "reason": "The repository now houses only steering-group reference implementations and directs public servers to the official registry."
+    },
+    {
+      "name": "MCPTrove",
+      "source_url": "https://mcptrove.com/submit",
+      "reason": "DataForSEO reports rank 0, two referring domains, two backlinks, and spam score 72. Defer until the directory develops stronger independent signals."
+    },
+    {
+      "name": "G2, Capterra, GetApp, and Software Advice",
+      "source_url": "https://www.g2.com/products/new",
+      "reason": "These review marketplaces are better after Rowset has an established category, customers willing to review it, and repeatable product proof. Premature profiles would be thin and hard to maintain."
+    },
+    {
+      "name": "Generic AI tool directories",
+      "source_url": "https://aitoolsdirectory.com/",
+      "reason": "Broad AI directories are less relevant than MCP-native and open-source surfaces, often have unclear editorial standards, and would dilute the first outreach batch."
+    }
+  ],
+  "recommended_execution_batches": [
+    {
+      "batch": 1,
+      "name": "Canonical MCP distribution",
+      "targets": [
+        "official-mcp-registry",
+        "punkpeye-awesome-mcp-servers",
+        "mcp-directory",
+        "glama"
+      ],
+      "approval_needed": "Yes. These actions publish external listings or upstream pull requests."
+    },
+    {
+      "batch": 2,
+      "name": "Secondary MCP and software directories",
+      "targets": [
+        "mcpservers-org",
+        "mcp-so",
+        "saashub",
+        "alternativeto",
+        "openalternative",
+        "opensourcealternative-to"
+      ],
+      "approval_needed": "Yes. These actions create external profiles or submissions."
+    },
+    {
+      "batch": 3,
+      "name": "Editorial outreach",
+      "targets": [
+        "mcp-directory-database-roundup",
+        "developers-digest-mcp-directory",
+        "bill-doerrfeld-database-mcp-roundup",
+        "k2view-awesome-mcp-roundup"
+      ],
+      "approval_needed": "Yes. Draft and review outreach separately before sending."
+    },
+    {
+      "batch": 4,
+      "name": "Conditional launches and compatibility work",
+      "targets": [
+        "product-hunt",
+        "smithery"
+      ],
+      "approval_needed": "Yes. Product Hunt needs launch coordination; Smithery needs authentication compatibility confirmation."
+    }
+  ]
+}
