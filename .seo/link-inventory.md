@@ -88,6 +88,7 @@
 | `/blog/ai-agent-task-management` | https://rowset.lvtd.dev/blog/ai-agent-task-management | AI Agent Task Management: Build a Durable Task Board | AI agent task management, durable AI agent task board, agent task transition contract, claim work prove review, structured task board for agents |
 | `/blog/ai-agent-inventory-management` | https://rowset.lvtd.dev/blog/ai-agent-inventory-management | AI Agent for Inventory Management: A Safe Workflow | AI agent for inventory management, AI inventory agent workflow, inventory reconciliation for agents, controlled inventory actions, observe reconcile propose approve apply verify |
 | `/blog/ai-customer-feedback-analysis` | https://rowset.lvtd.dev/blog/ai-customer-feedback-analysis | AI Customer Feedback Analysis: A Reviewable Workflow | AI customer feedback analysis, reviewable feedback workflow, source analysis decision action contract, versioned feedback classification, agent-managed feedback triage |
+| `/blog/ai-ready-data` | https://rowset.lvtd.dev/blog/ai-ready-data | What Is AI-Ready Data? A Practical Agent Checklist | what is AI-ready data, AI-ready operational data, data readiness for AI agents, agent-ready data checklist, seven-question readiness test |
 
 ## Shipped SEO Sprint Pages
 
@@ -206,3 +207,8 @@ These route families remain retired and must not be selected as internal-link ta
 - source analysis decision action contract
 - versioned feedback classification
 - agent-managed feedback triage
+- what is AI-ready data
+- AI-ready operational data
+- data readiness for AI agents
+- agent-ready data checklist
+- seven-question readiness test

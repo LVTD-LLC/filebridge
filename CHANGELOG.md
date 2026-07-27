@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-07-27
+
+### Added
+- Added an AI-ready data guide with a seven-question operational checklist for
+  agent identity, schema, provenance, permissions, and verification.
+
 ## 2026-07-26
 
 ### Added
