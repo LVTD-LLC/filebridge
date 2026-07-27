@@ -25,6 +25,10 @@ deployment or release cut date.
   validation, filtering, sorting, exports, REST and MCP metadata, and a
   progressively enhanced dataset-settings editor.
 
+### Changed
+- Changed the Phase 11 SEO tracker to keep the source-verified off-page backlog
+  in a private Rowset dataset instead of the public repository.
+
 ## 2026-07-26
 
 ### Added
