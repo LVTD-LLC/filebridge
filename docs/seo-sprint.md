@@ -39,7 +39,7 @@ The plan changed materially since the July 4 initialization:
 | 8 | Ship `/blog/connect-ai-agent-to-dataset-api` | Product guide | completed | #244 |
 | 9 | Retarget `/docs/database-mcp-server` around the `mcp database` cluster | Existing-page boost | completed | #343 |
 | 10 | Ship `/blog/spreadsheet-database-for-ai-agents` | Decision guide | completed | #349 |
-| 11 | Build the off-page starter target list and submission backlog | Off-page | completed | `scribe/seo-phase-11-backlink-research-20260727` (PR TBD) |
+| 11 | Build the off-page starter target list and submission backlog | Off-page | completed | #360 |
 | 12 | Ship `/vs/airtable` when a sales/use-case trigger exists | Compare | completed | #277 |
 | 13 | Review the fresh idempotency and agent-memory posts after 30 days of GSC data | Observation gate | pending | not before 2026-08-14 |
 | 14 | Ship `/vs/google-sheets` as the next requested comparison | Compare | completed | #280 |
