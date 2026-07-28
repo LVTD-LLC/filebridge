@@ -3,20 +3,27 @@ name: ReviewGate
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
-  checks: write
+  issue_comment:
+    types: [created]
 
 jobs:
   review:
-    if: ${{ false }} # Temporarily disabled.
+    if: >-
+      ${{
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.actor != 'dependabot[bot]'
+      }}
     runs-on: ubuntu-latest
-    env:
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      checks: write
+    concurrency:
+      group: reviewgate-${{ github.workflow }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
 
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +32,100 @@ jobs:
 
       - uses: LVTD-LLC/reviewgate@v0
         with:
-          openrouter_api_key: ${{ env.OPENROUTER_API_KEY }}
-          preset: balanced
-          gate_mode: report
+          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          min_severity: P4
+
+  rereview:
+    if: >-
+      ${{
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        github.event.comment.body == '@reviewgate review' &&
+        contains(
+          fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'),
+          github.event.comment.author_association
+        )
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      issues: write
+      pull-requests: read
+    concurrency:
+      group: reviewgate-rereview-${{ github.repository }}-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.issue.number }}
+      COMMENT_ID: ${{ github.event.comment.id }}
+
+    steps:
+      - name: Rerun ReviewGate for the pull request
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pr_json="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")"
+          head_repo="$(jq -r '.head.repo.full_name' <<<"$pr_json")"
+          head_ref="$(jq -r '.head.ref' <<<"$pr_json")"
+          head_sha="$(jq -r '.head.sha' <<<"$pr_json")"
+
+          if [[ "$head_repo" != "$GITHUB_REPOSITORY" ]]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+              -f body="ReviewGate cannot use repository secrets to review fork pull requests."
+            exit 0
+          fi
+
+          runs_json="$(
+            gh api --method GET --paginate --slurp \
+              "repos/$GITHUB_REPOSITORY/actions/workflows/reviewgate.yml/runs" \
+              -f branch="$head_ref" \
+              -f event="pull_request" \
+              -f per_page=100
+          )"
+          run_id="$(
+            jq --argjson pr_number "$PR_NUMBER" --arg head_sha "$head_sha" -r '
+              [
+                .[].workflow_runs[]
+                | select(any(.pull_requests[]?; .number == $pr_number))
+                | select(.head_sha == $head_sha)
+              ]
+              | sort_by(.created_at)
+              | reverse
+              | first
+              | .id // empty
+            ' <<<"$runs_json"
+          )"
+
+          if [[ -z "$run_id" ]]; then
+            message="ReviewGate has no prior PR run to rerun yet. "
+            message+="Reopen the PR or push a commit to create the first review."
+            gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+              -f body="$message"
+            exit 0
+          fi
+
+          run_status="$(
+            jq --argjson run_id "$run_id" -r '
+              .[].workflow_runs[]
+              | select(.id == $run_id)
+              | .status
+            ' <<<"$runs_json"
+          )"
+          reaction_api="repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID/reactions"
+
+          if [[ "$run_status" != "completed" ]]; then
+            if ! gh api --method POST "$reaction_api" -f content="eyes" >/dev/null; then
+              echo "::warning::Failed to add eyes reaction to ReviewGate command." >&2
+            fi
+            echo "ReviewGate run $run_id is already $run_status."
+            exit 0
+          fi
+
+          gh api --method POST \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$run_id/rerun"
+          if ! gh api --method POST "$reaction_api" -f content="rocket" >/dev/null; then
+            echo "::warning::Failed to add rocket reaction to ReviewGate command." >&2
+          fi
+          echo "Triggered ReviewGate rerun $run_id for PR #$PR_NUMBER."
