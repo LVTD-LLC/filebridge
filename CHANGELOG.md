@@ -26,6 +26,8 @@ deployment or release cut date.
   for public URLs that were added, updated, deleted, or renamed.
 
 ### Changed
+- Replaced Rowset's repository-specific ReviewGate rerun script with
+  ReviewGate's first-class, current-head rereview action mode.
 - Formula results now use a distinct calculated-value treatment in authenticated
   dataset views when the user's Colorize preference is enabled, and formula
   column dialogs show the expression and result type.
