@@ -53,13 +53,13 @@ jobs:
     permissions:
       actions: write
       issues: write
-      pull-requests: read
+      pull-requests: write
     concurrency:
       group: reviewgate-rereview-${{ github.event.comment.id }}
       cancel-in-progress: false
 
     steps:
-      - uses: LVTD-LLC/reviewgate@a1566c832c19179643e2a4366fc5184bfcafa8cf
+      - uses: LVTD-LLC/reviewgate@b836e2952eca7fed7c690de607a592e2d940e0c8
         with:
           mode: rereview
           review_workflow: reviewgate.yml

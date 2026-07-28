@@ -894,7 +894,8 @@ CI tests against PostgreSQL 18 (`rasulkireev/custom-postgres:18`), while
 (`rasulkireev/custom-postgres:17`). Keep that version split in mind for
 database behavior until the stacks are aligned.
 
-ReviewGate is present but temporarily disabled.
+ReviewGate reviews same-repository pull requests and supports maintainer
+rereviews with an exact `@reviewgate review` PR comment.
 
 ## Deployment
 

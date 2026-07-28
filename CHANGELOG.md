@@ -26,6 +26,8 @@ deployment or release cut date.
   for public URLs that were added, updated, deleted, or renamed.
 
 ### Changed
+- Granted the first-class ReviewGate rereview job permission to reserve
+  maintainer commands with bot-owned PR comments.
 - Replaced Rowset's repository-specific ReviewGate rerun script with
   ReviewGate's first-class, current-head rereview action mode.
 - Formula results now use a distinct calculated-value treatment in authenticated

@@ -49,13 +49,13 @@ def test_reviewgate_comment_command_uses_first_class_rereview_mode():
     assert rereview["permissions"] == {
         "actions": "write",
         "issues": "write",
-        "pull-requests": "read",
+        "pull-requests": "write",
     }
     assert rereview["concurrency"] == {
         "group": "reviewgate-rereview-${{ github.event.comment.id }}",
         "cancel-in-progress": False,
     }
-    assert rereview_step["uses"] == ("LVTD-LLC/reviewgate@a1566c832c19179643e2a4366fc5184bfcafa8cf")
+    assert rereview_step["uses"] == ("LVTD-LLC/reviewgate@b836e2952eca7fed7c690de607a592e2d940e0c8")
     assert rereview_step["with"] == {
         "mode": "rereview",
         "review_workflow": "reviewgate.yml",
