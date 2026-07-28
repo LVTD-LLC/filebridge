@@ -49,6 +49,10 @@ def test_reviewgate_comment_command_reruns_a_real_pr_event_for_maintainers():
         "issues": "write",
         "pull-requests": "read",
     }
+    assert rereview["concurrency"] == {
+        "group": "reviewgate-rereview-${{ github.repository }}-${{ github.event.issue.number }}",
+        "cancel-in-progress": False,
+    }
     assert "reviewgate.yml/runs" in run_script
     assert "gh api --method GET --paginate --slurp" in run_script
     assert ".[].workflow_runs[]" in run_script

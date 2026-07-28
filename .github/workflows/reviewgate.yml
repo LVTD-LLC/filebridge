@@ -52,6 +52,9 @@ jobs:
       actions: write
       issues: write
       pull-requests: read
+    concurrency:
+      group: reviewgate-rereview-${{ github.repository }}-${{ github.event.issue.number }}
+      cancel-in-progress: false
     env:
       GH_TOKEN: ${{ github.token }}
       PR_NUMBER: ${{ github.event.issue.number }}
