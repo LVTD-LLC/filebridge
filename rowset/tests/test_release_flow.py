@@ -33,14 +33,16 @@ def test_reviewgate_runs_for_safe_pull_requests_with_supported_inputs():
     }
 
 
-def test_reviewgate_comment_command_reruns_a_real_pr_event_for_maintainers():
+def test_reviewgate_comment_command_uses_first_class_rereview_mode():
     workflow = (_REPO_ROOT / ".github" / "workflows" / "reviewgate.yml").read_text()
     parsed_workflow = yaml.safe_load(workflow)
     rereview = parsed_workflow["jobs"]["rereview"]
     command_guard = rereview["if"]
-    run_script = rereview["steps"][0]["run"]
+    rereview_step = rereview["steps"][0]
 
     assert "github.event_name == 'issue_comment'" in command_guard
+    assert "github.event.action == 'created'" in command_guard
+    assert "github.event.issue.state == 'open'" in command_guard
     assert "github.event.comment.body == '@reviewgate review'" in command_guard
     for association in ("OWNER", "MEMBER", "COLLABORATOR"):
         assert association in command_guard
@@ -50,31 +52,16 @@ def test_reviewgate_comment_command_reruns_a_real_pr_event_for_maintainers():
         "pull-requests": "read",
     }
     assert rereview["concurrency"] == {
-        "group": "reviewgate-rereview-${{ github.repository }}-${{ github.event.issue.number }}",
+        "group": "reviewgate-rereview-${{ github.event.comment.id }}",
         "cancel-in-progress": False,
     }
-    assert "reviewgate.yml/runs" in run_script
-    assert "gh api --method GET --paginate --slurp" in run_script
-    assert ".[].workflow_runs[]" in run_script
-    assert '-f event="pull_request"' in run_script
-    assert '-f branch="$head_ref"' in run_script
-    assert ".pull_requests[]?" in run_script
-    assert "head_sha=\"$(jq -r '.head.sha'" in run_script
-    assert '--arg head_sha "$head_sha"' in run_script
-    assert "select(.head_sha == $head_sha)" in run_script
-    assert "sort_by(.created_at)" in run_script
-    assert "| reverse" in run_script
-    assert "/actions/runs/$run_id/rerun" in run_script
-    assert (
-        'if ! gh api --method POST "$reaction_api" -f content="eyes" >/dev/null; then' in run_script
-    )
-    assert (
-        'if ! gh api --method POST "$reaction_api" -f content="rocket" >/dev/null; then'
-        in run_script
-    )
-    assert "Failed to add eyes reaction" in run_script
-    assert "Failed to add rocket reaction" in run_script
-    assert "Reopen the PR or push a commit" in run_script
+    assert rereview_step["uses"] == ("LVTD-LLC/reviewgate@a1566c832c19179643e2a4366fc5184bfcafa8cf")
+    assert rereview_step["with"] == {
+        "mode": "rereview",
+        "review_workflow": "reviewgate.yml",
+    }
+    assert "env" not in rereview
+    assert "run" not in rereview_step
 
 
 def test_publish_workflow_syncs_app_image_and_cli_version_to_release_tag():
