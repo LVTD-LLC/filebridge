@@ -125,6 +125,37 @@ def test_main_deploy_only_promotes_the_immutable_sha_tag():
     assert "release_version" not in workflow
 
 
+def test_main_deploy_notifies_indexnow_after_both_services_deploy():
+    workflow = yaml.safe_load((_REPO_ROOT / ".github" / "workflows" / "deploy.yml").read_text())
+    steps = workflow["jobs"]["build-and-deploy"]["steps"]
+    step_names = [step["name"] for step in steps]
+    checkout = steps[step_names.index("Checkout")]
+    indexnow = steps[step_names.index("Notify IndexNow of public URL changes")]
+
+    assert "with" not in checkout
+    assert indexnow["continue-on-error"] is True
+    assert indexnow["timeout-minutes"] == 5
+    assert indexnow["env"] == {
+        "INDEXNOW_AFTER": "${{ github.sha }}",
+        "INDEXNOW_BEFORE": "${{ github.event.before }}",
+        "INDEXNOW_KEY": "${{ secrets.INDEXNOW_KEY }}",
+        "INDEXNOW_SITE_URL": "https://rowset.lvtd.dev",
+    }
+    assert 'if [[ -z "$INDEXNOW_KEY" ]]' in indexnow["run"]
+    assert 'git fetch --no-tags --depth=1 origin "$INDEXNOW_BEFORE"' in indexnow["run"]
+    assert 'if [[ -z "$INDEXNOW_BEFORE" || "$INDEXNOW_BEFORE" == "$zero_sha" ]]' in indexnow["run"]
+    assert "if ! git fetch" in indexnow["run"]
+    assert 'INDEXNOW_BEFORE="$zero_sha"' in indexnow["run"]
+    assert 'echo "::warning::Could not fetch the comparison commit' in indexnow["run"]
+    assert "python3 -m scripts.submit_indexnow" in indexnow["run"]
+    assert "--key" not in indexnow["run"]
+    assert '--before "$INDEXNOW_BEFORE"' in indexnow["run"]
+    assert '--after "$INDEXNOW_AFTER"' in indexnow["run"]
+    assert step_names.index("Deploy workers to CapRover") < step_names.index(
+        "Notify IndexNow of public URL changes"
+    )
+
+
 def test_release_workflows_publish_and_smoke_both_supported_platforms():
     parsed_workflows = {
         workflow_name: yaml.safe_load(

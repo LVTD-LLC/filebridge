@@ -24,6 +24,7 @@ from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 from structlog_sentry import SentryProcessor
 
+from rowset.indexnow import is_valid_indexnow_key
 from rowset.sentry_metrics import install_sentry_metrics_middleware
 from rowset.sentry_utils import CustomLoggingIntegration, before_send
 
@@ -164,6 +165,11 @@ SECRET_KEY_FALLBACKS = env.list("SECRET_KEY_FALLBACKS", default=[])
 DEBUG = env("DEBUG")
 
 SITE_URL = env("SITE_URL")
+INDEXNOW_KEY = env("INDEXNOW_KEY", default="").strip()
+if INDEXNOW_KEY and not is_valid_indexnow_key(INDEXNOW_KEY):
+    raise ImproperlyConfigured(
+        "INDEXNOW_KEY must contain 8 to 128 ASCII letters, digits, or hyphens."
+    )
 ROWSET_INSECURE_HTTP = env.bool("ROWSET_INSECURE_HTTP", default=False)
 PRODUCTION_HTTPS_ENABLED = ENVIRONMENT == "prod" and not ROWSET_INSECURE_HTTP
 

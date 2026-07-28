@@ -631,6 +631,7 @@ cp .env.example .env
 | `DEBUG` | Use `on`/truthy locally and `off`/false in production. | `on` |
 | `SECRET_KEY` | Django signing secret. Generate a strong value for production. | `super-secret-key` |
 | `SITE_URL` | Absolute public site URL used for links, CSRF, docs, MCP URL, and setup prompt. | `http://localhost:8000` |
+| `INDEXNOW_KEY` | Optional 8-128 character IndexNow ownership key served at `/indexnow-key.txt`. Use the same value for the deploy workflow repository secret. | Empty |
 | `POSTGRES_DB` | PostgreSQL database name. | `rowset` |
 | `POSTGRES_USER` | PostgreSQL username. | `rowset` |
 | `POSTGRES_PASSWORD` | PostgreSQL password. | `rowset` |

@@ -1,9 +1,11 @@
+from django.conf import settings
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.http import HttpResponse, HttpResponsePermanentRedirect
 from django.views.decorators.cache import cache_control
 
 from apps.pages.search import NOINDEX_ROBOTS_POLICY, build_canonical_url, search_indexing_enabled
+from rowset.indexnow import is_valid_indexnow_key
 from rowset.sitemaps import sitemaps
 
 
@@ -19,6 +21,14 @@ def robots_txt(request):
         lines.append(f"Sitemap: {build_canonical_url('/sitemap.xml')}")
     content = "\n".join([*lines, "", ""])
     return HttpResponse(content, content_type="text/plain; charset=utf-8")
+
+
+@cache_control(no_cache=True, no_store=True, must_revalidate=True, max_age=0)
+def indexnow_key(request):
+    key = settings.INDEXNOW_KEY
+    if not is_valid_indexnow_key(key):
+        return HttpResponse(status=404)
+    return HttpResponse(key, content_type="text/plain; charset=utf-8")
 
 
 @cache_control(public=True, max_age=86400)

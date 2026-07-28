@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from apps.api.views import api_not_found
-from apps.pages.seo import favicon, public_sitemap, robots_txt
+from apps.pages.seo import favicon, indexnow_key, public_sitemap, robots_txt
 from apps.pages.views import AccountSignupByPasskeyView, AccountSignupView
 
 urlpatterns = [
@@ -34,6 +34,7 @@ urlpatterns = [
     path("anymail/", include("anymail.urls")),
     path("favicon.ico", favicon, name="favicon"),
     path("robots.txt", robots_txt, name="robots_txt"),
+    path("indexnow-key.txt", indexnow_key, name="indexnow_key"),
     path("api/", include("apps.api.urls")),
     path("api/<path:unmatched>", api_not_found, name="api_not_found"),
     path("", include("apps.datasets.urls")),
