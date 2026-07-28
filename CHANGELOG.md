@@ -22,6 +22,8 @@ deployment or release cut date.
 - Enabled ReviewGate pull-request reviews and replaced manual workflow dispatch
   with maintainer-triggered reruns through the `@reviewgate review` PR comment
   command, preserving the pull-request event context ReviewGate requires.
+- Added IndexNow ownership verification and non-blocking post-deploy notifications
+  for public URLs that were added, updated, deleted, or renamed.
 
 ## 2026-07-27
 

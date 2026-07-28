@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Prepare image name and tags
         id: image
@@ -116,3 +118,15 @@ jobs:
           app: ${{ env.CAPROVER_APP_NAME }}-workers
           token: ${{ secrets.WORKERS_APP_TOKEN }}
           image: ${{ steps.image.outputs.image_name }}:${{ github.sha }}
+
+      - name: Notify IndexNow of public URL changes
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+          INDEXNOW_SITE_URL: https://rowset.lvtd.dev
+        run: |
+          python3 -m scripts.submit_indexnow \
+            --site-url "$INDEXNOW_SITE_URL" \
+            --before "${{ github.event.before }}" \
+            --after "${{ github.sha }}"

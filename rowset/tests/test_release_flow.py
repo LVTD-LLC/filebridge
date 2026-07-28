@@ -125,6 +125,29 @@ def test_main_deploy_only_promotes_the_immutable_sha_tag():
     assert "release_version" not in workflow
 
 
+def test_main_deploy_notifies_indexnow_after_both_services_deploy():
+    workflow = yaml.safe_load((_REPO_ROOT / ".github" / "workflows" / "deploy.yml").read_text())
+    steps = workflow["jobs"]["build-and-deploy"]["steps"]
+    step_names = [step["name"] for step in steps]
+    checkout = steps[step_names.index("Checkout")]
+    indexnow = steps[step_names.index("Notify IndexNow of public URL changes")]
+
+    assert checkout["with"]["fetch-depth"] == 0
+    assert indexnow["continue-on-error"] is True
+    assert indexnow["timeout-minutes"] == 5
+    assert indexnow["env"] == {
+        "INDEXNOW_KEY": "${{ secrets.INDEXNOW_KEY }}",
+        "INDEXNOW_SITE_URL": "https://rowset.lvtd.dev",
+    }
+    assert "python3 -m scripts.submit_indexnow" in indexnow["run"]
+    assert "--key" not in indexnow["run"]
+    assert '--before "${{ github.event.before }}"' in indexnow["run"]
+    assert '--after "${{ github.sha }}"' in indexnow["run"]
+    assert step_names.index("Deploy workers to CapRover") < step_names.index(
+        "Notify IndexNow of public URL changes"
+    )
+
+
 def test_release_workflows_publish_and_smoke_both_supported_platforms():
     parsed_workflows = {
         workflow_name: yaml.safe_load(
