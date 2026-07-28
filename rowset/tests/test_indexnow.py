@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from urllib.error import HTTPError
 
 import pytest
@@ -16,6 +17,8 @@ from scripts.submit_indexnow import (
     submit_urls,
     verify_key_location,
 )
+
+_REPO_ROOT = Path(__file__).parents[2]
 
 
 @override_settings(INDEXNOW_KEY="")
@@ -42,6 +45,13 @@ def test_indexnow_key_file_serves_the_configured_key_without_caching(client):
         "must-revalidate",
     }
     assert "X-Robots-Tag" not in response.headers
+
+
+def test_deploy_notifier_has_no_django_project_imports():
+    source = (_REPO_ROOT / "scripts" / "submit_indexnow.py").read_text()
+
+    assert "from rowset" not in source
+    assert "import rowset" not in source
 
 
 def test_parse_name_status_preserves_both_sides_of_renames():

@@ -6,6 +6,7 @@ import hmac
 import json
 import os
 import random
+import re
 import subprocess
 import sys
 import time
@@ -17,9 +18,9 @@ from urllib.request import Request
 from urllib.request import urlopen as stdlib_urlopen
 from xml.etree import ElementTree
 
-from rowset.indexnow import INDEXNOW_KEY_PATH, is_valid_indexnow_key
-
 INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow"
+INDEXNOW_KEY_PATH = "/indexnow-key.txt"
+INDEXNOW_KEY_PATTERN = re.compile(r"^[A-Za-z0-9-]{8,128}$")
 MAX_URLS_PER_REQUEST = 10_000
 REQUEST_TIMEOUT_SECONDS = 20
 REQUEST_RETRY_ATTEMPTS = 3
@@ -57,6 +58,11 @@ UrlOpen = Callable[..., object]
 
 class IndexNowError(RuntimeError):
     pass
+
+
+def _validate_indexnow_key(key: str) -> None:
+    if not INDEXNOW_KEY_PATTERN.fullmatch(key):
+        raise IndexNowError("INDEXNOW_KEY must contain 8 to 128 ASCII letters, digits, or hyphens.")
 
 
 def parse_name_status(raw_output: bytes) -> list[GitChange]:
@@ -169,8 +175,8 @@ def _same_host_urls(site_url: str, urls: Iterable[str]) -> list[str]:
 
 def build_indexnow_payload(site_url: str, key: str, urls: Iterable[str]) -> dict:
     site_url = _normalized_site_url(site_url)
-    if not is_valid_indexnow_key(key):
-        raise IndexNowError("INDEXNOW_KEY must contain 8 to 128 ASCII letters, digits, or hyphens.")
+    # Defensive validation for direct callers; main validates before any network I/O.
+    _validate_indexnow_key(key)
 
     return {
         "host": urlsplit(site_url).netloc,
@@ -352,8 +358,7 @@ def main(argv: list[str] | None = None) -> int:
     if not key:
         print("INDEXNOW_KEY is not configured; skipping IndexNow notification.")
         return 0
-    if not is_valid_indexnow_key(key):
-        raise IndexNowError("INDEXNOW_KEY must contain 8 to 128 ASCII letters, digits, or hyphens.")
+    _validate_indexnow_key(key)
 
     site_url = _normalized_site_url(args.site_url)
     if args.before == ZERO_SHA:

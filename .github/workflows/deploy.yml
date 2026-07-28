@@ -132,11 +132,11 @@ jobs:
           fi
 
           zero_sha="$(printf '0%.0s' {1..40})"
-          if [[ "$INDEXNOW_BEFORE" != "$zero_sha" ]]; then
-            if ! git fetch --no-tags --depth=1 origin "$INDEXNOW_BEFORE"; then
-              echo "Could not fetch the comparison commit; submitting the current sitemap."
-              INDEXNOW_BEFORE="$zero_sha"
-            fi
+          if [[ -z "$INDEXNOW_BEFORE" || "$INDEXNOW_BEFORE" == "$zero_sha" ]]; then
+            INDEXNOW_BEFORE="$zero_sha"
+          elif ! git fetch --no-tags --depth=1 origin "$INDEXNOW_BEFORE"; then
+            echo "::warning::Could not fetch the comparison commit; submitting the current sitemap."
+            INDEXNOW_BEFORE="$zero_sha"
           fi
 
           python3 -m scripts.submit_indexnow \
