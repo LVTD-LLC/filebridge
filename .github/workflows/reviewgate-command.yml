@@ -44,7 +44,7 @@ jobs:
           fi
 
           runs_json="$(
-            gh api --method GET \
+            gh api --method GET --paginate --slurp \
               "repos/$GITHUB_REPOSITORY/actions/workflows/reviewgate.yml/runs" \
               -f branch="$head_ref" \
               -f event="pull_request" \
@@ -53,7 +53,7 @@ jobs:
           run_id="$(
             jq --argjson pr_number "$PR_NUMBER" -r '
               [
-                .workflow_runs[]
+                .[].workflow_runs[]
                 | select(any(.pull_requests[]?; .number == $pr_number))
               ]
               | sort_by(.created_at)
@@ -73,7 +73,7 @@ jobs:
 
           run_status="$(
             jq --argjson run_id "$run_id" -r '
-              .workflow_runs[]
+              .[].workflow_runs[]
               | select(.id == $run_id)
               | .status
             ' <<<"$runs_json"

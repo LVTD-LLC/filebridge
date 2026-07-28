@@ -37,8 +37,13 @@ def test_reviewgate_comment_command_reruns_a_real_pr_event_for_maintainers():
     for association in ("OWNER", "MEMBER", "COLLABORATOR"):
         assert association in command_guard
     assert "reviewgate.yml/runs" in run_script
+    assert "gh api --method GET --paginate --slurp" in run_script
+    assert ".[].workflow_runs[]" in run_script
     assert '-f event="pull_request"' in run_script
+    assert '-f branch="$head_ref"' in run_script
     assert ".pull_requests[]?" in run_script
+    assert "sort_by(.created_at)" in run_script
+    assert "| reverse" in run_script
     assert "/actions/runs/$run_id/rerun" in run_script
     assert "Reopen the PR or push a commit" in run_script
 
