@@ -42,9 +42,21 @@ def test_reviewgate_comment_command_reruns_a_real_pr_event_for_maintainers():
     assert '-f event="pull_request"' in run_script
     assert '-f branch="$head_ref"' in run_script
     assert ".pull_requests[]?" in run_script
+    assert "head_sha=\"$(jq -r '.head.sha'" in run_script
+    assert '--arg head_sha "$head_sha"' in run_script
+    assert "select(.head_sha == $head_sha)" in run_script
     assert "sort_by(.created_at)" in run_script
     assert "| reverse" in run_script
     assert "/actions/runs/$run_id/rerun" in run_script
+    assert (
+        'if ! gh api --method POST "$reaction_api" -f content="eyes" >/dev/null; then' in run_script
+    )
+    assert (
+        'if ! gh api --method POST "$reaction_api" -f content="rocket" >/dev/null; then'
+        in run_script
+    )
+    assert "Failed to add eyes reaction" in run_script
+    assert "Failed to add rocket reaction" in run_script
     assert "Reopen the PR or push a commit" in run_script
 
 
