@@ -7,6 +7,42 @@ import yaml
 _REPO_ROOT = Path(__file__).parents[2]
 
 
+def test_reviewgate_runs_for_safe_pull_requests_with_supported_inputs():
+    workflow = (_REPO_ROOT / ".github" / "workflows" / "reviewgate.yml").read_text()
+    parsed_workflow = yaml.safe_load(workflow)
+    review = parsed_workflow["jobs"]["review"]
+
+    assert "github.event.pull_request.head.repo.full_name == github.repository" in review["if"]
+    assert "github.actor != 'dependabot[bot]'" in review["if"]
+    assert review["timeout-minutes"] == 20
+    assert parsed_workflow["concurrency"]["cancel-in-progress"] is True
+
+    reviewgate_step = next(
+        step for step in review["steps"] if step.get("uses") == "LVTD-LLC/reviewgate@v0"
+    )
+    assert reviewgate_step["with"] == {
+        "openrouter_api_key": "${{ secrets.OPENROUTER_API_KEY }}",
+        "min_severity": "P4",
+    }
+
+
+def test_reviewgate_comment_command_reruns_a_real_pr_event_for_maintainers():
+    workflow = (_REPO_ROOT / ".github" / "workflows" / "reviewgate-command.yml").read_text()
+    parsed_workflow = yaml.safe_load(workflow)
+    rereview = parsed_workflow["jobs"]["rereview"]
+    command_guard = rereview["if"]
+    run_script = rereview["steps"][0]["run"]
+
+    assert "github.event.comment.body == '@reviewgate review'" in command_guard
+    for association in ("OWNER", "MEMBER", "COLLABORATOR"):
+        assert association in command_guard
+    assert "reviewgate.yml/runs" in run_script
+    assert '-f event="pull_request"' in run_script
+    assert ".pull_requests[]?" in run_script
+    assert "/actions/runs/$run_id/rerun" in run_script
+    assert "Reopen the PR or push a commit" in run_script
+
+
 def test_publish_workflow_syncs_app_image_and_cli_version_to_release_tag():
     workflow = (_REPO_ROOT / ".github" / "workflows" / "publish.yml").read_text()
 

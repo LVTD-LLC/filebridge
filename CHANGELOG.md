@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-07-28
+
+### Added
+- Enabled ReviewGate pull-request reviews and maintainer-triggered reruns through
+  the `@reviewgate review` PR comment command.
+
 ## 2026-07-27
 
 ### Added

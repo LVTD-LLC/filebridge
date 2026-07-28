@@ -3,7 +3,6 @@ name: ReviewGate
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,12 +10,19 @@ permissions:
   issues: write
   checks: write
 
+concurrency:
+  group: reviewgate-${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   review:
-    if: ${{ false }} # Temporarily disabled.
+    if: >-
+      ${{
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.actor != 'dependabot[bot]'
+      }}
     runs-on: ubuntu-latest
-    env:
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +31,5 @@ jobs:
 
       - uses: LVTD-LLC/reviewgate@v0
         with:
-          openrouter_api_key: ${{ env.OPENROUTER_API_KEY }}
-          preset: balanced
-          gate_mode: report
+          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          min_severity: P4
