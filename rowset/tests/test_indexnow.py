@@ -148,11 +148,20 @@ def test_build_indexnow_payload_uses_explicit_key_location_and_same_host_urls():
 
 
 def test_build_indexnow_payload_rejects_urls_for_another_host():
-    with pytest.raises(IndexNowError, match="does not belong to rowset.lvtd.dev"):
+    with pytest.raises(IndexNowError, match="does not belong to https://rowset.lvtd.dev"):
         build_indexnow_payload(
             "https://rowset.lvtd.dev",
             "rowset-indexnow-test-key",
             ["https://example.com/other"],
+        )
+
+
+def test_build_indexnow_payload_rejects_urls_with_another_scheme():
+    with pytest.raises(IndexNowError, match="does not belong to https://rowset.lvtd.dev"):
+        build_indexnow_payload(
+            "https://rowset.lvtd.dev",
+            "rowset-indexnow-test-key",
+            ["http://rowset.lvtd.dev/other"],
         )
 
 
@@ -259,6 +268,7 @@ def test_verify_key_location_retries_a_transient_not_found():
         "https://rowset.lvtd.dev",
         "rowset-indexnow-test-key",
         attempts=2,
+        jitter=lambda: 0,
         sleep=delays.append,
         urlopen=urlopen,
     )
@@ -324,9 +334,39 @@ def test_submit_urls_retries_transient_http_errors():
         "rowset-indexnow-test-key",
         ["https://rowset.lvtd.dev/docs/quickstart"],
         attempts=2,
+        jitter=lambda: 0,
         sleep=delays.append,
         urlopen=urlopen,
     )
 
     assert submitted == 1
     assert delays == [5]
+
+
+def test_submit_urls_uses_exponential_backoff_with_jitter():
+    responses = [
+        HTTPError(INDEXNOW_ENDPOINT, 503, "Unavailable", {}, None),
+        HTTPError(INDEXNOW_ENDPOINT, 503, "Unavailable", {}, None),
+        HTTPError(INDEXNOW_ENDPOINT, 503, "Unavailable", {}, None),
+        _Response(status=200),
+    ]
+    delays = []
+
+    def urlopen(_request, timeout):
+        assert timeout == 20
+        response = responses.pop(0)
+        if isinstance(response, Exception):
+            raise response
+        return response
+
+    submit_urls(
+        "https://rowset.lvtd.dev",
+        "rowset-indexnow-test-key",
+        ["https://rowset.lvtd.dev/docs/quickstart"],
+        attempts=4,
+        jitter=lambda: 0.25,
+        sleep=delays.append,
+        urlopen=urlopen,
+    )
+
+    assert delays == [5.25, 10.25, 20.25]

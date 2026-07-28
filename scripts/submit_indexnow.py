@@ -5,6 +5,7 @@ import argparse
 import hmac
 import json
 import os
+import random
 import subprocess
 import sys
 import time
@@ -153,12 +154,13 @@ def _normalized_site_url(site_url: str) -> str:
 
 def _same_host_urls(site_url: str, urls: Iterable[str]) -> list[str]:
     expected = urlsplit(site_url)
+    expected_origin = f"{expected.scheme}://{expected.netloc}"
     validated = []
     seen = set()
     for url in urls:
         parsed = urlsplit(url)
-        if parsed.scheme not in {"http", "https"} or parsed.netloc != expected.netloc:
-            raise IndexNowError(f"IndexNow URL {url!r} does not belong to {expected.netloc}.")
+        if parsed.scheme != expected.scheme or parsed.netloc != expected.netloc:
+            raise IndexNowError(f"IndexNow URL {url!r} does not belong to {expected_origin}.")
         if url not in seen:
             seen.add(url)
             validated.append(url)
@@ -185,6 +187,7 @@ def _open(
     attempts: int = 1,
     timeout: int = REQUEST_TIMEOUT_SECONDS,
     retryable_http_statuses: frozenset[int] = RETRYABLE_HTTP_STATUSES,
+    jitter: Callable[[], float] = random.random,
     sleep: Callable[[float], None] = time.sleep,
 ):
     for attempt in range(1, attempts + 1):
@@ -196,7 +199,8 @@ def _open(
         except URLError as exc:
             if attempt == attempts:
                 raise IndexNowError(f"IndexNow request failed: {exc.reason}.") from exc
-        sleep(REQUEST_RETRY_DELAY_SECONDS * attempt)
+        retry_delay = REQUEST_RETRY_DELAY_SECONDS * (2 ** (attempt - 1))
+        sleep(retry_delay + jitter())
     raise AssertionError("IndexNow retry loop ended unexpectedly.")
 
 
@@ -264,6 +268,7 @@ def verify_key_location(
     key: str,
     *,
     attempts: int = 1,
+    jitter: Callable[[], float] = random.random,
     sleep: Callable[[float], None] = time.sleep,
     urlopen: UrlOpen = stdlib_urlopen,
 ) -> None:
@@ -277,6 +282,7 @@ def verify_key_location(
         urlopen=urlopen,
         attempts=attempts,
         retryable_http_statuses=RETRYABLE_HTTP_STATUSES | {404},
+        jitter=jitter,
         sleep=sleep,
     ) as response:
         deployed_key = response.read().decode("utf-8").strip()
@@ -290,6 +296,7 @@ def submit_urls(
     urls: Iterable[str],
     *,
     attempts: int = 1,
+    jitter: Callable[[], float] = random.random,
     sleep: Callable[[float], None] = time.sleep,
     urlopen: UrlOpen = stdlib_urlopen,
 ) -> int:
@@ -313,6 +320,7 @@ def submit_urls(
             request,
             urlopen=urlopen,
             attempts=attempts,
+            jitter=jitter,
             sleep=sleep,
         ) as response:
             if response.status not in {200, 202}:
