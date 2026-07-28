@@ -32,9 +32,7 @@ def test_reviewgate_runs_for_safe_pull_requests_with_supported_inputs():
     }
 
     reviewgate_step = next(
-        step
-        for step in review["steps"]
-        if step.get("uses", "").startswith("LVTD-LLC/reviewgate@")
+        step for step in review["steps"] if step.get("uses", "").startswith("LVTD-LLC/reviewgate@")
     )
     assert_action_is_pinned(reviewgate_step, "LVTD-LLC/reviewgate")
     assert reviewgate_step["with"] == {
