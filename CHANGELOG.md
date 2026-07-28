@@ -18,6 +18,11 @@ deployment or release cut date.
 
 ## 2026-07-28
 
+### Added
+- Enabled ReviewGate pull-request reviews and replaced manual workflow dispatch
+  with maintainer-triggered reruns through the `@reviewgate review` PR comment
+  command, preserving the pull-request event context ReviewGate requires.
+
 ### Changed
 - Hardened the Rowset CLI with bounded and cancelable HTTP requests, streaming
   downloads, atomic owner-only output files, strict argument validation, and
