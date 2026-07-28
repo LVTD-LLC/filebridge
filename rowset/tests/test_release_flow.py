@@ -132,17 +132,21 @@ def test_main_deploy_notifies_indexnow_after_both_services_deploy():
     checkout = steps[step_names.index("Checkout")]
     indexnow = steps[step_names.index("Notify IndexNow of public URL changes")]
 
-    assert checkout["with"]["fetch-depth"] == 0
+    assert "with" not in checkout
     assert indexnow["continue-on-error"] is True
     assert indexnow["timeout-minutes"] == 5
     assert indexnow["env"] == {
+        "INDEXNOW_AFTER": "${{ github.sha }}",
+        "INDEXNOW_BEFORE": "${{ github.event.before }}",
         "INDEXNOW_KEY": "${{ secrets.INDEXNOW_KEY }}",
         "INDEXNOW_SITE_URL": "https://rowset.lvtd.dev",
     }
+    assert 'if [[ -z "$INDEXNOW_KEY" ]]' in indexnow["run"]
+    assert 'git fetch --no-tags --depth=1 origin "$INDEXNOW_BEFORE"' in indexnow["run"]
     assert "python3 -m scripts.submit_indexnow" in indexnow["run"]
     assert "--key" not in indexnow["run"]
-    assert '--before "${{ github.event.before }}"' in indexnow["run"]
-    assert '--after "${{ github.sha }}"' in indexnow["run"]
+    assert '--before "$INDEXNOW_BEFORE"' in indexnow["run"]
+    assert '--after "$INDEXNOW_AFTER"' in indexnow["run"]
     assert step_names.index("Deploy workers to CapRover") < step_names.index(
         "Notify IndexNow of public URL changes"
     )

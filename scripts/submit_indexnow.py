@@ -24,7 +24,7 @@ REQUEST_TIMEOUT_SECONDS = 20
 REQUEST_RETRY_ATTEMPTS = 3
 REQUEST_RETRY_DELAY_SECONDS = 5
 RETRYABLE_HTTP_STATUSES = {429, 500, 502, 503, 504}
-MAX_SITEMAP_DOCUMENTS = 100
+DEFAULT_MAX_SITEMAP_DOCUMENTS = 1_000
 ZERO_SHA = "0" * 40
 
 PUBLIC_CONTENT_PREFIX = ("apps", "pages", "content")
@@ -202,9 +202,12 @@ def fetch_sitemap_urls(
     site_url: str,
     *,
     attempts: int = 1,
+    max_documents: int = DEFAULT_MAX_SITEMAP_DOCUMENTS,
     urlopen: UrlOpen = stdlib_urlopen,
 ) -> list[str]:
     site_url = _normalized_site_url(site_url)
+    if max_documents < 1:
+        raise IndexNowError("The sitemap document limit must be at least 1.")
     pending = [f"{site_url}/sitemap.xml"]
     visited = set()
     page_urls = []
@@ -213,8 +216,11 @@ def fetch_sitemap_urls(
         sitemap_url = pending.pop()
         if sitemap_url in visited:
             continue
-        if len(visited) >= MAX_SITEMAP_DOCUMENTS:
-            raise IndexNowError("Production sitemap index exceeds the supported document limit.")
+        if len(visited) >= max_documents:
+            raise IndexNowError(
+                "Production sitemap index exceeds the configured document "
+                f"limit of {max_documents}."
+            )
         visited.add(sitemap_url)
 
         request = Request(
@@ -307,6 +313,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--site-url", required=True)
     parser.add_argument("--before", required=True)
     parser.add_argument("--after", required=True)
+    parser.add_argument(
+        "--max-sitemap-documents",
+        type=int,
+        default=DEFAULT_MAX_SITEMAP_DOCUMENTS,
+        help="Maximum sitemap and sitemap-index documents to fetch (default: 1000).",
+    )
     args = parser.parse_args(argv)
     key = os.environ.get("INDEXNOW_KEY", "").strip()
 
@@ -326,7 +338,13 @@ def main(argv: list[str] | None = None) -> int:
 
     urls = _absolute_urls(site_url, public_paths)
     if include_sitemap:
-        urls.extend(fetch_sitemap_urls(site_url, attempts=REQUEST_RETRY_ATTEMPTS))
+        urls.extend(
+            fetch_sitemap_urls(
+                site_url,
+                attempts=REQUEST_RETRY_ATTEMPTS,
+                max_documents=args.max_sitemap_documents,
+            )
+        )
     urls = _same_host_urls(site_url, urls)
 
     if not urls:

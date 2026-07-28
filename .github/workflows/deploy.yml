@@ -24,8 +24,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Prepare image name and tags
         id: image
@@ -123,10 +121,22 @@ jobs:
         continue-on-error: true
         timeout-minutes: 5
         env:
+          INDEXNOW_AFTER: ${{ github.sha }}
+          INDEXNOW_BEFORE: ${{ github.event.before }}
           INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
           INDEXNOW_SITE_URL: https://rowset.lvtd.dev
         run: |
+          if [[ -z "$INDEXNOW_KEY" ]]; then
+            echo "INDEXNOW_KEY is not configured; skipping IndexNow notification."
+            exit 0
+          fi
+
+          zero_sha="$(printf '0%.0s' {1..40})"
+          if [[ "$INDEXNOW_BEFORE" != "$zero_sha" ]]; then
+            git fetch --no-tags --depth=1 origin "$INDEXNOW_BEFORE"
+          fi
+
           python3 -m scripts.submit_indexnow \
             --site-url "$INDEXNOW_SITE_URL" \
-            --before "${{ github.event.before }}" \
-            --after "${{ github.sha }}"
+            --before "$INDEXNOW_BEFORE" \
+            --after "$INDEXNOW_AFTER"

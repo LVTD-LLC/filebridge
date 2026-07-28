@@ -200,6 +200,25 @@ def test_fetch_sitemap_urls_follows_same_host_sitemap_indexes():
     }
 
 
+def test_fetch_sitemap_urls_honors_configurable_document_limit():
+    document = b"""
+        <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+          <sitemap><loc>https://rowset.lvtd.dev/sitemap-pages.xml</loc></sitemap>
+        </sitemapindex>
+    """
+
+    def urlopen(_request, timeout):
+        assert timeout == 20
+        return _Response(body=document)
+
+    with pytest.raises(IndexNowError, match="configured document limit of 1"):
+        fetch_sitemap_urls(
+            "https://rowset.lvtd.dev",
+            max_documents=1,
+            urlopen=urlopen,
+        )
+
+
 def test_submit_urls_batches_requests_at_the_protocol_limit():
     requests = []
 
