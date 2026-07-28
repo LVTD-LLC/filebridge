@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -21,10 +20,21 @@ const defaultAPIBase = "https://rowset.lvtd.dev/api/"
 
 var Version = "dev"
 
+const (
+	maxCollectionPageSize = 100
+	maxSearchResults      = 50
+	maxPreviewPageSize    = 100
+	maxPreviewPassword    = 4096
+	maxImageBytes         = 8 * 1024 * 1024
+	maxAudioBytes         = 32 * 1024 * 1024
+	maxRequestFileBytes   = 16 * 1024 * 1024
+)
+
 type IO struct {
-	Stdin  io.Reader
-	Stdout io.Writer
-	Stderr io.Writer
+	Stdin      io.Reader
+	Stdout     io.Writer
+	Stderr     io.Writer
+	HTTPClient *http.Client
 }
 
 type config struct {
@@ -83,15 +93,14 @@ func Run(ctx context.Context, streams IO, args []string) error {
 	showHelp := global.Bool("help", false, "show help")
 	showVersion := global.Bool("version", false, "show version")
 	if err := global.Parse(args); err != nil {
-		return err
+		return wrapUsageError(err)
 	}
 	if *showVersion {
-		_, _ = fmt.Fprintf(streams.Stdout, "rowset %s\n", Version)
-		return nil
+		_, err := fmt.Fprintf(streams.Stdout, "rowset %s\n", Version)
+		return err
 	}
 	if *showHelp || len(global.Args()) == 0 {
-		printHelp(streams.Stdout)
-		return nil
+		return printHelp(streams.Stdout)
 	}
 	if helpArgs, ok := requestedHelp(global.Args()); ok {
 		return printCommandHelp(streams.Stdout, helpArgs)
@@ -105,6 +114,9 @@ func dispatch(ctx context.Context, streams IO, cfg config, args []string) error 
 	case "capabilities":
 		return runCapabilities(ctx, streams, cfg, args[1:])
 	case "healthcheck":
+		if len(args) != 1 {
+			return usageError("usage: rowset healthcheck")
+		}
 		return doRequest(ctx, streams, cfg, http.MethodGet, "/healthcheck", nil, requestOptions{})
 	case "user":
 		return runUser(ctx, streams, cfg, args[1:])
@@ -133,7 +145,7 @@ func dispatch(ctx context.Context, streams IO, cfg config, args []string) error 
 	case "help":
 		return printCommandHelp(streams.Stdout, args[1:])
 	default:
-		return fmt.Errorf("unknown command %q", args[0])
+		return usageErrorf("unknown command %q", args[0])
 	}
 }
 
@@ -143,11 +155,11 @@ func runCapabilities(ctx context.Context, streams IO, cfg config, args []string)
 	fs.Var(&topicValues, "topic", "capability topic (repeatable or comma-separated)")
 	includeUseCases := fs.Bool("include-use-cases", false, "include relevant use cases")
 	full := fs.Bool("full", false, "return the complete capability guide")
-	if err := fs.Parse(args); err != nil {
+	if err := parseFlags(fs, args); err != nil {
 		return err
 	}
 	if len(topicValues) > 0 && *full {
-		return errors.New("--topic cannot be combined with --full")
+		return usageError("--topic cannot be combined with --full")
 	}
 
 	topics := make([]string, 0, len(topicValues))
@@ -166,25 +178,25 @@ func runCapabilities(ctx context.Context, streams IO, cfg config, args []string)
 }
 
 func runUser(ctx context.Context, streams IO, cfg config, args []string) error {
-	if len(args) == 0 || args[0] != "info" {
-		return errors.New("usage: rowset user info")
+	if len(args) != 1 || args[0] != "info" {
+		return usageError("usage: rowset user info")
 	}
 	return doRequest(ctx, streams, cfg, http.MethodGet, "/user", nil, requestOptions{auth: true})
 }
 
 func runFeedback(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) == 0 || args[0] != "submit" {
-		return errors.New("usage: rowset feedback submit --feedback TEXT [--page PATH] [--context JSON]")
+		return usageError("usage: rowset feedback submit --feedback TEXT [--page PATH] [--context JSON]")
 	}
 	fs := newFlagSet("feedback submit")
 	feedback := fs.String("feedback", "", "feedback text")
 	page := fs.String("page", "", "page or context path")
 	contextJSON := fs.String("context", "", "JSON object with feedback context")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := parseFlags(fs, args[1:]); err != nil {
 		return err
 	}
 	if *feedback == "" {
-		return errors.New("--feedback is required")
+		return usageError("--feedback is required")
 	}
 	body := map[string]any{"feedback": *feedback}
 	if flagWasSet(fs, "page") {
@@ -205,16 +217,21 @@ func runFeedback(ctx context.Context, streams IO, cfg config, args []string) err
 
 func runAPIKey(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) == 0 || args[0] != "create" {
-		return errors.New("usage: rowset api-key create --name NAME [--access-level read|read_write|admin]")
+		return usageError("usage: rowset api-key create --name NAME [--access-level read|read_write|admin]")
 	}
 	fs := newFlagSet("api-key create")
 	name := fs.String("name", "", "API key name")
 	accessLevel := fs.String("access-level", "read_write", "access level")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := parseFlags(fs, args[1:]); err != nil {
 		return err
 	}
 	if *name == "" {
-		return errors.New("--name is required")
+		return usageError("--name is required")
+	}
+	switch *accessLevel {
+	case "read", "read_write", "admin":
+	default:
+		return usageError("--access-level must be read, read_write, or admin")
 	}
 	return doRequest(ctx, streams, cfg, http.MethodPost, "/agent-api-keys", nil, requestOptions{
 		auth: true,
@@ -224,14 +241,14 @@ func runAPIKey(ctx context.Context, streams IO, cfg config, args []string) error
 
 func runProject(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) == 0 {
-		return errors.New("usage: rowset project <list|search|create|get|update|metadata|archive|section>")
+		return usageError("usage: rowset project <list|search|create|get|update|metadata|archive|section>")
 	}
 	switch args[0] {
 	case "list":
 		fs := newFlagSet("project list")
 		limit, offset := paginationFlags(fs, 100, 0)
 		query := fs.String("query", "", "project search query")
-		if err := fs.Parse(args[1:]); err != nil {
+		if err := parsePaginationFlags(fs, args[1:], limit, offset); err != nil {
 			return err
 		}
 		values := paginationValues(*limit, *offset)
@@ -239,11 +256,11 @@ func runProject(ctx context.Context, streams IO, cfg config, args []string) erro
 		return doRequest(ctx, streams, cfg, http.MethodGet, "/projects", values, requestOptions{auth: true})
 	case "search":
 		if len(args) < 2 {
-			return errors.New("usage: rowset project search QUERY [--limit N] [--offset N]")
+			return usageError("usage: rowset project search QUERY [--limit N] [--offset N]")
 		}
 		fs := newFlagSet("project search")
 		limit, offset := paginationFlags(fs, 100, 0)
-		if err := fs.Parse(args[2:]); err != nil {
+		if err := parsePaginationFlags(fs, args[2:], limit, offset); err != nil {
 			return err
 		}
 		values := paginationValues(*limit, *offset)
@@ -253,11 +270,11 @@ func runProject(ctx context.Context, streams IO, cfg config, args []string) erro
 		return createProject(ctx, streams, cfg, args[1:])
 	case "get":
 		if len(args) < 2 {
-			return errors.New("usage: rowset project get PROJECT_KEY [--limit N] [--offset N]")
+			return usageError("usage: rowset project get PROJECT_KEY [--limit N] [--offset N]")
 		}
 		fs := newFlagSet("project get")
 		limit, offset := paginationFlags(fs, 100, 0)
-		if err := fs.Parse(args[2:]); err != nil {
+		if err := parsePaginationFlags(fs, args[2:], limit, offset); err != nil {
 			return err
 		}
 		return doRequest(
@@ -275,13 +292,13 @@ func runProject(ctx context.Context, streams IO, cfg config, args []string) erro
 		return updateProjectMetadata(ctx, streams, cfg, args[1:])
 	case "archive":
 		if len(args) != 2 {
-			return errors.New("usage: rowset project archive PROJECT_KEY")
+			return usageError("usage: rowset project archive PROJECT_KEY")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodDelete, apiPath("projects", args[1]), nil, requestOptions{auth: true})
 	case "section":
 		return runProjectSection(ctx, streams, cfg, args[1:])
 	default:
-		return fmt.Errorf("unknown project command %q", args[0])
+		return usageErrorf("unknown project command %q", args[0])
 	}
 }
 
@@ -290,11 +307,11 @@ func createProject(ctx context.Context, streams IO, cfg config, args []string) e
 	name := fs.String("name", "", "project name")
 	description := fs.String("description", "", "project description")
 	metadataJSON := fs.String("metadata", "", "project metadata JSON object")
-	if err := fs.Parse(args); err != nil {
+	if err := parseFlags(fs, args); err != nil {
 		return err
 	}
 	if *name == "" {
-		return errors.New("--name is required")
+		return usageError("--name is required")
 	}
 	body := map[string]any{"name": *name}
 	if flagWasSet(fs, "description") {
@@ -312,12 +329,12 @@ func createProject(ctx context.Context, streams IO, cfg config, args []string) e
 
 func updateProject(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 1 {
-		return errors.New("usage: rowset project update PROJECT_KEY [--name NAME] [--description TEXT]")
+		return usageError("usage: rowset project update PROJECT_KEY [--name NAME] [--description TEXT]")
 	}
 	fs := newFlagSet("project update")
 	name := fs.String("name", "", "project name")
 	description := fs.String("description", "", "project description")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := parseFlags(fs, args[1:]); err != nil {
 		return err
 	}
 	body := map[string]any{}
@@ -328,22 +345,22 @@ func updateProject(ctx context.Context, streams IO, cfg config, args []string) e
 		body["description"] = *description
 	}
 	if len(body) == 0 {
-		return errors.New("at least one of --name or --description is required")
+		return usageError("at least one of --name or --description is required")
 	}
 	return doRequest(ctx, streams, cfg, http.MethodPatch, apiPath("projects", args[0]), nil, requestOptions{auth: true, body: body})
 }
 
 func updateProjectMetadata(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 1 {
-		return errors.New("usage: rowset project metadata PROJECT_KEY --metadata JSON")
+		return usageError("usage: rowset project metadata PROJECT_KEY --metadata JSON")
 	}
 	fs := newFlagSet("project metadata")
 	metadataJSON := fs.String("metadata", "", "project metadata JSON object")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := parseFlags(fs, args[1:]); err != nil {
 		return err
 	}
 	if !flagWasSet(fs, "metadata") {
-		return errors.New("--metadata is required")
+		return usageError("--metadata is required")
 	}
 	metadata, err := parseJSONObject(*metadataJSON, "--metadata")
 	if err != nil {
@@ -357,36 +374,36 @@ func updateProjectMetadata(ctx context.Context, streams IO, cfg config, args []s
 
 func runProjectSection(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) == 0 {
-		return errors.New("usage: rowset project section <list|create|update|archive>")
+		return usageError("usage: rowset project section <list|create|update|archive>")
 	}
 	switch args[0] {
 	case "list":
 		if len(args) < 2 {
-			return errors.New("usage: rowset project section list PROJECT_KEY [--limit N] [--offset N]")
+			return usageError("usage: rowset project section list PROJECT_KEY [--limit N] [--offset N]")
 		}
 		fs := newFlagSet("project section list")
 		limit, offset := paginationFlags(fs, 100, 0)
-		if err := fs.Parse(args[2:]); err != nil {
+		if err := parsePaginationFlags(fs, args[2:], limit, offset); err != nil {
 			return err
 		}
 		return doRequest(ctx, streams, cfg, http.MethodGet, apiPath("projects", args[1], "sections"), paginationValues(*limit, *offset), requestOptions{auth: true})
 	case "create":
 		if len(args) < 2 {
-			return errors.New("usage: rowset project section create PROJECT_KEY --name NAME")
+			return usageError("usage: rowset project section create PROJECT_KEY --name NAME")
 		}
 		return createProjectSection(ctx, streams, cfg, args[1], args[2:])
 	case "update":
 		if len(args) < 3 {
-			return errors.New("usage: rowset project section update PROJECT_KEY SECTION_KEY [--name NAME] [--description TEXT]")
+			return usageError("usage: rowset project section update PROJECT_KEY SECTION_KEY [--name NAME] [--description TEXT]")
 		}
 		return updateProjectSection(ctx, streams, cfg, args[1], args[2], args[3:])
 	case "archive":
 		if len(args) != 3 {
-			return errors.New("usage: rowset project section archive PROJECT_KEY SECTION_KEY")
+			return usageError("usage: rowset project section archive PROJECT_KEY SECTION_KEY")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodDelete, apiPath("projects", args[1], "sections", args[2]), nil, requestOptions{auth: true})
 	default:
-		return fmt.Errorf("unknown project section command %q", args[0])
+		return usageErrorf("unknown project section command %q", args[0])
 	}
 }
 
@@ -395,11 +412,11 @@ func createProjectSection(ctx context.Context, streams IO, cfg config, projectKe
 	name := fs.String("name", "", "section name")
 	description := fs.String("description", "", "section description")
 	metadataJSON := fs.String("metadata", "", "section metadata JSON object")
-	if err := fs.Parse(args); err != nil {
+	if err := parseFlags(fs, args); err != nil {
 		return err
 	}
 	if *name == "" {
-		return errors.New("--name is required")
+		return usageError("--name is required")
 	}
 	body := map[string]any{"name": *name}
 	if flagWasSet(fs, "description") {
@@ -419,7 +436,7 @@ func updateProjectSection(ctx context.Context, streams IO, cfg config, projectKe
 	fs := newFlagSet("project section update")
 	name := fs.String("name", "", "section name")
 	description := fs.String("description", "", "section description")
-	if err := fs.Parse(args); err != nil {
+	if err := parseFlags(fs, args); err != nil {
 		return err
 	}
 	body := map[string]any{}
@@ -430,33 +447,33 @@ func updateProjectSection(ctx context.Context, streams IO, cfg config, projectKe
 		body["description"] = *description
 	}
 	if len(body) == 0 {
-		return errors.New("at least one of --name or --description is required")
+		return usageError("at least one of --name or --description is required")
 	}
 	return doRequest(ctx, streams, cfg, http.MethodPatch, apiPath("projects", projectKey, "sections", sectionKey), nil, requestOptions{auth: true, body: body})
 }
 
 func runDataset(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) == 0 {
-		return errors.New("usage: rowset dataset <list|search|archived|get|create|metadata|column-types|project|archive|restore>")
+		return usageError("usage: rowset dataset <list|search|archived|get|create|metadata|column-types|project|archive|restore>")
 	}
 	switch args[0] {
 	case "list":
 		return listDatasets(ctx, streams, cfg, args[1:])
 	case "search":
 		if len(args) < 2 {
-			return errors.New("usage: rowset dataset search QUERY [filters]")
+			return usageError("usage: rowset dataset search QUERY [filters]")
 		}
 		return listDatasets(ctx, streams, cfg, append([]string{"--query", args[1]}, args[2:]...))
 	case "archived":
 		fs := newFlagSet("dataset archived")
 		limit, offset := paginationFlags(fs, 100, 0)
-		if err := fs.Parse(args[1:]); err != nil {
+		if err := parsePaginationFlags(fs, args[1:], limit, offset); err != nil {
 			return err
 		}
 		return doRequest(ctx, streams, cfg, http.MethodGet, "/datasets/archived", paginationValues(*limit, *offset), requestOptions{auth: true})
 	case "get":
 		if len(args) != 2 {
-			return errors.New("usage: rowset dataset get DATASET_KEY")
+			return usageError("usage: rowset dataset get DATASET_KEY")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodGet, apiPath("datasets", args[1]), nil, requestOptions{auth: true})
 	case "create":
@@ -469,16 +486,16 @@ func runDataset(ctx context.Context, streams IO, cfg config, args []string) erro
 		return updateDatasetProject(ctx, streams, cfg, args[1:])
 	case "archive":
 		if len(args) != 2 {
-			return errors.New("usage: rowset dataset archive DATASET_KEY")
+			return usageError("usage: rowset dataset archive DATASET_KEY")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodDelete, apiPath("datasets", args[1]), nil, requestOptions{auth: true})
 	case "restore":
 		if len(args) != 2 {
-			return errors.New("usage: rowset dataset restore DATASET_KEY")
+			return usageError("usage: rowset dataset restore DATASET_KEY")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodPost, apiPath("datasets", args[1], "restore"), nil, requestOptions{auth: true})
 	default:
-		return fmt.Errorf("unknown dataset command %q", args[0])
+		return usageErrorf("unknown dataset command %q", args[0])
 	}
 }
 
@@ -491,7 +508,7 @@ func listDatasets(ctx context.Context, streams IO, cfg config, args []string) er
 	headerContains := fs.String("header-contains", "", "exact header name")
 	status := fs.String("status", "", "dataset status")
 	updatedAfter := fs.String("updated-after", "", "ISO date or datetime")
-	if err := fs.Parse(args); err != nil {
+	if err := parsePaginationFlags(fs, args, limit, offset); err != nil {
 		return err
 	}
 	values := paginationValues(*limit, *offset)
@@ -518,11 +535,11 @@ func createDataset(ctx context.Context, streams IO, cfg config, args []string) e
 	rowsJSON := fs.String("rows", "", "JSON array of rows")
 	var rowValues repeatedStrings
 	fs.Var(&rowValues, "row", "JSON object row; may be repeated")
-	if err := fs.Parse(args); err != nil {
+	if err := parseFlags(fs, args); err != nil {
 		return err
 	}
 	if *name == "" {
-		return errors.New("--name is required")
+		return usageError("--name is required")
 	}
 	body := map[string]any{"name": *name}
 	if flagWasSet(fs, "description") {
@@ -569,13 +586,13 @@ func createDataset(ctx context.Context, streams IO, cfg config, args []string) e
 
 func updateDatasetMetadata(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 1 {
-		return errors.New("usage: rowset dataset metadata DATASET_KEY [--description TEXT] [--instructions TEXT] [--metadata JSON]")
+		return usageError("usage: rowset dataset metadata DATASET_KEY [--description TEXT] [--instructions TEXT] [--metadata JSON]")
 	}
 	fs := newFlagSet("dataset metadata")
 	description := fs.String("description", "", "dataset description")
 	instructions := fs.String("instructions", "", "dataset instructions")
 	metadataJSON := fs.String("metadata", "", "dataset metadata JSON object")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := parseFlags(fs, args[1:]); err != nil {
 		return err
 	}
 	body := map[string]any{}
@@ -593,22 +610,22 @@ func updateDatasetMetadata(ctx context.Context, streams IO, cfg config, args []s
 		body["metadata"] = metadata
 	}
 	if len(body) == 0 {
-		return errors.New("at least one metadata field is required")
+		return usageError("at least one metadata field is required")
 	}
 	return doRequest(ctx, streams, cfg, http.MethodPatch, apiPath("datasets", args[0], "metadata"), nil, requestOptions{auth: true, body: body})
 }
 
 func updateDatasetColumnTypes(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 1 {
-		return errors.New("usage: rowset dataset column-types DATASET_KEY --column-types JSON")
+		return usageError("usage: rowset dataset column-types DATASET_KEY --column-types JSON")
 	}
 	fs := newFlagSet("dataset column-types")
 	columnTypesJSON := fs.String("column-types", "", "column type JSON object")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := parseFlags(fs, args[1:]); err != nil {
 		return err
 	}
 	if !flagWasSet(fs, "column-types") {
-		return errors.New("--column-types is required")
+		return usageError("--column-types is required")
 	}
 	columnTypes, err := parseJSONObject(*columnTypesJSON, "--column-types")
 	if err != nil {
@@ -622,22 +639,25 @@ func updateDatasetColumnTypes(ctx context.Context, streams IO, cfg config, args 
 
 func updateDatasetProject(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 1 {
-		return errors.New("usage: rowset dataset project DATASET_KEY (--project-key KEY [--section-key KEY] | --clear)")
+		return usageError("usage: rowset dataset project DATASET_KEY (--project-key KEY [--section-key KEY] | --clear)")
 	}
 	fs := newFlagSet("dataset project")
 	projectKey := fs.String("project-key", "", "project key")
 	sectionKey := fs.String("section-key", "", "section key")
 	clearProject := fs.Bool("clear", false, "remove project assignment")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := parseFlags(fs, args[1:]); err != nil {
 		return err
 	}
 	body := map[string]any{}
 	if *clearProject {
+		if flagWasSet(fs, "project-key") || flagWasSet(fs, "section-key") {
+			return usageError("--clear cannot be combined with --project-key or --section-key")
+		}
 		body["project_key"] = nil
 	} else if flagWasSet(fs, "project-key") {
 		body["project_key"] = *projectKey
 	} else {
-		return errors.New("--project-key or --clear is required")
+		return usageError("--project-key or --clear is required")
 	}
 	if flagWasSet(fs, "section-key") {
 		body["section_key"] = *sectionKey
@@ -647,49 +667,89 @@ func updateDatasetProject(ctx context.Context, streams IO, cfg config, args []st
 
 func runPreview(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) == 0 || args[0] != "update" || len(args) < 2 {
-		return errors.New("usage: rowset preview update DATASET_KEY [--enabled true|false] [--page-size N] [--password TEXT] [--clear-password]")
+		return usageError(
+			"usage: rowset preview update DATASET_KEY [--enabled true|false] " +
+				"[--page-size N] [--password-stdin | --password-env NAME | --clear-password]",
+		)
 	}
 	fs := newFlagSet("preview update")
 	enabled := fs.String("enabled", "", "true or false")
 	pageSize := fs.Int("page-size", 0, "public preview page size")
-	password := fs.String("password", "", "public preview password")
+	passwordStdin := fs.Bool("password-stdin", false, "read the public preview password from stdin")
+	passwordEnv := fs.String(
+		"password-env",
+		"",
+		"environment variable containing the public preview password",
+	)
 	clearPassword := fs.Bool("clear-password", false, "clear public preview password")
-	if err := fs.Parse(args[2:]); err != nil {
+	if err := parseFlags(fs, args[2:]); err != nil {
 		return err
 	}
 	body := map[string]any{}
 	if flagWasSet(fs, "enabled") {
 		value, err := strconv.ParseBool(*enabled)
 		if err != nil {
-			return fmt.Errorf("--enabled must be true or false: %w", err)
+			return usageErrorf("--enabled must be true or false: %v", err)
 		}
 		body["public_enabled"] = value
 	}
 	if flagWasSet(fs, "page-size") {
+		if err := validateIntRange("--page-size", *pageSize, 1, maxPreviewPageSize); err != nil {
+			return err
+		}
 		body["public_page_size"] = *pageSize
 	}
-	if flagWasSet(fs, "password") {
-		body["public_password"] = *password
+	passwordSources := 0
+	if *passwordStdin {
+		passwordSources++
+	}
+	if flagWasSet(fs, "password-env") {
+		passwordSources++
+	}
+	if *clearPassword {
+		passwordSources++
+	}
+	if passwordSources > 1 {
+		return usageError(
+			"use only one of --password-stdin, --password-env, or --clear-password",
+		)
+	}
+	if *passwordStdin {
+		password, err := readSecret(streams.Stdin, maxPreviewPassword)
+		if err != nil {
+			return err
+		}
+		body["public_password"] = password
+	}
+	if flagWasSet(fs, "password-env") {
+		if strings.TrimSpace(*passwordEnv) == "" {
+			return usageError("--password-env requires a non-empty environment variable name")
+		}
+		password, ok := os.LookupEnv(*passwordEnv)
+		if !ok || password == "" {
+			return usageErrorf("%s must contain the public preview password", *passwordEnv)
+		}
+		body["public_password"] = password
 	}
 	if *clearPassword {
 		body["clear_public_password"] = true
 	}
 	if len(body) == 0 {
-		return errors.New("at least one preview setting is required")
+		return usageError("at least one preview setting is required")
 	}
 	return doRequest(ctx, streams, cfg, http.MethodPatch, apiPath("datasets", args[1], "public-preview"), nil, requestOptions{auth: true, body: body})
 }
 
 func runColumn(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) == 0 {
-		return errors.New("usage: rowset column <add|rename|drop|reorder>")
+		return usageError("usage: rowset column <add|rename|drop|reorder>")
 	}
 	switch args[0] {
 	case "add":
 		return addColumn(ctx, streams, cfg, args[1:])
 	case "rename":
 		if len(args) != 4 {
-			return errors.New("usage: rowset column rename DATASET_KEY OLD_NAME NEW_NAME")
+			return usageError("usage: rowset column rename DATASET_KEY OLD_NAME NEW_NAME")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodPost, apiPath("datasets", args[1], "columns", "rename"), nil, requestOptions{
 			auth: true,
@@ -697,7 +757,7 @@ func runColumn(ctx context.Context, streams IO, cfg config, args []string) error
 		})
 	case "drop":
 		if len(args) != 3 {
-			return errors.New("usage: rowset column drop DATASET_KEY NAME")
+			return usageError("usage: rowset column drop DATASET_KEY NAME")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodPost, apiPath("datasets", args[1], "columns", "drop"), nil, requestOptions{
 			auth: true,
@@ -705,39 +765,42 @@ func runColumn(ctx context.Context, streams IO, cfg config, args []string) error
 		})
 	case "reorder":
 		if len(args) < 2 {
-			return errors.New("usage: rowset column reorder DATASET_KEY --headers a,b,c")
+			return usageError("usage: rowset column reorder DATASET_KEY --headers a,b,c")
 		}
 		fs := newFlagSet("column reorder")
 		headers := fs.String("headers", "", "comma-separated headers")
-		if err := fs.Parse(args[2:]); err != nil {
+		if err := parseFlags(fs, args[2:]); err != nil {
 			return err
 		}
 		if !flagWasSet(fs, "headers") {
-			return errors.New("--headers is required")
+			return usageError("--headers is required")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodPost, apiPath("datasets", args[1], "columns", "reorder"), nil, requestOptions{
 			auth: true,
 			body: map[string]any{"headers": splitCSV(*headers)},
 		})
 	default:
-		return fmt.Errorf("unknown column command %q", args[0])
+		return usageErrorf("unknown column command %q", args[0])
 	}
 }
 
 func addColumn(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 1 {
-		return errors.New("usage: rowset column add DATASET_KEY --name NAME")
+		return usageError("usage: rowset column add DATASET_KEY --name NAME")
 	}
 	fs := newFlagSet("column add")
 	name := fs.String("name", "", "column name")
 	defaultValue := fs.String("default-value", "", "default string value")
 	defaultJSON := fs.String("default-json", "", "default JSON value")
 	columnType := fs.String("column-type", "", "column type string or JSON object")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := parseFlags(fs, args[1:]); err != nil {
 		return err
 	}
 	if *name == "" {
-		return errors.New("--name is required")
+		return usageError("--name is required")
+	}
+	if flagWasSet(fs, "default-json") && flagWasSet(fs, "default-value") {
+		return usageError("use only one of --default-json or --default-value")
 	}
 	body := map[string]any{"name": *name}
 	if flagWasSet(fs, "default-json") {
@@ -761,59 +824,59 @@ func addColumn(ctx context.Context, streams IO, cfg config, args []string) error
 
 func runRelationship(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) == 0 {
-		return errors.New("usage: rowset relationship <list|create|resolve|delete>")
+		return usageError("usage: rowset relationship <list|create|resolve|delete>")
 	}
 	switch args[0] {
 	case "list":
 		if len(args) != 2 {
-			return errors.New("usage: rowset relationship list DATASET_KEY")
+			return usageError("usage: rowset relationship list DATASET_KEY")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodGet, apiPath("datasets", args[1], "relationships"), nil, requestOptions{auth: true})
 	case "create":
 		return createRelationship(ctx, streams, cfg, args[1:])
 	case "resolve":
 		if len(args) < 3 {
-			return errors.New("usage: rowset relationship resolve DATASET_KEY RELATIONSHIP_KEY --source-index-value VALUE")
+			return usageError("usage: rowset relationship resolve DATASET_KEY RELATIONSHIP_KEY --source-index-value VALUE")
 		}
 		fs := newFlagSet("relationship resolve")
 		sourceIndexValue := fs.String("source-index-value", "", "source row index value")
-		if err := fs.Parse(args[3:]); err != nil {
+		if err := parseFlags(fs, args[3:]); err != nil {
 			return err
 		}
 		if *sourceIndexValue == "" {
-			return errors.New("--source-index-value is required")
+			return usageError("--source-index-value is required")
 		}
 		values := url.Values{}
 		values.Set("source_index_value", *sourceIndexValue)
 		return doRequest(ctx, streams, cfg, http.MethodGet, apiPath("datasets", args[1], "relationships", args[2], "resolve"), values, requestOptions{auth: true})
 	case "delete":
 		if len(args) != 3 {
-			return errors.New("usage: rowset relationship delete DATASET_KEY RELATIONSHIP_KEY")
+			return usageError("usage: rowset relationship delete DATASET_KEY RELATIONSHIP_KEY")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodDelete, apiPath("datasets", args[1], "relationships", args[2]), nil, requestOptions{auth: true})
 	default:
-		return fmt.Errorf("unknown relationship command %q", args[0])
+		return usageErrorf("unknown relationship command %q", args[0])
 	}
 }
 
 func createRelationship(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 1 {
-		return errors.New("usage: rowset relationship create DATASET_KEY --source-column COLUMN --target-dataset-key KEY")
+		return usageError("usage: rowset relationship create DATASET_KEY --source-column COLUMN --target-dataset-key KEY")
 	}
 	fs := newFlagSet("relationship create")
 	sourceColumn := fs.String("source-column", "", "source column")
 	targetDatasetKey := fs.String("target-dataset-key", "", "target dataset key")
 	name := fs.String("name", "", "relationship name")
 	enforceIntegrity := fs.String("enforce-integrity", "true", "true or false")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := parseFlags(fs, args[1:]); err != nil {
 		return err
 	}
 	if *sourceColumn == "" || *targetDatasetKey == "" {
-		return errors.New("--source-column and --target-dataset-key are required")
+		return usageError("--source-column and --target-dataset-key are required")
 	}
 	enforce, err := strconv.ParseBool(*enforceIntegrity)
 	if err != nil {
-		return fmt.Errorf("--enforce-integrity must be true or false: %w", err)
+		return usageErrorf("--enforce-integrity must be true or false: %v", err)
 	}
 	body := map[string]any{
 		"source_column":      *sourceColumn,
@@ -828,7 +891,7 @@ func createRelationship(ctx context.Context, streams IO, cfg config, args []stri
 
 func runRow(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) == 0 {
-		return errors.New("usage: rowset row <list|search|search-dataset|get|get-by-index|create|update|update-by-index|delete>")
+		return usageError("usage: rowset row <list|search|search-dataset|get|get-by-index|create|update|update-by-index|delete>")
 	}
 	switch args[0] {
 	case "list":
@@ -839,46 +902,46 @@ func runRow(ctx context.Context, streams IO, cfg config, args []string) error {
 		return searchDatasetRows(ctx, streams, cfg, args[1:])
 	case "get":
 		if len(args) != 3 {
-			return errors.New("usage: rowset row get DATASET_KEY ROW_ID")
+			return usageError("usage: rowset row get DATASET_KEY ROW_ID")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodGet, apiPath("datasets", args[1], "rows", args[2]), nil, requestOptions{auth: true})
 	case "get-by-index":
 		if len(args) != 3 {
-			return errors.New("usage: rowset row get-by-index DATASET_KEY INDEX_VALUE")
+			return usageError("usage: rowset row get-by-index DATASET_KEY INDEX_VALUE")
 		}
 		values := url.Values{}
 		values.Set("index_value", args[2])
 		return doRequest(ctx, streams, cfg, http.MethodGet, apiPath("datasets", args[1], "rows", "by-index"), values, requestOptions{auth: true})
 	case "create":
 		if len(args) < 2 {
-			return errors.New("usage: rowset row create DATASET_KEY --data JSON")
+			return usageError("usage: rowset row create DATASET_KEY --data JSON")
 		}
 		return rowWrite(ctx, streams, cfg, http.MethodPost, apiPath("datasets", args[1], "rows"), nil, args[2:])
 	case "update":
 		if len(args) < 3 {
-			return errors.New("usage: rowset row update DATASET_KEY ROW_ID --data JSON")
+			return usageError("usage: rowset row update DATASET_KEY ROW_ID --data JSON")
 		}
 		return rowWrite(ctx, streams, cfg, http.MethodPatch, apiPath("datasets", args[1], "rows", args[2]), nil, args[3:])
 	case "update-by-index":
 		if len(args) < 3 {
-			return errors.New("usage: rowset row update-by-index DATASET_KEY INDEX_VALUE --data JSON")
+			return usageError("usage: rowset row update-by-index DATASET_KEY INDEX_VALUE --data JSON")
 		}
 		values := url.Values{}
 		values.Set("index_value", args[2])
 		return rowWrite(ctx, streams, cfg, http.MethodPatch, apiPath("datasets", args[1], "rows", "by-index"), values, args[3:])
 	case "delete":
 		if len(args) != 3 {
-			return errors.New("usage: rowset row delete DATASET_KEY ROW_ID")
+			return usageError("usage: rowset row delete DATASET_KEY ROW_ID")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodDelete, apiPath("datasets", args[1], "rows", args[2]), nil, requestOptions{auth: true})
 	default:
-		return fmt.Errorf("unknown row command %q", args[0])
+		return usageErrorf("unknown row command %q", args[0])
 	}
 }
 
 func listRows(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 1 {
-		return errors.New("usage: rowset row list DATASET_KEY [--limit N] [--filters JSON]")
+		return usageError("usage: rowset row list DATASET_KEY [--limit N] [--filters JSON]")
 	}
 	fs := newFlagSet("row list")
 	limit, offset := paginationFlags(fs, 100, 0)
@@ -886,7 +949,7 @@ func listRows(ctx context.Context, streams IO, cfg config, args []string) error 
 	filters := fs.String("filters", "", "row filters JSON object")
 	sort := fs.String("sort", "", "sort header")
 	direction := fs.String("direction", "", "asc or desc")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := parsePaginationFlags(fs, args[1:], limit, offset); err != nil {
 		return err
 	}
 	values := paginationValues(*limit, *offset)
@@ -899,7 +962,7 @@ func listRows(ctx context.Context, streams IO, cfg config, args []string) error 
 
 func searchRows(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 1 {
-		return errors.New("usage: rowset row search QUERY [filters]")
+		return usageError("usage: rowset row search QUERY [filters]")
 	}
 	fs := newFlagSet("row search")
 	filtersJSON := fs.String("filters", "", "row filters JSON object")
@@ -912,7 +975,10 @@ func searchRows(ctx context.Context, streams IO, cfg config, args []string) erro
 	sort := fs.String("sort", "", "rank, dataset, or row_number")
 	direction := fs.String("direction", "", "asc or desc")
 	limit := fs.Int("limit", 10, "result limit")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := parseFlags(fs, args[1:]); err != nil {
+		return err
+	}
+	if err := validateIntRange("--limit", *limit, 1, maxSearchResults); err != nil {
 		return err
 	}
 	body := map[string]any{"query": args[0]}
@@ -948,7 +1014,7 @@ func searchRows(ctx context.Context, streams IO, cfg config, args []string) erro
 		} else {
 			value, err := strconv.ParseBool(*archived)
 			if err != nil {
-				return fmt.Errorf("--archived must be true, false, or null: %w", err)
+				return usageErrorf("--archived must be true, false, or null: %v", err)
 			}
 			body["archived"] = value
 		}
@@ -967,12 +1033,15 @@ func searchRows(ctx context.Context, streams IO, cfg config, args []string) erro
 
 func searchDatasetRows(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 2 {
-		return errors.New("usage: rowset row search-dataset DATASET_KEY QUERY [--filters JSON] [--limit N]")
+		return usageError("usage: rowset row search-dataset DATASET_KEY QUERY [--filters JSON] [--limit N]")
 	}
 	fs := newFlagSet("row search-dataset")
 	filtersJSON := fs.String("filters", "", "row filters JSON object")
 	limit := fs.Int("limit", 10, "result limit")
-	if err := fs.Parse(args[2:]); err != nil {
+	if err := parseFlags(fs, args[2:]); err != nil {
+		return err
+	}
+	if err := validateIntRange("--limit", *limit, 1, maxSearchResults); err != nil {
 		return err
 	}
 	body := map[string]any{"query": args[1]}
@@ -992,11 +1061,11 @@ func searchDatasetRows(ctx context.Context, streams IO, cfg config, args []strin
 func rowWrite(ctx context.Context, streams IO, cfg config, method string, path string, query url.Values, args []string) error {
 	fs := newFlagSet("row write")
 	dataJSON := fs.String("data", "", "row data JSON object")
-	if err := fs.Parse(args); err != nil {
+	if err := parseFlags(fs, args); err != nil {
 		return err
 	}
 	if !flagWasSet(fs, "data") {
-		return errors.New("--data is required")
+		return usageError("--data is required")
 	}
 	data, err := parseJSONObject(*dataJSON, "--data")
 	if err != nil {
@@ -1010,24 +1079,24 @@ func rowWrite(ctx context.Context, streams IO, cfg config, method string, path s
 
 func runAsset(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) == 0 {
-		return errors.New("usage: rowset asset <attach|get|content>")
+		return usageError("usage: rowset asset <attach|get|content>")
 	}
 	switch args[0] {
 	case "attach":
 		return attachAsset(ctx, streams, cfg, args[1:])
 	case "get":
 		if len(args) != 3 {
-			return errors.New("usage: rowset asset get DATASET_KEY ASSET_KEY")
+			return usageError("usage: rowset asset get DATASET_KEY ASSET_KEY")
 		}
 		return doRequest(ctx, streams, cfg, http.MethodGet, apiPath("datasets", args[1], "assets", args[2]), nil, requestOptions{auth: true})
 	case "content":
 		if len(args) < 3 {
-			return errors.New("usage: rowset asset content DATASET_KEY ASSET_KEY [--variant original|thumbnail] [--output PATH]")
+			return usageError("usage: rowset asset content DATASET_KEY ASSET_KEY [--variant original|thumbnail] [--output PATH]")
 		}
 		fs := newFlagSet("asset content")
 		variant := fs.String("variant", "original", "asset variant")
 		output := fs.String("output", "", "output path")
-		if err := fs.Parse(args[3:]); err != nil {
+		if err := parseFlags(fs, args[3:]); err != nil {
 			return err
 		}
 		values := url.Values{}
@@ -1038,13 +1107,13 @@ func runAsset(ctx context.Context, streams IO, cfg config, args []string) error 
 			rawOutput:  true,
 		})
 	default:
-		return fmt.Errorf("unknown asset command %q", args[0])
+		return usageErrorf("unknown asset command %q", args[0])
 	}
 }
 
 func attachAsset(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 1 {
-		return errors.New("usage: rowset asset attach DATASET_KEY --column COLUMN --file PATH (--row-id ID | --index-value VALUE) [--asset-type image|audio]")
+		return usageError("usage: rowset asset attach DATASET_KEY --column COLUMN --file PATH (--row-id ID | --index-value VALUE) [--asset-type image|audio]")
 	}
 	fs := newFlagSet("asset attach")
 	rowID := fs.String("row-id", "", "row id")
@@ -1054,20 +1123,24 @@ func attachAsset(ctx context.Context, streams IO, cfg config, args []string) err
 	filePath := fs.String("file", "", "asset file path")
 	filename := fs.String("filename", "", "original filename")
 	contentType := fs.String("content-type", "", "asset content type")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := parseFlags(fs, args[1:]); err != nil {
 		return err
 	}
 	if *column == "" || *filePath == "" {
-		return errors.New("--column and --file are required")
+		return usageError("--column and --file are required")
 	}
 	if (*rowID == "" && *indexValue == "") || (*rowID != "" && *indexValue != "") {
-		return errors.New("pass exactly one of --row-id or --index-value")
+		return usageError("pass exactly one of --row-id or --index-value")
 	}
 	normalizedAssetType := strings.ToLower(strings.TrimSpace(*assetType))
 	if normalizedAssetType != "image" && normalizedAssetType != "audio" {
-		return errors.New("--asset-type must be image or audio")
+		return usageError("--asset-type must be image or audio")
 	}
-	data, err := os.ReadFile(*filePath)
+	maxBytes := int64(maxImageBytes)
+	if normalizedAssetType == "audio" {
+		maxBytes = maxAudioBytes
+	}
+	data, err := readFileBounded(*filePath, maxBytes)
 	if err != nil {
 		return fmt.Errorf("read asset file: %w", err)
 	}
@@ -1094,17 +1167,17 @@ func attachAsset(ctx context.Context, streams IO, cfg config, args []string) err
 
 func runExport(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 2 {
-		return errors.New("usage: rowset export DATASET_KEY csv|jsonl|xlsx|sqlite [--output PATH]")
+		return usageError("usage: rowset export DATASET_KEY csv|jsonl|xlsx|sqlite [--output PATH]")
 	}
 	format := strings.TrimPrefix(strings.ToLower(args[1]), ".")
 	switch format {
 	case "csv", "jsonl", "xlsx", "sqlite":
 	default:
-		return fmt.Errorf("unsupported export format %q", args[1])
+		return usageErrorf("unsupported export format %q", args[1])
 	}
 	fs := newFlagSet("export")
 	output := fs.String("output", "", "output path")
-	if err := fs.Parse(args[2:]); err != nil {
+	if err := parseFlags(fs, args[2:]); err != nil {
 		return err
 	}
 	return doRequest(ctx, streams, cfg, http.MethodGet, apiPath("datasets", args[0], "export."+format), nil, requestOptions{
@@ -1116,7 +1189,7 @@ func runExport(ctx context.Context, streams IO, cfg config, args []string) error
 
 func runRawRequest(ctx context.Context, streams IO, cfg config, args []string) error {
 	if len(args) < 2 {
-		return errors.New("usage: rowset request METHOD PATH [--json JSON | --file PATH] [--output PATH] [--no-auth]")
+		return usageError("usage: rowset request METHOD PATH [--json JSON | --file PATH] [--output PATH] [--no-auth]")
 	}
 	method := strings.ToUpper(args[0])
 	path := args[1]
@@ -1125,21 +1198,21 @@ func runRawRequest(ctx context.Context, streams IO, cfg config, args []string) e
 	bodyFile := fs.String("file", "", "file containing request body")
 	output := fs.String("output", "", "output path")
 	noAuth := fs.Bool("no-auth", false, "do not send bearer auth")
-	if err := fs.Parse(args[2:]); err != nil {
+	if err := parseFlags(fs, args[2:]); err != nil {
 		return err
 	}
 	var bodyBytes []byte
 	if flagWasSet(fs, "json") && flagWasSet(fs, "file") {
-		return errors.New("use only one of --json or --file")
+		return usageError("use only one of --json or --file")
 	}
 	if flagWasSet(fs, "json") {
 		if !json.Valid([]byte(*jsonBody)) {
-			return errors.New("--json must be valid JSON")
+			return usageError("--json must be valid JSON")
 		}
 		bodyBytes = []byte(*jsonBody)
 	}
 	if flagWasSet(fs, "file") {
-		data, err := os.ReadFile(*bodyFile)
+		data, err := readFileBounded(*bodyFile, maxRequestFileBytes)
 		if err != nil {
 			return fmt.Errorf("read request file: %w", err)
 		}
@@ -1153,106 +1226,10 @@ func runRawRequest(ctx context.Context, streams IO, cfg config, args []string) e
 	})
 }
 
-func doRequest(
-	ctx context.Context,
-	streams IO,
-	cfg config,
-	method string,
-	path string,
-	query url.Values,
-	opts requestOptions,
-) error {
-	endpoint, err := buildEndpoint(cfg.apiBase, path, query, !opts.auth)
-	if err != nil {
-		return err
-	}
-
-	var body io.Reader
-	if opts.body != nil {
-		data, err := json.Marshal(opts.body)
-		if err != nil {
-			return fmt.Errorf("encode request body: %w", err)
-		}
-		body = bytes.NewReader(data)
-	} else if opts.bodyBytes != nil {
-		body = bytes.NewReader(opts.bodyBytes)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, method, endpoint, body)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("User-Agent", "rowset/"+Version)
-	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
-	if opts.auth {
-		apiKey := os.Getenv(cfg.apiKeyEnv)
-		if strings.TrimSpace(apiKey) == "" {
-			return fmt.Errorf("%s is required for authenticated Rowset requests", cfg.apiKeyEnv)
-		}
-		req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(apiKey))
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	responseBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode >= 400 {
-		return safeRequestError(responseBody)
-	}
-	if opts.outputPath != "" {
-		if err := os.WriteFile(opts.outputPath, responseBody, 0o600); err != nil {
-			return fmt.Errorf("write output: %w", err)
-		}
-		return nil
-	}
-	if len(responseBody) == 0 {
-		return nil
-	}
-	if opts.rawOutput {
-		_, err = streams.Stdout.Write(responseBody)
-		return err
-	}
-	formatted := formatJSON(responseBody, cfg.compact)
-	_, err = streams.Stdout.Write(formatted)
-	return err
-}
-
-func safeRequestError(responseBody []byte) error {
-	payload := apiErrorResponse{}
-	if err := json.Unmarshal(responseBody, &payload); err == nil {
-		details := make([]string, 0, 3)
-		if code := strings.TrimSpace(payload.Code); code != "" {
-			details = append(details, code)
-		}
-		message := strings.TrimSpace(payload.Message)
-		if message == "" {
-			message = strings.TrimSpace(payload.Detail)
-		}
-		if message != "" {
-			details = append(details, message)
-		}
-		if upgradeURL := strings.TrimSpace(payload.UpgradeURL); upgradeURL != "" {
-			details = append(details, "Upgrade: "+upgradeURL)
-		}
-		if len(details) > 0 {
-			return errors.New("Rowset couldn't complete the request — " + strings.Join(details, " — "))
-		}
-	}
-	return errors.New("Rowset couldn't complete the request. Check the command and try again.")
-}
-
 func buildEndpoint(apiBase string, path string, query url.Values, allowAbsolute bool) (string, error) {
 	if isAbsoluteHTTPURL(path) {
 		if !allowAbsolute {
-			return "", errors.New("absolute request URLs require --no-auth")
+			return "", usageError("absolute request URLs require --no-auth")
 		}
 		parsed, err := url.Parse(path)
 		if err != nil {
@@ -1270,7 +1247,7 @@ func buildEndpoint(apiBase string, path string, query url.Values, allowAbsolute 
 		return parsed.String(), nil
 	}
 	if strings.TrimSpace(apiBase) == "" {
-		return "", errors.New("ROWSET_API_BASE or --api-base is required")
+		return "", usageError("ROWSET_API_BASE or --api-base is required")
 	}
 	base := strings.TrimRight(apiBase, "/")
 	cleanPath := "/" + strings.TrimLeft(path, "/")
@@ -1311,6 +1288,16 @@ func newFlagSet(name string) *flag.FlagSet {
 	return fs
 }
 
+func parseFlags(fs *flag.FlagSet, args []string) error {
+	if err := fs.Parse(args); err != nil {
+		return wrapUsageError(err)
+	}
+	if fs.NArg() != 0 {
+		return usageErrorf("unexpected argument %q", fs.Arg(0))
+	}
+	return nil
+}
+
 func envOrDefault(name string, fallback string) string {
 	value := strings.TrimSpace(os.Getenv(name))
 	if value == "" {
@@ -1330,6 +1317,35 @@ func paginationValues(limit int, offset int) url.Values {
 	values.Set("limit", strconv.Itoa(limit))
 	values.Set("offset", strconv.Itoa(offset))
 	return values
+}
+
+func parsePaginationFlags(
+	fs *flag.FlagSet,
+	args []string,
+	limit *int,
+	offset *int,
+) error {
+	if err := parseFlags(fs, args); err != nil {
+		return err
+	}
+	return validatePagination(*limit, *offset)
+}
+
+func validatePagination(limit int, offset int) error {
+	if err := validateIntRange("--limit", limit, 1, maxCollectionPageSize); err != nil {
+		return err
+	}
+	if offset < 0 {
+		return usageError("--offset must be at least 0")
+	}
+	return nil
+}
+
+func validateIntRange(name string, value int, minimum int, maximum int) error {
+	if value < minimum || value > maximum {
+		return usageErrorf("%s must be between %d and %d", name, minimum, maximum)
+	}
+	return nil
 }
 
 func addQuery(values url.Values, key string, value string) {
@@ -1365,7 +1381,12 @@ func parseRows(rowsJSON string, rowValues repeatedStrings) ([]any, error) {
 	if rowsJSON != "" {
 		var parsed []any
 		if err := json.Unmarshal([]byte(rowsJSON), &parsed); err != nil {
-			return nil, fmt.Errorf("--rows must be a JSON array: %w", err)
+			return nil, usageErrorf("--rows must be a JSON array: %v", err)
+		}
+		for index, row := range parsed {
+			if _, ok := row.(map[string]any); !ok {
+				return nil, usageErrorf("--rows item %d must be a JSON object", index+1)
+			}
 		}
 		rows = append(rows, parsed...)
 	}
@@ -1385,10 +1406,10 @@ func parseRows(rowsJSON string, rowValues repeatedStrings) ([]any, error) {
 func parseJSONObject(raw string, flagName string) (map[string]any, error) {
 	var value map[string]any
 	if err := json.Unmarshal([]byte(raw), &value); err != nil {
-		return nil, fmt.Errorf("%s must be a JSON object: %w", flagName, err)
+		return nil, usageErrorf("%s must be a JSON object: %v", flagName, err)
 	}
 	if value == nil {
-		return nil, fmt.Errorf("%s must be a JSON object", flagName)
+		return nil, usageErrorf("%s must be a JSON object", flagName)
 	}
 	return value, nil
 }
@@ -1396,7 +1417,7 @@ func parseJSONObject(raw string, flagName string) (map[string]any, error) {
 func parseJSONValue(raw string, flagName string) (any, error) {
 	var value any
 	if err := json.Unmarshal([]byte(raw), &value); err != nil {
-		return nil, fmt.Errorf("%s must be valid JSON: %w", flagName, err)
+		return nil, usageErrorf("%s must be valid JSON: %v", flagName, err)
 	}
 	return value, nil
 }
@@ -1425,4 +1446,49 @@ func formatJSON(data []byte, compact bool) []byte {
 	}
 	formatted.WriteByte('\n')
 	return formatted.Bytes()
+}
+
+func readSecret(reader io.Reader, limit int64) (string, error) {
+	data, err := readBoundedInput(reader, limit, "password")
+	if err != nil {
+		return "", err
+	}
+	password := strings.TrimSuffix(string(data), "\n")
+	password = strings.TrimSuffix(password, "\r")
+	if password == "" {
+		return "", usageError("public preview password cannot be empty")
+	}
+	return password, nil
+}
+
+func readFileBounded(path string, limit int64) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("inspect file: %w", err)
+	}
+	if info.Mode().IsRegular() && info.Size() > limit {
+		return nil, usageErrorf("file exceeds %d bytes", limit)
+	}
+	data, err := readBoundedInput(file, limit, "file")
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func readBoundedInput(reader io.Reader, limit int64, label string) ([]byte, error) {
+	limited := &io.LimitedReader{R: reader, N: limit + 1}
+	data, err := io.ReadAll(limited)
+	if err != nil {
+		return nil, fmt.Errorf("read %s: %w", label, err)
+	}
+	if int64(len(data)) > limit {
+		return nil, usageErrorf("%s exceeds %d bytes", label, limit)
+	}
+	return data, nil
 }

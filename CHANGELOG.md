@@ -16,6 +16,20 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-07-28
+
+### Changed
+- Hardened the Rowset CLI with bounded and cancelable HTTP requests, streaming
+  downloads, atomic owner-only output files, strict argument validation, and
+  stable exit-code classes for agents and scripts.
+- Changed public-preview password updates to read secrets from stdin or a named
+  environment variable instead of process arguments.
+
+### Security
+- Added SHA-256 verification and atomic replacement to the CLI installer, pinned
+  GitHub Actions to immutable revisions, narrowed release-job permissions, and
+  added native release-artifact smoke tests and provenance attestations.
+
 ## 2026-07-27
 
 ### Added

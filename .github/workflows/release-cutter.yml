@@ -11,20 +11,22 @@ concurrency:
 
 permissions:
   actions: read
-  contents: write
-  packages: write
+  contents: read
 
 jobs:
   prepare:
     name: Check for releasable main changes
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
     outputs:
       should_release: ${{ steps.release.outputs.should_release }}
       release_tag: ${{ steps.release.outputs.release_tag }}
       release_sha: ${{ steps.release.outputs.release_sha }}
     steps:
       - name: Checkout main with release tags
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: main
           fetch-depth: 0
@@ -85,6 +87,12 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.should_release == 'true'
     uses: ./.github/workflows/publish.yml
+    permissions:
+      actions: read
+      attestations: write
+      contents: write
+      id-token: write
+      packages: write
     with:
       release_tag: ${{ needs.prepare.outputs.release_tag }}
       release_sha: ${{ needs.prepare.outputs.release_sha }}

@@ -8,6 +8,9 @@ previews, archives, restores, and exports.
 The CLI sends bearer auth from an environment variable. Do not pass raw API keys
 through shell history or commit them to config files.
 
+The installer verifies the selected release archive against its published
+SHA-256 checksum before replacing an existing binary.
+
 ## Setup
 
 Install the latest published CLI:
@@ -76,6 +79,37 @@ rowset --compact dataset get "{dataset_key}"
 
 Raw exports, downloaded assets, and explicit `--output` files are unchanged by
 this flag.
+
+Set a public-preview password without exposing it in process arguments or shell
+history:
+
+```bash
+printf '%s\n' "$ROWSET_PREVIEW_PASSWORD" \
+  | rowset preview update "{dataset_key}" --password-stdin
+```
+
+Alternatively, name the environment variable that contains the password:
+
+```bash
+rowset preview update "{dataset_key}" --password-env ROWSET_PREVIEW_PASSWORD
+```
+
+## Process behavior
+
+Requests have a finite five-minute total deadline, with shorter connection,
+TLS, and response-header deadlines. JSON responses and local upload inputs are
+bounded; exports and asset downloads stream directly to stdout or an atomic
+owner-only output file.
+
+The CLI uses stable exit-code classes for automation:
+
+- `0`: success, including normal broken-pipe termination
+- `1`: local operational failure
+- `2`: invalid command usage
+- `3`: authentication or permission failure
+- `4`: network or timeout failure
+- `5`: non-success response from Rowset
+- `130`: interruption or context cancellation
 
 ## Examples
 

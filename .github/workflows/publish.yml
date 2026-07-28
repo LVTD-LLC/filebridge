@@ -20,8 +20,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 env:
   PROJECT_NAME: rowset
@@ -30,13 +29,15 @@ jobs:
   validate:
     name: Validate release tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       release_tag: ${{ steps.release.outputs.release_tag }}
       release_sha: ${{ steps.release.outputs.release_sha }}
       image_name: ${{ steps.release.outputs.image_name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ inputs.release_sha || github.sha }}
 
@@ -66,29 +67,35 @@ jobs:
   cli:
     name: Build CLI (${{ matrix.goos }}/${{ matrix.goarch }})
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
         include:
           - goos: linux
             goarch: amd64
+            runner: ubuntu-latest
           - goos: linux
             goarch: arm64
+            runner: ubuntu-24.04-arm
           - goos: darwin
             goarch: amd64
+            runner: macos-15-intel
           - goos: darwin
             goarch: arm64
+            runner: macos-15
     env:
       RELEASE_TAG: ${{ needs.validate.outputs.release_tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ needs.validate.outputs.release_sha }}
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: cli/go.mod
 
@@ -113,8 +120,26 @@ jobs:
           asset="rowset_${{ matrix.goos }}_${{ matrix.goarch }}.tar.gz"
           tar -C package -czf "dist/${asset}" rowset
 
+      - name: Smoke-test CLI archive
+        shell: bash
+        working-directory: cli
+        env:
+          EXPECTED_VERSION: ${{ needs.validate.outputs.release_tag }}
+        run: |
+          asset="rowset_${{ matrix.goos }}_${{ matrix.goarch }}.tar.gz"
+          mkdir -p smoke
+          tar -C smoke -xzf "dist/${asset}"
+          test "$(smoke/rowset --version)" = "rowset ${EXPECTED_VERSION}"
+          smoke/rowset --help >/dev/null
+          set +e
+          smoke/rowset unknown-command >/dev/null 2>smoke/error.txt
+          exit_code="$?"
+          set -e
+          test "$exit_code" -eq 2
+          grep -q 'unknown command' smoke/error.txt
+
       - name: Upload CLI archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: cli-${{ matrix.goos }}-${{ matrix.goarch }}
           path: cli/dist/*.tar.gz
@@ -124,22 +149,25 @@ jobs:
     name: Build and publish app image
     needs: validate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ needs.validate.outputs.release_sha }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
         with:
           platforms: arm64
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -171,7 +199,7 @@ jobs:
             "${{ needs.validate.outputs.image_name }}:${{ needs.validate.outputs.release_sha }}"
 
       - name: Log in to GHCR for tag promotion
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -204,6 +232,11 @@ jobs:
       - cli
       - app-image
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      attestations: write
+      contents: write
+      id-token: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       RELEASE_TAG: ${{ needs.validate.outputs.release_tag }}
@@ -211,12 +244,12 @@ jobs:
       IMAGE_NAME: ${{ needs.validate.outputs.image_name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ needs.validate.outputs.release_sha }}
 
       - name: Download CLI archives
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: cli-*
           path: release-assets
@@ -227,6 +260,11 @@ jobs:
         run: |
           cp scripts/install-rowset-cli.sh release-assets/install-rowset-cli.sh
           (cd release-assets && sha256sum *.tar.gz > checksums.txt)
+
+      - name: Attest CLI archives
+        uses: actions/attest@36051bcae73b7c2a8a6945a48cbf80953c6baa35 # v4
+        with:
+          subject-path: release-assets/*.tar.gz
 
       - name: Publish release
         shell: bash
@@ -254,3 +292,13 @@ jobs:
             --target "$RELEASE_SHA" \
             --title "$RELEASE_TAG" \
             --notes-file "$notes"
+
+      - name: Verify published release checksums
+        shell: bash
+        run: |
+          mkdir -p published-assets
+          gh release download "$RELEASE_TAG" \
+            --dir published-assets \
+            --pattern 'rowset_*.tar.gz' \
+            --pattern checksums.txt
+          (cd published-assets && sha256sum -c checksums.txt)

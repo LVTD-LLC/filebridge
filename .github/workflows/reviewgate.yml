@@ -19,11 +19,11 @@ jobs:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
-      - uses: LVTD-LLC/reviewgate@v0
+      - uses: LVTD-LLC/reviewgate@40d73b79d1d620412ab5825eef51746e9fd506e0 # v0
         with:
           openrouter_api_key: ${{ env.OPENROUTER_API_KEY }}
           preset: balanced

@@ -97,6 +97,8 @@ frontend-check: frontend-lint frontend-build
 
 cli-test:
 	cd cli && go test ./...
+	scripts/test-install-rowset-cli.sh
+	scripts/test-cli-release-contract.sh
 
 cli-build:
 	mkdir -p cli/bin

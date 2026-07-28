@@ -92,6 +92,7 @@ func expectJSONRequest(
 }
 
 func TestCommandRoutesCoverRowsetOperations(t *testing.T) {
+	t.Setenv("TEST_ROWSET_PREVIEW_PASSWORD", "secret")
 	tests := []struct {
 		name string
 		args []string
@@ -346,7 +347,7 @@ func TestCommandRoutesCoverRowsetOperations(t *testing.T) {
 		},
 		{
 			name: "preview update",
-			args: []string{"preview", "update", "dataset-key", "--enabled", "true", "--page-size", "25", "--password", "secret"},
+			args: []string{"preview", "update", "dataset-key", "--enabled", "true", "--page-size", "25", "--password-env", "TEST_ROWSET_PREVIEW_PASSWORD"},
 			want: requestCapture{
 				method: http.MethodPatch,
 				path:   "/api/datasets/dataset-key/public-preview",

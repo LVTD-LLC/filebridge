@@ -47,7 +47,7 @@ var commandHelp = map[string]helpEntry{
 	"dataset archive":         {"rowset dataset archive DATASET_KEY", "Archive a dataset.", "rowset dataset archive \"{dataset_key}\""},
 	"dataset restore":         {"rowset dataset restore DATASET_KEY", "Restore an archived dataset.", "rowset dataset restore \"{dataset_key}\""},
 	"preview":                 {"rowset preview <command>", "Manage read-only public previews.", "rowset preview update \"{dataset_key}\" --enabled false"},
-	"preview update":          {"rowset preview update DATASET_KEY [flags]", "Update public preview settings.", "rowset preview update \"{dataset_key}\" --enabled true --page-size 25"},
+	"preview update":          {"rowset preview update DATASET_KEY [--enabled true|false] [--page-size N] [--password-stdin | --password-env NAME | --clear-password]", "Update public preview settings.", "rowset preview update \"{dataset_key}\" --password-stdin"},
 	"column":                  {"rowset column <command>", "Manage dataset columns.", "rowset column add \"{dataset_key}\" --name status"},
 	"column add":              {"rowset column add DATASET_KEY --name NAME [flags]", "Add a dataset column.", "rowset column add \"{dataset_key}\" --name status --default-value Ready"},
 	"column rename":           {"rowset column rename DATASET_KEY OLD_NAME NEW_NAME", "Rename a dataset column.", "rowset column rename \"{dataset_key}\" old_name new_name"},
@@ -104,26 +104,27 @@ func commandPath(args []string) []string {
 
 func printCommandHelp(w io.Writer, args []string) error {
 	if len(args) == 0 {
-		printHelp(w)
-		return nil
+		return printHelp(w)
 	}
 	path := commandPath(args)
 	key := strings.Join(path, " ")
 	entry, ok := commandHelp[key]
 	if !ok || len(path) != len(args) {
-		return fmt.Errorf("unknown help topic %q", strings.Join(args, " "))
+		return usageErrorf("unknown help topic %q", strings.Join(args, " "))
 	}
-	_, _ = fmt.Fprintf(w, "%s\n\nUsage: %s\n", entry.summary, entry.usage)
+	var output strings.Builder
+	_, _ = fmt.Fprintf(&output, "%s\n\nUsage: %s\n", entry.summary, entry.usage)
 	children := directHelpChildren(key)
 	if len(children) > 0 {
-		_, _ = fmt.Fprintln(w, "\nCommands:")
+		_, _ = fmt.Fprintln(&output, "\nCommands:")
 		for _, child := range children {
 			childEntry := commandHelp[key+" "+child]
-			_, _ = fmt.Fprintf(w, "  %-16s %s\n", child, childEntry.summary)
+			_, _ = fmt.Fprintf(&output, "  %-16s %s\n", child, childEntry.summary)
 		}
 	}
-	_, _ = fmt.Fprintf(w, "\nExample:\n  %s\n", entry.example)
-	return nil
+	_, _ = fmt.Fprintf(&output, "\nExample:\n  %s\n", entry.example)
+	_, err := io.WriteString(w, output.String())
+	return err
 }
 
 func directHelpChildren(key string) []string {
@@ -145,8 +146,9 @@ func directHelpChildren(key string) []string {
 	return children
 }
 
-func printHelp(w io.Writer) {
-	_, _ = fmt.Fprint(w, `rowset is the Rowset REST CLI.
+func printHelp(w io.Writer) error {
+	var output strings.Builder
+	_, _ = fmt.Fprint(&output, `rowset is the Rowset REST CLI.
 
 Configuration:
   ROWSET_API_BASE   Rowset REST API base (default https://rowset.lvtd.dev/api/)
@@ -163,6 +165,13 @@ Commands:
 `)
 	for _, command := range directHelpChildren("") {
 		entry := commandHelp[command]
-		_, _ = fmt.Fprintf(w, "  %-54s %s\n", strings.TrimPrefix(entry.usage, "rowset "), entry.summary)
+		_, _ = fmt.Fprintf(
+			&output,
+			"  %-54s %s\n",
+			strings.TrimPrefix(entry.usage, "rowset "),
+			entry.summary,
+		)
 	}
+	_, err := io.WriteString(w, output.String())
+	return err
 }
