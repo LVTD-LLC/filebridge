@@ -23,8 +23,9 @@ MAX_URLS_PER_REQUEST = 10_000
 REQUEST_TIMEOUT_SECONDS = 20
 REQUEST_RETRY_ATTEMPTS = 3
 REQUEST_RETRY_DELAY_SECONDS = 5
-RETRYABLE_HTTP_STATUSES = {429, 500, 502, 503, 504}
+RETRYABLE_HTTP_STATUSES = frozenset({429, 500, 502, 503, 504})
 DEFAULT_MAX_SITEMAP_DOCUMENTS = 1_000
+MAX_SITEMAP_DOCUMENT_BYTES = 10 * 1024 * 1024
 ZERO_SHA = "0" * 40
 
 PUBLIC_CONTENT_PREFIX = ("apps", "pages", "content")
@@ -183,19 +184,33 @@ def _open(
     urlopen: UrlOpen,
     attempts: int = 1,
     timeout: int = REQUEST_TIMEOUT_SECONDS,
+    retryable_http_statuses: frozenset[int] = RETRYABLE_HTTP_STATUSES,
     sleep: Callable[[float], None] = time.sleep,
 ):
     for attempt in range(1, attempts + 1):
         try:
             return urlopen(request, timeout=timeout)
         except HTTPError as exc:
-            if exc.code not in RETRYABLE_HTTP_STATUSES or attempt == attempts:
+            if exc.code not in retryable_http_statuses or attempt == attempts:
                 raise IndexNowError(f"IndexNow returned HTTP {exc.code}.") from exc
         except URLError as exc:
             if attempt == attempts:
                 raise IndexNowError(f"IndexNow request failed: {exc.reason}.") from exc
         sleep(REQUEST_RETRY_DELAY_SECONDS * attempt)
     raise AssertionError("IndexNow retry loop ended unexpectedly.")
+
+
+def _parse_sitemap_document(response) -> ElementTree.Element:
+    document_bytes = response.read(MAX_SITEMAP_DOCUMENT_BYTES + 1)
+    if len(document_bytes) > MAX_SITEMAP_DOCUMENT_BYTES:
+        raise IndexNowError("Production sitemap exceeds the supported document size.")
+    uppercase_document = document_bytes.upper()
+    if b"<!DOCTYPE" in uppercase_document or b"<!ENTITY" in uppercase_document:
+        raise IndexNowError("Production sitemap contains unsafe XML declarations.")
+    try:
+        return ElementTree.fromstring(document_bytes)
+    except ElementTree.ParseError as exc:
+        raise IndexNowError("Production sitemap returned invalid XML.") from exc
 
 
 def fetch_sitemap_urls(
@@ -227,11 +242,8 @@ def fetch_sitemap_urls(
             sitemap_url,
             headers={"User-Agent": "rowset-indexnow-deploy/1.0"},
         )
-        try:
-            with _open(request, urlopen=urlopen, attempts=attempts) as response:
-                document = ElementTree.fromstring(response.read())
-        except ElementTree.ParseError as exc:
-            raise IndexNowError("Production sitemap returned invalid XML.") from exc
+        with _open(request, urlopen=urlopen, attempts=attempts) as response:
+            document = _parse_sitemap_document(response)
 
         locations = [
             element.text.strip() for element in document.findall(".//{*}loc") if element.text
@@ -252,6 +264,7 @@ def verify_key_location(
     key: str,
     *,
     attempts: int = 1,
+    sleep: Callable[[float], None] = time.sleep,
     urlopen: UrlOpen = stdlib_urlopen,
 ) -> None:
     site_url = _normalized_site_url(site_url)
@@ -259,7 +272,13 @@ def verify_key_location(
         f"{site_url}{INDEXNOW_KEY_PATH}",
         headers={"User-Agent": "rowset-indexnow-deploy/1.0"},
     )
-    with _open(request, urlopen=urlopen, attempts=attempts) as response:
+    with _open(
+        request,
+        urlopen=urlopen,
+        attempts=attempts,
+        retryable_http_statuses=RETRYABLE_HTTP_STATUSES | {404},
+        sleep=sleep,
+    ) as response:
         deployed_key = response.read().decode("utf-8").strip()
     if not hmac.compare_digest(deployed_key, key):
         raise IndexNowError("The deployed IndexNow key file does not match INDEXNOW_KEY.")

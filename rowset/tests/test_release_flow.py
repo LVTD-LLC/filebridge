@@ -143,6 +143,8 @@ def test_main_deploy_notifies_indexnow_after_both_services_deploy():
     }
     assert 'if [[ -z "$INDEXNOW_KEY" ]]' in indexnow["run"]
     assert 'git fetch --no-tags --depth=1 origin "$INDEXNOW_BEFORE"' in indexnow["run"]
+    assert "if ! git fetch" in indexnow["run"]
+    assert 'INDEXNOW_BEFORE="$zero_sha"' in indexnow["run"]
     assert "python3 -m scripts.submit_indexnow" in indexnow["run"]
     assert "--key" not in indexnow["run"]
     assert '--before "$INDEXNOW_BEFORE"' in indexnow["run"]

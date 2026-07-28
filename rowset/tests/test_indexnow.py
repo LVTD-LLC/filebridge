@@ -14,6 +14,7 @@ from scripts.submit_indexnow import (
     parse_name_status,
     public_paths_for_changes,
     submit_urls,
+    verify_key_location,
 )
 
 
@@ -166,8 +167,8 @@ class _Response:
     def __exit__(self, *_args):
         return None
 
-    def read(self):
-        return self._body
+    def read(self, size=-1):
+        return self._body if size < 0 else self._body[:size]
 
 
 def test_fetch_sitemap_urls_follows_same_host_sitemap_indexes():
@@ -217,6 +218,52 @@ def test_fetch_sitemap_urls_honors_configurable_document_limit():
             max_documents=1,
             urlopen=urlopen,
         )
+
+
+def test_fetch_sitemap_urls_rejects_doctype_declarations():
+    document = b"""<!DOCTYPE sitemap [<!ENTITY x "expanded">]>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+          <url><loc>https://rowset.lvtd.dev/&x;</loc></url>
+        </urlset>
+    """
+
+    def urlopen(_request, timeout):
+        assert timeout == 20
+        return _Response(body=document)
+
+    with pytest.raises(IndexNowError, match="unsafe XML declarations"):
+        fetch_sitemap_urls("https://rowset.lvtd.dev", urlopen=urlopen)
+
+
+def test_verify_key_location_retries_a_transient_not_found():
+    responses = [
+        HTTPError(
+            "https://rowset.lvtd.dev/indexnow-key.txt",
+            404,
+            "Not Found",
+            {},
+            None,
+        ),
+        _Response(body=b"rowset-indexnow-test-key"),
+    ]
+    delays = []
+
+    def urlopen(_request, timeout):
+        assert timeout == 20
+        response = responses.pop(0)
+        if isinstance(response, Exception):
+            raise response
+        return response
+
+    verify_key_location(
+        "https://rowset.lvtd.dev",
+        "rowset-indexnow-test-key",
+        attempts=2,
+        sleep=delays.append,
+        urlopen=urlopen,
+    )
+
+    assert delays == [5]
 
 
 def test_submit_urls_batches_requests_at_the_protocol_limit():
