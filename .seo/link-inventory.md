@@ -89,6 +89,7 @@
 | `/blog/ai-agent-inventory-management` | https://rowset.lvtd.dev/blog/ai-agent-inventory-management | AI Agent for Inventory Management: A Safe Workflow | AI agent for inventory management, AI inventory agent workflow, inventory reconciliation for agents, controlled inventory actions, observe reconcile propose approve apply verify |
 | `/blog/ai-customer-feedback-analysis` | https://rowset.lvtd.dev/blog/ai-customer-feedback-analysis | AI Customer Feedback Analysis: A Reviewable Workflow | AI customer feedback analysis, reviewable feedback workflow, source analysis decision action contract, versioned feedback classification, agent-managed feedback triage |
 | `/blog/ai-ready-data` | https://rowset.lvtd.dev/blog/ai-ready-data | What Is AI-Ready Data? A Practical Agent Checklist | what is AI-ready data, AI-ready operational data, data readiness for AI agents, agent-ready data checklist, seven-question readiness test |
+| `/blog/ai-agents-data-analysis` | https://rowset.lvtd.dev/blog/ai-agents-data-analysis | AI Agents for Data Analysis: A Reviewable Workflow | AI agents for data analysis, reviewable data-analysis workflow, agent analysis contract, evidence-linked AI analysis, question snapshot plan evidence finding decision action |
 
 ## Shipped SEO Sprint Pages
 
@@ -102,6 +103,7 @@
 | `rowset-vs-airtable` | Phase 12 | `/vs/airtable` | shared footer, Airtable alternatives, agent-managed datasets | Airtable alternatives, pricing, MCP docs, Dataset API, public previews, index-column guide |
 | `rowset-vs-google-sheets` | Phase 14 | `/vs/google-sheets` | shared footer, Google Sheets alternatives, agent-managed datasets | Google Sheets alternatives, pricing, MCP docs, Dataset API, public previews, index-column guide |
 | `spreadsheet-database-for-ai-agents` | Phase 10 | `/blog/spreadsheet-database-for-ai-agents` | Google Sheets alternatives, agent-managed datasets | schema design, MCP docs, Dataset API, row operations, content pipeline, pricing |
+| `ai-agents-data-analysis` | Daily content | `/blog/ai-agents-data-analysis` | AI-ready data, database for AI agents | schema design, MCP docs, Dataset API, data cleaning, human review, idempotency, quickstart, pricing |
 
 ## Pending SEO Sprint Targets
 
@@ -212,3 +214,8 @@ These route families remain retired and must not be selected as internal-link ta
 - data readiness for AI agents
 - agent-ready data checklist
 - seven-question readiness test
+- AI agents for data analysis
+- reviewable data-analysis workflow
+- agent analysis contract
+- evidence-linked AI analysis
+- question snapshot plan evidence finding decision action

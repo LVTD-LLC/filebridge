@@ -16,6 +16,13 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-07-28
+
+### Added
+- Added a reviewable AI-agent data-analysis guide that separates source
+  snapshots, analysis plans, evidence, findings, decisions, and verified
+  actions.
+
 ## 2026-07-27
 
 ### Added

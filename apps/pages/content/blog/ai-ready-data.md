@@ -46,6 +46,11 @@ The exact requirements depend on the job. Training a model, grounding a retrieva
 | Retrieval or question answering | Can the system find current, authoritative passages and reconnect each result to its source? |
 | Tool-using agent | Can the agent identify exact records, understand constraints, use authorized tools, and verify changes? |
 
+When the job is analytical, use a
+[reviewable AI-agent data-analysis workflow](/blog/ai-agents-data-analysis) to
+keep the source snapshot, evidence, finding, decision, and follow-up action
+separate.
+
 NIST's AI Risk Management Framework treats context as part of the requirement, not an optional note. It calls for documenting data availability, representativeness, and suitability, then evaluating systems under conditions similar to deployment ([NIST AI RMF Core, checked July 2026](https://airc.nist.gov/airmf-resources/airmf/5-sec-core/)).
 
 Basic data quality still matters, but it has several dimensions. The UK Government Data Quality Framework separates completeness, uniqueness, consistency, timeliness, validity, and accuracy, then recommends choosing priorities from user needs and intended use ([UK Government Data Quality Framework, December 2020](https://www.gov.uk/government/publications/the-government-data-quality-framework/the-government-data-quality-framework)). A valid ISO-formatted date can still be factually wrong; a complete training set can still omit important cases. Define measurable thresholds for the task instead of calling the data "high quality" in general.

@@ -119,6 +119,12 @@ For a full application with transactions, custom constraints, joins, and applica
 
 For delegated row-based work, an [agent-managed dataset](/blog/agent-managed-datasets) can be the smaller useful surface. Rowset gives trusted agents private MCP and REST access to structured datasets with headers, an index column, semantic schema, instructions, and metadata. Humans keep a dashboard, exports, and optional read-only previews.
 
+For analytical workflows, keep the warehouse or file source separate from the
+review state. The [AI-agent data-analysis
+workflow](/blog/ai-agents-data-analysis) shows how to store versioned runs,
+evidence-linked findings, decisions, and verified follow-up without turning the
+operational dataset into the query engine.
+
 ## 6. Keep large artifacts out of row payloads
 
 Agents often produce or consume PDFs, images, recordings, archives, and large exports. Object storage is usually the appropriate home for the bytes. Keep the artifact's stable ID, owner, media type, checksum, lifecycle state, and access reference in structured metadata.
