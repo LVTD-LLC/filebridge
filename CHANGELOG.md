@@ -23,6 +23,11 @@ deployment or release cut date.
   with maintainer-triggered reruns through the `@reviewgate review` PR comment
   command, preserving the pull-request event context ReviewGate requires.
 
+### Changed
+- Formula results now use a distinct calculated-value treatment in authenticated
+  dataset views when the user's Colorize preference is enabled, and formula
+  column dialogs show the expression and result type.
+
 ## 2026-07-27
 
 ### Added

@@ -130,6 +130,64 @@ def test_formula_columns_power_personal_crm_reads_filters_and_exports(api_client
     assert exported_rows[1]["trigger_reminder"] == "false"
 
 
+def test_formula_values_are_colorized_only_when_profile_setting_is_enabled(
+    auth_client,
+    client,
+    profile,
+):
+    dataset = create_personal_crm_dataset(profile)
+    dataset.headers.append("next_contact")
+    dataset.column_schema["next_contact"] = {
+        "type": "calculated",
+        "calculation": "formula",
+        "result_type": "date",
+        "formula": 'DATEADD({last_contact}, 3, "weeks")',
+    }
+    dataset.save(update_fields=["headers", "column_schema"])
+    row = dataset.rows.order_by("row_number").first()
+
+    profile.choice_colorization_enabled = False
+    profile.save(update_fields=["choice_colorization_enabled"])
+
+    neutral_response = auth_client.get(dataset.get_absolute_url())
+    neutral_row_response = auth_client.get(
+        reverse("dataset_row_detail", args=[dataset.key, row.id])
+    )
+
+    assert neutral_response.status_code == 200
+    assert neutral_row_response.status_code == 200
+    neutral_formula_cell = neutral_response.context["rows_with_values"][0]["cells"][-1]
+    assert "is_colorized_formula" not in neutral_formula_cell
+    assert "is_colorized_formula" not in neutral_row_response.context["row_cells"][-1]
+    assert "fb-formula-value" not in neutral_response.content.decode()
+    assert "fb-formula-value" not in neutral_row_response.content.decode()
+
+    profile.choice_colorization_enabled = True
+    profile.save(update_fields=["choice_colorization_enabled"])
+
+    colorized_response = auth_client.get(dataset.get_absolute_url())
+    colorized_row_response = auth_client.get(
+        reverse("dataset_row_detail", args=[dataset.key, row.id])
+    )
+
+    formula_cell = colorized_response.context["rows_with_values"][0]["cells"][-1]
+    formula_row_cell = colorized_row_response.context["row_cells"][-1]
+    assert formula_cell["value"] == "2000-01-22"
+    assert formula_cell["is_colorized_formula"] is True
+    assert formula_row_cell["is_colorized_formula"] is True
+    assert 'class="fb-focus fb-formula-value' in colorized_response.content.decode()
+    assert 'aria-hidden="true">ƒ</span>' in colorized_response.content.decode()
+    assert 'class="fb-formula-value' in colorized_row_response.content.decode()
+
+    dataset.public_enabled = True
+    dataset.save(update_fields=["public_enabled"])
+    public_response = client.get(dataset.get_public_url())
+
+    public_formula_cell = public_response.context["public_rows_with_values"][0]["cells"][-1]
+    assert "is_colorized_formula" not in public_formula_cell
+    assert "fb-formula-value" not in public_response.content.decode()
+
+
 def test_formula_column_rejects_unknown_columns_and_cycles(api_client, profile):
     dataset = create_personal_crm_dataset(profile)
 
