@@ -895,7 +895,8 @@ CI tests against PostgreSQL 18 (`rasulkireev/custom-postgres:18`), while
 database behavior until the stacks are aligned.
 
 ReviewGate reviews same-repository pull requests and supports maintainer
-rereviews with an exact `@reviewgate review` PR comment.
+rereviews with an exact `@reviewgate review` PR comment. Approximate commands
+are ignored.
 
 ## Deployment
 
