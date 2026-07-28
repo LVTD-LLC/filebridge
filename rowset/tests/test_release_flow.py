@@ -7,6 +7,13 @@ import yaml
 _REPO_ROOT = Path(__file__).parents[2]
 
 
+def assert_action_is_pinned(step, action):
+    prefix = f"{action}@"
+    action_ref = step["uses"]
+    assert action_ref.startswith(prefix)
+    assert re.fullmatch(r"[0-9a-f]{40}", action_ref.removeprefix(prefix))
+
+
 def test_reviewgate_runs_for_safe_pull_requests_with_supported_inputs():
     workflow = (_REPO_ROOT / ".github" / "workflows" / "reviewgate.yml").read_text()
     parsed_workflow = yaml.safe_load(workflow)
@@ -25,8 +32,11 @@ def test_reviewgate_runs_for_safe_pull_requests_with_supported_inputs():
     }
 
     reviewgate_step = next(
-        step for step in review["steps"] if step.get("uses") == "LVTD-LLC/reviewgate@v0"
+        step
+        for step in review["steps"]
+        if step.get("uses", "").startswith("LVTD-LLC/reviewgate@")
     )
+    assert_action_is_pinned(reviewgate_step, "LVTD-LLC/reviewgate")
     assert reviewgate_step["with"] == {
         "openrouter_api_key": "${{ secrets.OPENROUTER_API_KEY }}",
         "min_severity": "P4",
@@ -147,16 +157,16 @@ def test_release_workflows_publish_and_smoke_both_supported_platforms():
         expected_tag = "candidate_tag" if workflow_name == "deploy.yml" else "release_sha"
         assert expected_tag in verify["run"]
         assert expected_tag in smoke["run"]
-        assert qemu["uses"] == "docker/setup-qemu-action@v3"
+        assert_action_is_pinned(qemu, "docker/setup-qemu-action")
         assert qemu["with"]["platforms"] == "arm64"
 
     deploy_steps = parsed_workflows["deploy.yml"]["jobs"]["build-and-deploy"]["steps"]
     deploy_names = [step["name"] for step in deploy_steps]
     qemu = deploy_steps[deploy_names.index("Set up QEMU")]
     build = deploy_steps[deploy_names.index("Build and push image")]
-    assert qemu["uses"] == "docker/setup-qemu-action@v3"
+    assert_action_is_pinned(qemu, "docker/setup-qemu-action")
     assert qemu["with"]["platforms"] == "arm64"
-    assert build["uses"] == "docker/build-push-action@v6"
+    assert_action_is_pinned(build, "docker/build-push-action")
     assert build["with"]["platforms"] == "linux/amd64,linux/arm64"
     assert "candidate_tag" in build["with"]["tags"]
     assert "${{ github.sha }}" not in build["with"]["tags"]
@@ -334,7 +344,8 @@ def test_install_script_installs_rowset_cli_from_release_assets():
     assert "https://github.com/LVTD-LLC/rowset/releases/latest/download" in installer
     assert "rowset_${os}_${arch}.tar.gz" in installer
     assert "ROWSET_CLI_VERSION" in installer
-    assert re.search(r'install .*"\$install_dir/rowset"', installer)
+    assert 'install -m 0755 "$tmp_dir/rowset" "$install_tmp"' in installer
+    assert 'mv -f "$install_tmp" "$install_dir/rowset"' in installer
 
 
 def test_next_release_tag_uses_dotted_day_and_increments_suffix(tmp_path):
