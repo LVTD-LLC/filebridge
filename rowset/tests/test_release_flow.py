@@ -12,10 +12,17 @@ def test_reviewgate_runs_for_safe_pull_requests_with_supported_inputs():
     parsed_workflow = yaml.safe_load(workflow)
     review = parsed_workflow["jobs"]["review"]
 
+    assert "github.event_name == 'pull_request'" in review["if"]
     assert "github.event.pull_request.head.repo.full_name == github.repository" in review["if"]
     assert "github.actor != 'dependabot[bot]'" in review["if"]
     assert review["timeout-minutes"] == 20
-    assert parsed_workflow["concurrency"]["cancel-in-progress"] is True
+    assert review["concurrency"]["cancel-in-progress"] is True
+    assert review["permissions"] == {
+        "contents": "read",
+        "pull-requests": "write",
+        "issues": "write",
+        "checks": "write",
+    }
 
     reviewgate_step = next(
         step for step in review["steps"] if step.get("uses") == "LVTD-LLC/reviewgate@v0"
@@ -27,15 +34,21 @@ def test_reviewgate_runs_for_safe_pull_requests_with_supported_inputs():
 
 
 def test_reviewgate_comment_command_reruns_a_real_pr_event_for_maintainers():
-    workflow = (_REPO_ROOT / ".github" / "workflows" / "reviewgate-command.yml").read_text()
+    workflow = (_REPO_ROOT / ".github" / "workflows" / "reviewgate.yml").read_text()
     parsed_workflow = yaml.safe_load(workflow)
     rereview = parsed_workflow["jobs"]["rereview"]
     command_guard = rereview["if"]
     run_script = rereview["steps"][0]["run"]
 
+    assert "github.event_name == 'issue_comment'" in command_guard
     assert "github.event.comment.body == '@reviewgate review'" in command_guard
     for association in ("OWNER", "MEMBER", "COLLABORATOR"):
         assert association in command_guard
+    assert rereview["permissions"] == {
+        "actions": "write",
+        "issues": "write",
+        "pull-requests": "read",
+    }
     assert "reviewgate.yml/runs" in run_script
     assert "gh api --method GET --paginate --slurp" in run_script
     assert ".[].workflow_runs[]" in run_script
