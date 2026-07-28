@@ -58,7 +58,9 @@ sha256() {
 		shasum -a 256 "$1" | awk '{print $1}'
 		return
 	fi
-	printf "sha256sum or shasum is required to verify rowset.\n" >&2
+	printf '%s\n' \
+		"SHA-256 verification requires sha256sum or shasum." \
+		"Install one of these tools or download and verify the release manually." >&2
 	exit 1
 }
 
