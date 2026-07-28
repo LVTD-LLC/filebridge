@@ -7,6 +7,7 @@ from django.contrib import messages as message_constants
 from django.contrib.messages import get_messages
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import escape
 
 from apps.api.services import create_profile_dataset, create_profile_dataset_row
 from apps.core.choices import ProfileStates
@@ -1959,3 +1960,48 @@ def test_dataset_detail_shows_column_descriptions_on_header_hover(
     assert 'id="row-column-menu-description-0"' in content
     assert 'name="row_sort" value="col_0"' in content
     assert "Contains text" in content
+
+
+def test_dataset_detail_shows_formula_metadata_in_column_modal(
+    auth_client,
+    client,
+    profile,
+):
+    formula = 'IF({name} = "Ada", "Ada Lovelace", {name})'
+    dataset = create_ready_dataset(profile)
+    dataset.headers.append("display_name")
+    dataset.column_schema = {
+        "name": {"type": "text"},
+        "email": {"type": "email"},
+        "display_name": {
+            "type": "calculated",
+            "calculation": "formula",
+            "result_type": "text",
+            "formula": formula,
+            "description": "Preferred display label.",
+        },
+    }
+    dataset.save(update_fields=["headers", "column_schema"])
+
+    response = auth_client.get(dataset.get_absolute_url())
+
+    assert response.status_code == 200
+    formula_column = response.context["row_filter_fields"][-1]
+    assert formula_column["is_formula"] is True
+    assert formula_column["formula_result_type_label"] == "Text"
+    assert formula_column["formula"] == formula
+    content = response.content.decode()
+    assert "Formula" in content
+    assert "Returns Text" in content
+    assert escape(formula) in content
+    assert "Preferred display label." in content
+
+    dataset.public_enabled = True
+    dataset.save(update_fields=["public_enabled"])
+    public_response = client.get(dataset.get_public_url())
+
+    assert public_response.status_code == 200
+    public_formula_column = public_response.context["row_filter_fields"][-1]
+    assert public_formula_column["is_formula"] is False
+    assert public_formula_column["formula"] == ""
+    assert escape(formula) not in public_response.content.decode()

@@ -87,6 +87,8 @@
                           {% include "datasets/partials/rowset_link_cell.html" %}
                         {% elif cell.is_tags %}
                           {% include "datasets/partials/tags_cell.html" %}
+                        {% elif cell.is_colorized_formula %}
+                          {% include "datasets/partials/formula_value.html" %}
                         {% elif cell.value %}
                           <span class="whitespace-pre-wrap break-words">{{ cell.value }}</span>
                         {% else %}

@@ -24,6 +24,9 @@ deployment or release cut date.
   command, preserving the pull-request event context ReviewGate requires.
 
 ### Changed
+- Formula results now use a distinct calculated-value treatment in authenticated
+  dataset views when the user's Colorize preference is enabled, and formula
+  column dialogs show the expression and result type.
 - Hardened the Rowset CLI with bounded and cancelable HTTP requests, streaming
   downloads, atomic owner-only output files, strict argument validation, and
   stable exit-code classes for agents and scripts.
