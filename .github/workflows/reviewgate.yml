@@ -17,10 +17,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
+      actions: read
+      attestations: read
       contents: read
       pull-requests: write
       issues: write
       checks: write
+      statuses: read
     concurrency:
       group: reviewgate-${{ github.workflow }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -30,9 +33,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: LVTD-LLC/reviewgate@v0
+      - uses: LVTD-LLC/reviewgate@main
         with:
           openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          model: deepseek/deepseek-v4-flash
           min_severity: P4
 
   rereview:
@@ -52,6 +56,8 @@ jobs:
     timeout-minutes: 5
     permissions:
       actions: write
+      attestations: read
+      contents: read
       issues: write
       pull-requests: write
     concurrency:
@@ -59,7 +65,7 @@ jobs:
       cancel-in-progress: false
 
     steps:
-      - uses: LVTD-LLC/reviewgate@b836e2952eca7fed7c690de607a592e2d940e0c8
+      - uses: LVTD-LLC/reviewgate@main
         with:
           mode: rereview
           review_workflow: reviewgate.yml
