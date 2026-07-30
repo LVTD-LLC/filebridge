@@ -17,7 +17,7 @@ are an explicit, read-only sharing option rather than an authentication method.
 ## Start in three steps
 
 1. [Create an account]({{ signup_url }}) and copy the Rowset setup prompt.
-2. Let the agent recommend MCP, CLI, or REST, then choose which interface it should configure.
+2. Let the agent inspect its runtime and automatically configure the best supported interface.
 3. Describe the workflow. The agent can create the dataset, choose a schema and stable index, and
    manage its rows.
 

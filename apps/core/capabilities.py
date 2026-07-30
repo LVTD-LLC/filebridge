@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
-CAPABILITY_VERSION = "2026-07-27"
+CAPABILITY_VERSION = "2026-07-31"
 
 
 class CapabilitySelectionError(ValueError):
@@ -61,16 +61,25 @@ class RowsetCapabilityTopic:
 
 
 ROWSET_RECOMMENDED_STARTUP = (
-    "Read the setup prompt and store the full Rowset API key privately.",
+    "Read the setup prompt and Rowset setup skill, then store the full API key privately.",
     (
-        "Inspect the current Rowset skill, llms.txt, capabilities response, and relevant "
-        "interface documentation before choosing a setup path."
+        "Inspect the runtime and only the current interface documentation needed for setup. "
+        "Do not load capabilities or list datasets merely because the session started."
     ),
     (
-        "Evaluate MCP, CLI, and REST against the current runtime and user workflow; explain "
-        "a recommendation and ask the user which interface to configure."
+        "Use the fixed priority to autonomously select the best supported interface: Prefer "
+        "MCP when the runtime natively supports remote MCP and private bearer-secret "
+        "configuration; otherwise choose the CLI for a trusted terminal or local-file workflow; "
+        "use REST for code-only or HTTP-only runtimes."
     ),
-    "Configure only the interface the user approves, following its current documentation.",
+    (
+        "Configure the selected interface end to end using its current documentation. Do not "
+        "ask the user to compare or choose between MCP, CLI, and REST."
+    ),
+    (
+        "Pause during connection setup only for unavoidable operating-system, authentication, "
+        "or secret-manager permission prompts."
+    ),
     (
         "As the final setup step, make an authenticated user-info request through the chosen "
         "interface to verify access and complete onboarding. MCP reads and API-key creation "
@@ -93,21 +102,40 @@ ROWSET_INTERFACES = (
     {
         "id": "mcp",
         "best_for": "Agent runtimes with remote MCP support and live tool/schema discovery.",
+        "selection_rule": (
+            "Choose first when the runtime natively supports remote MCP and private "
+            "bearer-secret configuration."
+        ),
         "current_reference": (
-            "After authenticated verification, inspect live tools and call get_rowset_capabilities."
+            "Use live tool schemas after authentication. Request capability topics only when "
+            "a feature is unfamiliar or setup is failing."
         ),
         "authenticated_verification": "Call get_user_info.",
     },
     {
         "id": "cli",
         "best_for": "Terminal workflows, scripts, and local file handling.",
-        "current_reference": "Run rowset --help and rowset capabilities.",
+        "selection_rule": (
+            "Choose when native remote MCP or private bearer-secret configuration is unavailable "
+            "and the runtime has a trusted terminal, especially for local-file workflows."
+        ),
+        "current_reference": (
+            "Run rowset --help for the current command surface. Request capabilities only when "
+            "a feature is unfamiliar or setup is failing."
+        ),
         "authenticated_verification": "Run rowset user info.",
     },
     {
         "id": "rest",
         "best_for": "Applications and runtimes that work naturally with HTTP.",
-        "current_reference": "Read the capabilities endpoint and generated API docs.",
+        "selection_rule": (
+            "Choose for code-only or HTTP-only runtimes when neither a usable remote MCP "
+            "configuration nor a trusted terminal workflow is available."
+        ),
+        "current_reference": (
+            "Use generated API docs for the endpoint at hand. Request capability topics only "
+            "when a feature is unfamiliar or setup is failing."
+        ),
         "authenticated_verification": "Request GET /api/user with bearer authentication.",
     },
 )
@@ -772,7 +800,7 @@ def rowset_capabilities_payload(
             "source_of_truth": (
                 "Use this live guide for current feature groups and workflow semantics, then "
                 "consult MCP tool schemas, CLI help, or generated REST API docs for the exact "
-                "interface selected by the user."
+                "interface selected for the current runtime."
             ),
             "capabilities": _serialize_capabilities(
                 visible_capabilities,

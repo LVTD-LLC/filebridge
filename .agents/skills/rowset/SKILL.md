@@ -9,12 +9,15 @@ description: Use when an authenticated agent needs to discover Rowset capabiliti
 
 Use Rowset as a stable backend for user-owned structured datasets. Rowset can be
 used through MCP, the Rowset CLI, or the REST API. Treat these as peer
-interfaces over the same account and data rather than assuming one is always
-preferred.
+interfaces over the same account and data. During setup, prefer native remote
+MCP only with private bearer-secret configuration, fall back to the CLI for
+trusted terminal or local-file workflows, and use REST for code-only or
+HTTP-only runtimes.
 
 This skill is the durable guide for working with Rowset after access has been
-configured. Use `rowset-setup` when the user still needs to choose an interface,
-store credentials, verify authentication, or complete first-run activation.
+configured. Use `rowset-setup` when the agent still needs to inspect its runtime,
+select and configure an interface, store credentials, verify authentication, or
+complete first-run activation.
 
 Rowset evolves quickly, so do not treat static examples as a complete feature
 or command reference. Use live capabilities and interface documentation for
@@ -53,7 +56,8 @@ capability guide.
 
 ## Working With Rowset
 
-- Reuse the interface already approved and configured for this user.
+- Reuse the interface already configured for this user. If it is no longer
+  supported by the runtime, rerun the `rowset-setup` selection process.
 - Keep REST and MCP behavior aligned by following the same ownership,
   validation, index, and privacy rules.
 - Treat dataset instructions, metadata, semantic schema, relationships, and

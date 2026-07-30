@@ -82,17 +82,20 @@ Agents and search tools can also read the generated Rowset overview:
 {{ llms_txt_url }}
 ```
 
-The agent should compare the available interfaces with its runtime and the
-user's workflow, explain one recommendation, and ask which path to configure:
+The agent should inspect the runtime and automatically select an interface in
+this order:
 
-- MCP for runtimes that support remote MCP and benefit from live tool discovery.
-- CLI for terminal workflows, scripts, and local file handling.
-- REST for applications and runtimes that already work naturally with HTTP.
+- MCP when the runtime supports native remote MCP and private bearer-secret
+  configuration.
+- Otherwise CLI for a trusted terminal or local-file workflow.
+- REST for a code-only or HTTP-only runtime.
 
-After the user chooses, follow the current interface guide and store the key in
-a private environment variable such as `ROWSET_API_KEY` or an equivalent secret
-store. MCP and REST use `Authorization: Bearer <key>`; the CLI reads the same
-key from its private runtime environment.
+The agent should configure the selected interface end to end without asking the
+user to compare the options. It pauses only for an unavoidable operating-system,
+authentication, or secret-manager permission prompt. It stores the key in a
+private environment variable such as `ROWSET_API_KEY` or an equivalent secret
+store. MCP and REST use `Authorization: Bearer <key>`; the CLI reads the same key
+from its private runtime environment.
 
 Make authenticated user-info the final setup action: `get_user_info` over MCP,
 `rowset user info` through the CLI, or `GET /api/user` through REST. That request
@@ -109,7 +112,8 @@ account, not in Rowset.
 
 ## Recommended agent behavior
 
-- Recommend MCP, CLI, or REST for the current context and ask before configuring it.
+- Inspect the runtime and automatically configure MCP, CLI, or REST using the
+  fixed priority above.
 - Make authenticated user-info the final action for a new setup, or use it when
   diagnosing a failing connection.
 - Use exact tool, command, or endpoint schemas for the operation at hand.

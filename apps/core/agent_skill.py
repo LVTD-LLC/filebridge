@@ -27,10 +27,16 @@ ROWSET_USE_CASES_SKILL_SOURCE_URL = (
 )
 ROWSET_AGENT_SETUP_INSTRUCTIONS = (
     "Read or install the Rowset setup skill before acting. For a new connection, "
-    "follow it end to end, including its post-verification activation handoff; do not "
-    "stop after the connection succeeds. If Rowset is already configured and "
-    "authenticated, skip connection verification and the activation handoff. Do not "
-    "load capabilities or list datasets merely because a session started. When dataset "
+    "inspect the current runtime and autonomously choose and configure the best supported "
+    "interface. Prefer native remote MCP only when the runtime also supports private "
+    "bearer-secret configuration. Otherwise use the CLI for trusted terminal or local-file "
+    "workflows, and use REST for code-only or HTTP-only runtimes. Do not ask the user to "
+    "compare MCP, CLI, and REST. Pause during connection setup only for unavoidable "
+    "operating-system, authentication, or secret-manager permission prompts. Follow the setup "
+    "skill end to end, including its authenticated user-info verification and post-verification "
+    "activation handoff; do not stop after the connection succeeds. If Rowset is already "
+    "configured and authenticated, skip connection verification and the activation handoff. "
+    "Do not load capabilities or list datasets merely because a session started. When dataset "
     "discovery is needed, search with an explicit limit of 3 and load full context only after "
     "selection. Use the Rowset skill for progressive, task-driven discovery and ongoing "
     "platform interaction after setup."
@@ -40,8 +46,8 @@ ROWSET_SKILL_FALLBACK_DESCRIPTION = (
     "manage Rowset projects, datasets, relationships, rows, exports, and previews."
 )
 ROWSET_SETUP_SKILL_FALLBACK_DESCRIPTION = (
-    "Use when a user asks to connect an AI agent to Rowset, choose or configure "
-    "MCP, CLI, or REST access, verify authentication, or complete first-run setup."
+    "Use when a user asks to connect an AI agent to Rowset, inspect its runtime, "
+    "configure MCP, CLI, or REST access, verify authentication, or complete first-run setup."
 )
 ROWSET_FEATURES_SKILL_FALLBACK_DESCRIPTION = (
     "Use when a user asks what Rowset can do, which features are available, "
