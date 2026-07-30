@@ -18,18 +18,24 @@ def test_reviewgate_runs_for_safe_pull_requests_with_supported_inputs():
     assert review["timeout-minutes"] == 20
     assert review["concurrency"]["cancel-in-progress"] is True
     assert review["permissions"] == {
+        "actions": "read",
+        "attestations": "read",
         "contents": "read",
         "pull-requests": "write",
         "issues": "write",
         "checks": "write",
+        "statuses": "read",
     }
 
     reviewgate_step = next(
-        step for step in review["steps"] if step.get("uses") == "LVTD-LLC/reviewgate@v0"
+        step for step in review["steps"] if step.get("uses") == "LVTD-LLC/reviewgate@main"
     )
     assert reviewgate_step["with"] == {
         "openrouter_api_key": "${{ secrets.OPENROUTER_API_KEY }}",
+        "model": "deepseek/deepseek-v4-flash",
         "min_severity": "P4",
+        "angle_timeout_seconds": 300,
+        "total_timeout_seconds": 720,
     }
 
 
@@ -48,6 +54,8 @@ def test_reviewgate_comment_command_uses_first_class_rereview_mode():
         assert association in command_guard
     assert rereview["permissions"] == {
         "actions": "write",
+        "attestations": "read",
+        "contents": "read",
         "issues": "write",
         "pull-requests": "write",
     }
@@ -55,7 +63,7 @@ def test_reviewgate_comment_command_uses_first_class_rereview_mode():
         "group": "reviewgate-rereview-${{ github.event.comment.id }}",
         "cancel-in-progress": False,
     }
-    assert rereview_step["uses"] == ("LVTD-LLC/reviewgate@b836e2952eca7fed7c690de607a592e2d940e0c8")
+    assert rereview_step["uses"] == "LVTD-LLC/reviewgate@main"
     assert rereview_step["with"] == {
         "mode": "rereview",
         "review_workflow": "reviewgate.yml",
