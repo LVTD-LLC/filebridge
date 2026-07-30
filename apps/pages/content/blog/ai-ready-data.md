@@ -97,6 +97,9 @@ Stable identity supports three reliability properties:
 3. **Traceability:** evidence and later decisions can refer to the same object.
 
 Use the [index-column decision guide](/blog/choose-index-column-agent-rows) before granting write access. For retry-prone workflows, pair stable IDs with the [idempotent update pattern](/blog/idempotent-ai-agent-updates).
+When an agent creates records from forms, documents, messages, or exports, use
+the [safe AI data-entry workflow](/blog/ai-agent-data-entry) to preserve the
+source version and separate proposed values from accepted destination state.
 
 ## 4. Can the agent interpret the schema without guessing?
 

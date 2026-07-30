@@ -31,8 +31,16 @@
   "dataforseo_language": "English",
   "plausible_site_id": "rowset.lvtd.dev",
   "posthog_project_id": 493217,
+  "rowset_seo": {
+    "project_key": "252ee726-f3ef-486c-a000-80ed6ddb863e",
+    "section_key": "f848bf88-bd6c-4d4c-b904-e24be75cb627",
+    "content_ledger_dataset_key": "9ae7d0d3-1138-43a0-b3b8-aa05fac12a96",
+    "research_briefs_dataset_key": "3a004cfa-0a7e-4c3a-a517-caca902f38d6",
+    "schema_version": 1,
+    "last_sync_at": "2026-07-30"
+  },
   "created_at": "2026-07-04",
-  "updated_at": "2026-07-21",
+  "updated_at": "2026-07-30",
   "notes": [
     "Initialized from latest origin/main after fast-forwarding from c11f1de to 2d9389b.",
     "Refreshed from current origin/main b93e5d6 with GSC, Plausible, PostHog, DataForSEO, Exa, Firecrawl, Jina, and live HTTP checks on 2026-07-15.",
