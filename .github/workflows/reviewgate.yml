@@ -33,6 +33,7 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Intentionally track main so Rowset continuously exercises the latest review behavior.
       - uses: LVTD-LLC/reviewgate@main
         with:
           openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
@@ -65,6 +66,7 @@ jobs:
       cancel-in-progress: false
 
     steps:
+      # Intentionally track main so Rowset continuously exercises the latest rereview behavior.
       - uses: LVTD-LLC/reviewgate@main
         with:
           mode: rereview
