@@ -50,11 +50,13 @@ dependencies = [
 dev = [
     "django-extensions>=4.1",
     "djlint>=1.40.0",
+    "hypothesis>=6.163.0,<7",
     "ipython>=9.15.0",
     "pre-commit>=4.6.0",
     "pytest>=9.1.1",
     "pytest-django>=4.12.0",
     "ruff>=0.15.20",
+    "schemathesis>=4.24.3,<5",
 ]
 
 [tool.ruff]
