@@ -34,6 +34,8 @@ def test_reviewgate_runs_for_safe_pull_requests_with_supported_inputs():
         "openrouter_api_key": "${{ secrets.OPENROUTER_API_KEY }}",
         "model": "deepseek/deepseek-v4-flash",
         "min_severity": "P4",
+        "angle_timeout_seconds": 300,
+        "total_timeout_seconds": 720,
     }
 
 
