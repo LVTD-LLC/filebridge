@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-07-31
+
+### Fixed
+- Styled the passkey confirmation step shown after password sign-in for
+  passkey-protected accounts.
+
 ## 2026-07-30
 
 ### Added

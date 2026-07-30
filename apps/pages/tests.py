@@ -632,6 +632,44 @@ def test_login_page_uses_email_instead_of_username(client):
     assert 'placeholder="Username"' not in content
 
 
+def test_password_login_with_passkey_requires_styled_passkey_confirmation(client, monkeypatch):
+    user = get_user_model().objects.create_user(
+        username="passkeyloginuser",
+        email="passkeyloginuser@example.com",
+        password="strong-test-pass-123",
+    )
+    Authenticator.objects.create(
+        user=user,
+        type=Authenticator.Type.WEBAUTHN,
+        data={"name": "Test passkey"},
+    )
+
+    response = client.post(
+        reverse("account_login"),
+        {"login": user.email, "password": "strong-test-pass-123", "remember": "true"},
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse("mfa_authenticate")
+
+    monkeypatch.setattr(
+        "allauth.mfa.webauthn.internal.flows.auth.begin_authentication",
+        lambda user: {"publicKey": {}},
+    )
+    response = client.get(response.url)
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "<title>Confirm sign in · Rowset</title>" in content
+    assert "This account has a passkey" in content
+    assert "Confirm with passkey" in content
+    assert 'id="mfa_webauthn_authenticate"' in content
+    assert "allauth.webauthn.forms.authenticateForm" in content
+    assert "mfa/js/webauthn.js" in content
+    assert "Rowset Logo" in content
+    assert "Menu:" not in content
+
+
 def test_signup_redirects_to_dashboard_without_blocking_email_code_page(
     client, monkeypatch, settings
 ):
