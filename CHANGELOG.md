@@ -16,6 +16,13 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-07-30
+
+### Added
+- Added a safe AI data-entry implementation guide covering source provenance,
+  entry proposals, schema validation, duplicate prevention, approval, and
+  destination read-back.
+
 ## 2026-07-28
 
 ### Added
