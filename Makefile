@@ -65,7 +65,7 @@ migrations-check:
 	$(CHECK_PYTHON_RUN) ./manage.py makemigrations --check --dry-run
 
 mutation-test-formulas:
-	uvx --from mutmut==3.5.0 mutmut run
+	uvx --python 3.13 --from mutmut==3.5.0 mutmut run
 
 django-check:
 	$(CHECK_PYTHON_RUN) ./manage.py check

@@ -1,0 +1,79 @@
+name: Mutation Testing
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/mutation.yml"
+      - "Makefile"
+      - "apps/datasets/formulas.py"
+      - "apps/datasets/tests/test_formula_parser.py"
+      - "mutation-pytest.ini"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  formula-parser:
+    name: Formula parser
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.29"
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Run mutation tests
+        run: make mutation-test-formulas
+
+      - name: Export mutation statistics
+        run: uvx --python 3.13 --from mutmut==3.5.0 mutmut export-cicd-stats
+
+      - name: Publish mutation summary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          stats = json.loads(Path("mutants/mutmut-cicd-stats.json").read_text())
+          labels = (
+              ("Total", "total"),
+              ("Killed", "killed"),
+              ("Survived", "survived"),
+              ("No tests", "no_tests"),
+              ("Timeout", "timeout"),
+              ("Suspicious", "suspicious"),
+              ("Skipped", "skipped"),
+              ("Segfault", "segfault"),
+              ("Interrupted", "check_was_interrupted_by_user"),
+          )
+
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          with summary.open("a") as output:
+              output.write("## Formula parser mutation testing\n\n")
+              output.write(
+                  "Surviving mutants are informational findings, not a failing threshold.\n\n"
+              )
+              output.write("| Result | Count |\n| --- | ---: |\n")
+              for label, key in labels:
+                  output.write(f"| {label} | {stats[key]} |\n")
+
+          if stats["segfault"] or stats["check_was_interrupted_by_user"]:
+              raise SystemExit("Mutation testing did not complete reliably")
+          PY
+
+      - name: Upload mutation statistics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: formula-parser-mutation-stats
+          path: mutants/mutmut-cicd-stats.json

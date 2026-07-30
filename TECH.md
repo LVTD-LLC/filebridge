@@ -121,8 +121,9 @@ contents.
 ## Testing Notes
 
 - Prefer `make test` over host `pytest`.
-- Use `make mutation-test-formulas` as an opt-in test-quality audit for the
-  deterministic formula parser; it is not part of the CI gate.
+- Use `make mutation-test-formulas` as an opt-in local test-quality audit for
+  the deterministic formula parser. A path-scoped, manually dispatchable CI
+  workflow reports survivor counts without enforcing a mutation threshold.
 - Use `make test-pgsandbox <pytest args>` for Docker-free host iteration against
   a disposable PGSandbox database; keep `make ci-local` as the parity check.
 - Use focused backend checks while iterating, then broaden to `make ci-local`

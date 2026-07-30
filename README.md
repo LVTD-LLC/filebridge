@@ -849,13 +849,14 @@ logic, run:
 
 ```bash
 make mutation-test-formulas
-uvx --from mutmut==3.5.0 mutmut results
+uvx --python 3.13 --from mutmut==3.5.0 mutmut results
 ```
 
-This opt-in pilot runs mutmut in an isolated tool environment and mutates only
-`apps/datasets/formulas.py` against `test_formula_parser.py`. Surviving mutants
-are test-quality findings to inspect; they do not fail the normal test suite or
-`make ci-local`.
+This pilot runs mutmut in an isolated tool environment and mutates only
+`apps/datasets/formulas.py` against `test_formula_parser.py`. Locally it remains
+opt-in. CI runs it for relevant pull-request changes and through manual
+dispatch, publishes the result counts, and treats surviving mutants as
+informational test-quality findings rather than a failing threshold.
 
 Before PRs that touch backend behavior, run at least:
 
