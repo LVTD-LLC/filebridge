@@ -50,6 +50,7 @@ dependencies = [
 dev = [
     "django-extensions>=4.1",
     "djlint>=1.40.0",
+    "hypothesis>=6.163.0",
     "ipython>=9.15.0",
     "pre-commit>=4.6.0",
     "pytest>=9.1.1",
