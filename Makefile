@@ -28,6 +28,7 @@ TARGET_ARGS = $(filter-out $@,$(MAKECMDGOALS))
 	makemigrations \
 	migrate \
 	migrations-check \
+	mutation-test-formulas \
 	restart-worker \
 	serve \
 	shell \
@@ -62,6 +63,9 @@ test-pgsandbox:
 
 migrations-check:
 	$(CHECK_PYTHON_RUN) ./manage.py makemigrations --check --dry-run
+
+mutation-test-formulas:
+	uvx --python 3.13 --from mutmut==3.5.0 mutmut run
 
 django-check:
 	$(CHECK_PYTHON_RUN) ./manage.py check

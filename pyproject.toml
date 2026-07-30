@@ -89,3 +89,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 py-modules = []
+
+[tool.mutmut]
+paths_to_mutate = ["apps/datasets/formulas.py"]
+pytest_add_cli_args = ["-c", "mutation-pytest.ini", "--noconftest"]
+pytest_add_cli_args_test_selection = ["apps/datasets/tests/test_formula_parser.py", "-q"]
+also_copy = ["mutation-pytest.ini", "apps/datasets/tests/"]
