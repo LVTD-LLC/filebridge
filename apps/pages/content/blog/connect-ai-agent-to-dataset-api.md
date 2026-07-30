@@ -211,6 +211,11 @@ update. If the agent may retry after timeouts, follow the
 row by index, patch absolute values, and read the row before replaying an
 uncertain write.
 
+For source-to-record automation, the same rule belongs inside a wider
+[AI agent data-entry workflow](/blog/ai-agent-data-entry): preserve the source
+version, validate a proposal, check the destination by its stable duplicate key,
+then read the accepted record back.
+
 That means the agent can say "update `sku=ADAPTER-001`" or "patch
 `email=ada@example.com`" instead of searching a list response for a row that
 looks close. This reduces duplicate rows and wrong-row updates.

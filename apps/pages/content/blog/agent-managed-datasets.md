@@ -85,6 +85,9 @@ thing without a long re-explanation from the user?
 If you already have a table or export, use the
 [AI-ready data checklist](/blog/ai-ready-data) to audit its purpose, identity,
 schema, provenance, access, and verification path before an agent writes to it.
+If the agent will turn forms, documents, messages, or exports into new rows,
+follow the [AI data-entry workflow](/blog/ai-agent-data-entry) to keep source
+evidence, validation, deduplication, approval, and read-back separate.
 
 The dataset usually needs five properties.
 

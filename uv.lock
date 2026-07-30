@@ -2418,7 +2418,7 @@ requires-dist = [
 dev = [
     { name = "django-extensions", specifier = ">=4.1" },
     { name = "djlint", specifier = ">=1.40.0" },
-    { name = "hypothesis", specifier = ">=6.163.0,<7" },
+    { name = "hypothesis", specifier = ">=6.163.0" },
     { name = "ipython", specifier = ">=9.15.0" },
     { name = "pre-commit", specifier = ">=4.6.0" },
     { name = "pytest", specifier = ">=9.1.1" },
