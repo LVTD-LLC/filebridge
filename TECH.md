@@ -29,6 +29,7 @@
 - Run all tests in Docker: `make test`
 - Run focused tests: `make test apps/datasets/tests/test_dataset_creation.py`
 - Pass pytest flags: `make test -- -k dataset -q`
+- Mutation-test the formula parser: `make mutation-test-formulas`
 - Run current local CI-equivalent checks: `make ci-local`
 - Restart workers: `make restart-worker`
 - Build frontend assets: `npm run build`
@@ -120,6 +121,8 @@ contents.
 ## Testing Notes
 
 - Prefer `make test` over host `pytest`.
+- Use `make mutation-test-formulas` as an opt-in test-quality audit for the
+  deterministic formula parser; it is not part of the CI gate.
 - Use `make test-pgsandbox <pytest args>` for Docker-free host iteration against
   a disposable PGSandbox database; keep `make ci-local` as the parity check.
 - Use focused backend checks while iterating, then broaden to `make ci-local`

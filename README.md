@@ -793,6 +793,7 @@ environment.
 | `make test apps/datasets/tests/test_dataset_views.py` | Run a focused test file. |
 | `make test -- -k dataset -q` | Pass pytest flags through the Makefile. |
 | `make test-pgsandbox <pytest args>` | Run host pytest against a disposable PGSandbox database. |
+| `make mutation-test-formulas` | Mutation-test the formula parser with mutmut. |
 | `make cli-test` | Run Go tests for the Rowset CLI. |
 | `make cli-build` | Build the Go `rowset` binary under `cli/bin/`. |
 | `make restart-worker` | Recreate the `workers` service. |
@@ -842,6 +843,19 @@ The runner creates a short-lived PostgreSQL 18 sandbox with Rowset's required
 extensions, applies migrations, runs pytest directly through `uv`, and deletes
 the database even when tests fail. Pytest fixtures and factories remain
 responsible for test data. `make ci-local` remains the Docker-based parity path.
+
+To audit whether the focused formula parser tests detect deliberately broken
+logic, run:
+
+```bash
+make mutation-test-formulas
+uvx --from mutmut==3.5.0 mutmut results
+```
+
+This opt-in pilot runs mutmut in an isolated tool environment and mutates only
+`apps/datasets/formulas.py` against `test_formula_parser.py`. Surviving mutants
+are test-quality findings to inspect; they do not fail the normal test suite or
+`make ci-local`.
 
 Before PRs that touch backend behavior, run at least:
 
