@@ -9,15 +9,19 @@ keywords: Rowset agents, llms.txt, MCP discovery, Rowset skills
 Rowset is designed so agents do not have to rely on stale prompt text. A trusted
 agent should use live capabilities and current interface documentation before
 creating or changing data. MCP, CLI, and REST are peer access methods; the agent
-should recommend one for its runtime and the user's workflow, then ask which
-interface to configure.
+should inspect its runtime and automatically configure the best supported
+interface.
 
 ## Recommended startup order
 
 1. Read `rowset-setup` and the connection documentation needed for the current
    runtime.
-2. Compare MCP, CLI, and REST, recommend one, and ask the user which to configure.
-3. Configure only the approved interface and keep the API key in a secret store.
+2. Automatically select MCP when native remote MCP and private bearer-secret
+   configuration are available; otherwise select CLI for a trusted terminal or
+   local-file workflow; use REST for a code-only or HTTP-only runtime.
+3. Configure the selected interface and keep the API key in a secret store.
+   Pause only for an unavoidable operating-system, authentication, or
+   secret-manager permission prompt.
 4. For a new or failing connection, make authenticated user-info the final setup
    action so the connection is verified and onboarding completes. MCP reads and
    API-key creation stay trial-neutral, so the MCP trial starts on the first

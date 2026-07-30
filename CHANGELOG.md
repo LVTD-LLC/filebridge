@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-07-31
+
+### Changed
+- Agent setup now inspects the runtime and configures the best supported Rowset
+  interface automatically, pausing only when an external permission is required.
+
 ## 2026-07-30
 
 ### Added

@@ -117,12 +117,30 @@ def test_topic_payload_includes_only_fully_supported_use_cases():
 def test_capabilities_payload_setup_topic_includes_setup_details():
     payload = rowset_capabilities_payload(topics=["setup"])
 
-    assert {interface["id"] for interface in payload["interfaces"]} == {
+    interfaces = {interface["id"]: interface for interface in payload["interfaces"]}
+    assert set(interfaces) == {
         "mcp",
         "cli",
         "rest",
     }
-    assert payload["recommended_startup"]
+    assert (
+        "Choose first when the runtime natively supports remote MCP"
+        in interfaces["mcp"]["selection_rule"]
+    )
+    assert "private bearer-secret configuration" in interfaces["mcp"]["selection_rule"]
+    assert (
+        "native remote MCP or private bearer-secret configuration is unavailable"
+        in interfaces["cli"]["selection_rule"]
+    )
+    assert "code-only or HTTP-only runtimes" in interfaces["rest"]["selection_rule"]
+    assert (
+        "neither a usable remote MCP configuration nor a trusted terminal workflow is available"
+        in interfaces["rest"]["selection_rule"]
+    )
+    startup = " ".join(payload["recommended_startup"])
+    assert "autonomously select the best supported interface" in startup
+    assert "Do not ask the user to compare or choose" in startup
+    assert "unavoidable operating-system, authentication, or secret-manager" in startup
 
 
 def test_capabilities_payload_makes_use_cases_opt_in():

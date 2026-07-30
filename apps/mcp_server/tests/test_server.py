@@ -486,7 +486,10 @@ def test_get_rowset_capabilities_mcp_tool_can_return_full_guide(monkeypatch):
             "rest",
         }
         startup = " ".join(payload["recommended_startup"])
-        assert "ask the user which interface to configure" in startup
+        assert "autonomously select the best supported interface" in startup
+        assert "Do not ask the user to compare or choose" in startup
+        assert "Prefer MCP when the runtime natively supports remote MCP" in startup
+        assert "unavoidable operating-system, authentication, or secret-manager" in startup
         assert "authenticated user-info request" in startup
         assert "trial starts on the first dataset or project mutation" in startup
         assert "suggest two to four project, section, and dataset structures" in startup

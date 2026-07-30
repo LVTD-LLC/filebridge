@@ -660,8 +660,18 @@ class TestHomeView:
         assert setup_response.status_code == 200
         assert setup_response["Content-Type"] == "text/markdown; charset=utf-8"
         setup_content = setup_response.content.decode()
+        normalized_setup_content = " ".join(setup_content.split())
         assert "name: rowset-setup" in setup_content
-        assert "Ask the user which interface to configure" in setup_content
+        assert "Inspect the current runtime before choosing an interface" in setup_content
+        assert (
+            "Do not ask the user to compare or choose between MCP, CLI, and REST" in setup_content
+        )
+        assert "Prefer MCP when the runtime natively supports remote MCP" in setup_content
+        assert "Use REST for code-only or HTTP-only runtimes" in setup_content
+        assert (
+            "During connection setup, pause only when an unavoidable operating-system, "
+            "authentication, or secret-manager permission prompt" in normalized_setup_content
+        )
         assert "get_user_info" in setup_content
         assert "marks onboarding complete" in setup_content
         assert (
@@ -783,6 +793,9 @@ class TestHomeView:
         assert "Rowset trial rewards: https://rowset.example/trial-rewards" in prompt
         assert "Rowset API key: rsk_explicit" in prompt
         assert "Read or install the Rowset setup skill before acting" in prompt
+        assert "autonomously choose and configure the best supported interface" in prompt
+        assert "private bearer-secret configuration" in prompt
+        assert "Do not ask the user to compare MCP, CLI, and REST" in prompt
         assert "post-verification activation handoff" in prompt
         assert "already configured and authenticated" in prompt
         assert "Do not load capabilities or list datasets" in prompt

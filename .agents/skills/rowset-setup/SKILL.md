@@ -26,35 +26,41 @@ The setup prompt should provide:
 - Rowset capabilities endpoint
 - Rowset trial rewards URL
 
-If a needed value is missing, ask for it. Never ask the user to paste a key into
-public chat or save it in a tracked file.
+Resolve missing non-secret values from the setup prompt or current Rowset
+documentation. Never ask the user to paste a key into public chat or save it in
+a tracked file. If the key is available only behind an operating-system,
+authentication, or secret-manager permission prompt, request that permission
+without asking the user to reveal the key.
 
-## Choose the Interface With the User
+## Inspect the Runtime and Choose Automatically
 
-Before changing the user's environment or client configuration:
+Inspect the current runtime before choosing an interface:
 
 1. Inspect this skill and only the current connection documentation needed to
-   compare the available interfaces. Do not load capabilities or list datasets
+   configure a supported interface. Do not load capabilities or list datasets
    merely because a session started. Request capability topics only when a
    feature is unfamiliar or setup is failing.
-2. Evaluate MCP, CLI, and REST for the current runtime and likely workflow.
-3. Give a short recommendation with the reason for it.
-4. Ask the user which interface to configure. Do not silently install a CLI,
-   edit an MCP configuration, create a secret, or wire up REST credentials.
+2. Inspect the runtime's actual integration capabilities: native remote MCP
+   configuration with bearer-secret support, trusted terminal and local-file
+   access, or code and HTTP access only.
+3. Autonomously choose the best supported interface using this order:
+   - Prefer MCP when the runtime natively supports remote MCP and can provide
+     the bearer key through a private environment variable or secret store.
+   - When native remote MCP or private bearer-secret configuration is
+     unavailable, prefer the CLI for trusted terminal or local-file workflows.
+   - Use REST for code-only or HTTP-only runtimes without a trusted terminal
+     workflow.
+4. Configure the selected interface end to end, and do not stop at a
+   recommendation.
 
-Use practical criteria:
+Do not ask the user to compare or choose between MCP, CLI, and REST.
 
-- MCP fits runtimes that support remote MCP and benefit from live tool/schema
-  discovery.
-- CLI fits terminal workflows that benefit from shell commands, scripts, and
-  local file handling.
-- REST fits applications or runtimes that work naturally with HTTP and
-  generated API schemas.
+During connection setup, pause only when an unavoidable operating-system,
+authentication, or secret-manager permission prompt requires user action. Make
+ordinary reversible setup changes directly while preserving unrelated runtime
+configuration.
 
-The recommendation is contextual, not a product preference. Follow the user's
-choice.
-
-## Configure the Approved Interface
+## Configure the Selected Interface
 
 1. Store the full API key in a private environment variable named
    `ROWSET_API_KEY` or an equivalent secret store. Do not print it in logs,
@@ -84,7 +90,8 @@ to be configured and healthy:
 This request verifies the connection, marks onboarding complete, and starts the
 Rowset trial. If it fails, diagnose the selected interface using its current
 docs and confirm the runtime holds the full key rather than only its visible
-prefix.
+prefix. Continue autonomously unless an unavoidable permission prompt requires
+user action.
 
 For a new connection, report which interface is connected without exposing the
 key, then complete the activation handoff below.

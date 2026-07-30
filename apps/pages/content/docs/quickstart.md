@@ -9,9 +9,9 @@ keywords: Rowset tutorial, getting started, MCP, dataset API
 This guide connects a trusted agent to Rowset and creates one small dataset the
 agent can inspect and update later.
 
-You will use the dashboard for setup, then the agent will recommend MCP, CLI,
-or REST for the actual dataset work and ask which one to configure. Public
-previews stay off unless you explicitly ask to share a read-only browser page.
+You will use the dashboard for setup, then the agent will inspect its runtime
+and automatically configure the best supported interface. Public previews stay
+off unless you explicitly ask to share a read-only browser page.
 
 Use this as the shortest path. After it works, use the broader
 [dataset guide](/docs/datasets) when you need projects, relationships, image
@@ -35,16 +35,23 @@ The docs show a masked example:
 The dashboard preview masks the API key. The copy button includes the real key,
 so treat the copied prompt like a password.
 
-## 2. Choose an interface
+## 2. Let the agent choose automatically
 
-Ask the agent to compare MCP, CLI, and REST with its runtime and your workflow.
-It should explain one recommendation, then wait for you to choose before it
-installs software or changes configuration.
+The agent should use this fixed priority:
 
-## 3. Configure the approved interface
+- MCP when the runtime supports native remote MCP and private bearer-secret
+  configuration
+- otherwise CLI for a trusted terminal or local-file workflow
+- REST for a code-only or HTTP-only runtime
 
-Store the key in the agent runtime as `ROWSET_API_KEY` or in an equivalent
-secret store, then follow the current guide for the interface you approved.
+It should configure that interface end to end without asking you to compare the
+options. It should pause only for an unavoidable operating-system,
+authentication, or secret-manager permission prompt.
+
+## 3. Configure the selected interface
+
+The agent stores the key as `ROWSET_API_KEY` or in an equivalent secret store,
+then follows the current guide for the selected interface.
 
 For MCP and REST, Rowset expects a bearer token:
 
@@ -62,7 +69,7 @@ Current interface references:
 
 ## 4. Configure only what the connection needs
 
-Follow the current connection guide for the approved interface. Do not load
+Follow the current connection guide for the selected interface. Do not load
 capabilities or list datasets merely because a session started. Use exact tool,
 command, or endpoint schemas for the operation at hand. If a feature is
 unfamiliar or setup is failing, request the compact capability topic index with

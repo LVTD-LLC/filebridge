@@ -141,6 +141,39 @@ def test_agent_guidance_uses_progressive_discovery_instead_of_eager_startup(clie
     )
 
 
+def test_agent_onboarding_docs_select_interface_automatically():
+    sources = {
+        relative_path: " ".join(
+            Path(settings.BASE_DIR, relative_path).read_text(encoding="utf-8").lower().split()
+        )
+        for relative_path in (
+            "apps/pages/content/public/index.md",
+            "apps/pages/content/docs/quickstart.md",
+            "apps/pages/content/docs/configure-agent-access.md",
+            "apps/pages/content/docs/agent-discovery.md",
+        )
+    }
+
+    for source in sources.values():
+        assert "automatically" in source
+        assert "ask which path to configure" not in source
+        assert "ask the user which to configure" not in source
+        assert "ask which one to configure" not in source
+        assert "wait for you to choose" not in source
+        assert "approved interface" not in source
+        assert "after the user chooses" not in source
+
+    for relative_path in (
+        "apps/pages/content/docs/quickstart.md",
+        "apps/pages/content/docs/configure-agent-access.md",
+        "apps/pages/content/docs/agent-discovery.md",
+    ):
+        source = sources[relative_path]
+        assert "private bearer-secret" in source
+        assert "trusted terminal" in source
+        assert "code-only or http-only" in source
+
+
 PUBLIC_CONTENT_PATH_PREFIXES = ("/blog/", "/docs/", "/use-cases/", "/vs/")
 PUBLIC_CONTENT_ROOT_PATHS = {
     "/blog",
