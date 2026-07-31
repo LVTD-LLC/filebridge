@@ -28,7 +28,16 @@ def render_llms_txt() -> str:
         "## Use Rowset",
         "",
         "- Rowset supports MCP, CLI, and REST API access; choose for the runtime and workflow.",
-        "- Recommend an interface, explain why, and ask the user before configuring it.",
+        (
+            "- Inspect the runtime and automatically select and configure the best supported "
+            "interface."
+        ),
+        (
+            "- Prefer MCP when the runtime supports remote MCP and private bearer-secret "
+            "configuration; otherwise use CLI for trusted terminal or local-file workflows, "
+            "and use REST for code-only or HTTP-only runtimes."
+        ),
+        "- Do not ask the user to compare or choose between MCP, CLI, and REST.",
         "- Do not load capabilities or list datasets merely because a session started.",
         (
             "- Use live tool schemas for the task at hand; request capability topics only "

@@ -103,15 +103,25 @@ def test_capabilities_endpoint_exposes_first_project_recommendation_contract(cli
     assert response.status_code == 200
     assert recommendation["project_count"] == 1
     assert recommendation["dataset_count"] == {"minimum": 1, "maximum": 3}
-    assert recommendation["confirmation_question"] == (
-        "Would you like me to create that project and those datasets?"
-    )
+    assert recommendation["confirmation_question"] == "Would you like me to create that now?"
     output_fields = set(recommendation["output_fields"])
     assert all(
         output_fields <= set(example)
         for example in recommendation["examples"]
         if "project_name" in example
     )
+    handoff = response.json()["successful_setup_handoff"]
+    assert handoff["minimum_sentences"] == 2
+    assert handoff["maximum_sentences"] == 3
+    assert handoff["weak_context_question_limit"] == 1
+    assert set(handoff["template_fields"]) == {
+        "context_label",
+        "project_name",
+        "dataset_list",
+    }
+    assert handoff["post_confirmation"]["negative"] == "Create nothing."
+    assert handoff["strong_context_template"].startswith("Rowset is ready to use.")
+    assert handoff["strong_context_template"].endswith("Would you like me to create that now?")
 
 
 def test_capabilities_endpoint_rejects_unknown_topics(client):
