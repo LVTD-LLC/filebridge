@@ -18,6 +18,9 @@ deployment or release cut date.
 
 ## 2026-07-31
 
+### Fixed
+- Styled the passkey confirmation step shown after password sign-in for
+  passkey-protected accounts.
 ### Added
 - Added a privacy-safe, retry-idempotent activation funnel from the primary
   signup CTA through the first verified indexed-row update.
