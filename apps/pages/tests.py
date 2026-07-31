@@ -1100,12 +1100,16 @@ def test_landing_explains_three_workflows_immediately_after_hero(client):
     assert f'href="{reverse("use_cases")}"' in use_cases
     assert f'href="{reverse("use_case_page", kwargs={"slug": "agent-task-board"})}"' in articles[0]
     assert f'href="{reverse("use_case_page", kwargs={"slug": "personal-crm"})}"' in articles[2]
-    for comparison in (
-        "Can replace Linear, Asana, and ClickUp",
-        "Can replace Zendesk, Intercom, and Jira",
-        "Can replace HubSpot, Zoho, and SAP",
+    for comparison, icons in (
+        ("Can replace Linear, Asana, and ClickUp", ("linear", "asana", "clickup")),
+        ("Can replace Zendesk, Intercom, and Jira", ("zendesk", "intercom", "jira")),
+        ("Can replace HubSpot, Zoho, and SAP", ("hubspot", "zoho", "sap")),
     ):
         assert f'aria-label="{comparison}"' in use_cases
+        for icon in icons:
+            icon_path = f"vendors/images/landing/competitor-icons/{icon}.svg"
+            assert f'src="{static(icon_path)}"' in use_cases
+    assert "cdn.simpleicons.org" not in use_cases
     assert content.index('<section id="use-cases"') < content.index("Projects using Rowset")
     assert content.index('<section id="use-cases"') < content.index('<section id="open-source"')
     assert "Give your agent a workflow it can keep up to date." not in content
