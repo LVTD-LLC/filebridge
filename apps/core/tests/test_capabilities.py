@@ -305,6 +305,7 @@ def test_successful_setup_handoff_is_short_personalized_and_actionable():
             "Complete and verify the confirmed project and dataset creation before offering "
             "tips or starting unrelated work."
         ),
+        "affirmative_workflow": "confirmed_first_project_creation",
         "negative": "Create nothing.",
         "resolved_when": "the selected branch finishes",
     }
@@ -317,6 +318,112 @@ def test_successful_setup_handoff_is_short_personalized_and_actionable():
         "generic starter menu",
         "daily Rowset tips automation offer",
     ]
+
+
+def test_confirmed_first_project_creation_is_bounded_private_and_retry_safe():
+    setup = rowset_capabilities_payload(topics=["setup"])
+    creation = setup["confirmed_first_project_creation"]
+
+    assert creation["trigger"] == (
+        "Only after an explicit affirmative answer to the successful setup creation question."
+    )
+    assert creation["project_count"] == 1
+    assert creation["dataset_count"] == {"minimum": 1, "maximum": 3}
+    assert creation["duplicate_search"]["limit"] == 3
+    assert creation["duplicate_search"]["project_match"] == (
+        "case-insensitive exact project name with compatible purpose"
+    )
+    assert creation["duplicate_search"]["dataset_match"] == (
+        "case-insensitive exact dataset name inside the selected project, with compatible "
+        "purpose, durable instructions, headers, semantic schema, index settings, and private "
+        "preview state"
+    )
+    assert set(creation["interface_actions"]) == {"mcp", "cli", "rest"}
+    assert creation["interface_actions"]["mcp"]["search"] == [
+        "search_projects",
+        "search_datasets",
+    ]
+    assert creation["interface_actions"]["mcp"]["inspect"] == [
+        "get_project",
+        "get_dataset",
+    ]
+    assert creation["interface_actions"]["mcp"]["create"] == [
+        "create_project",
+        "create_dataset",
+    ]
+    assert creation["interface_actions"]["cli"] == {
+        "search": [
+            "rowset project search QUERY --limit 3",
+            "rowset dataset search QUERY --project-key PROJECT_KEY --limit 3",
+        ],
+        "inspect": [
+            "rowset project get PROJECT_KEY",
+            "rowset dataset get DATASET_KEY",
+        ],
+        "create": [
+            "rowset project create",
+            "rowset dataset create",
+        ],
+    }
+    assert creation["interface_actions"]["rest"] == {
+        "search": [
+            "GET /api/projects?query=QUERY&limit=3",
+            "GET /api/datasets?query=QUERY&project_key=PROJECT_KEY&limit=3",
+        ],
+        "inspect": [
+            "GET /api/projects/{project_key}",
+            "GET /api/datasets/{dataset_key}",
+        ],
+        "create": [
+            "POST /api/projects",
+            "POST /api/datasets",
+        ],
+    }
+    assert creation["concurrency_guard"] == {
+        "mcp": {"tool": "create_dataset", "argument": {"prevent_duplicate_name": True}},
+        "cli": "rowset dataset create --prevent-duplicate-name",
+        "rest": "POST /api/datasets with prevent_duplicate_name=true",
+        "conflict_recovery": (
+            "On a duplicate-name conflict, repeat the exact-first search and inspect the "
+            "existing dataset before deciding whether to reuse it or report an incompatibility."
+        ),
+    }
+
+    rules = " ".join(creation["creation_rules"])
+    assert "Reuse an exact compatible match" in rules
+    assert "Preserve existing project and dataset definitions" in rules
+    assert "one to three datasets" in rules
+    assert "durable instructions" in rules
+    assert "semantic column types" in rules
+    assert "reliable business key" in rules
+    assert "generated rowset_id" in rules
+    assert "Create the schema empty" in rules
+    assert "Never fabricate example rows" in rules
+    assert "public previews disabled" in rules
+    assert "non-transactional" in rules
+    assert "re-run the bounded searches" in rules
+    assert "same-name incompatible resource is a conflict" in rules
+    assert "prevent_duplicate_name" in rules
+
+    verification = creation["verification"]
+    assert verification["required_dataset_checks"] == [
+        "project assignment matches the confirmed project",
+        "headers and semantic column schema match the confirmed plan",
+        "index column and generated-index setting match the confirmed plan",
+        "description, purpose, and durable instructions match the confirmed plan",
+        "public_enabled is false",
+    ]
+    assert "stable business-key index" in verification["optional_row_probe"]
+    assert "read it back by index" in verification["optional_row_probe"]
+    assert "initial create_dataset request" in verification["optional_row_probe"]
+    assert creation["completion_response"]["report"] == [
+        "project name, key, and whether it was created or reused",
+        "each dataset name, key, and whether it was created or reused",
+        "verification result",
+    ]
+    assert creation["completion_response"]["when_empty"] == (
+        "Report the first real input still needed for each dataset that remains empty."
+    )
 
 
 def test_capabilities_payload_makes_use_cases_opt_in():

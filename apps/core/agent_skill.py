@@ -2,7 +2,10 @@ from pathlib import Path
 
 from django.conf import settings
 
-from apps.core.capabilities import ROWSET_SUCCESSFUL_SETUP_HANDOFF
+from apps.core.capabilities import (
+    ROWSET_CONFIRMED_FIRST_PROJECT_CREATION_INSTRUCTIONS,
+    ROWSET_SUCCESSFUL_SETUP_HANDOFF,
+)
 from rowset.utils import get_rowset_logger
 
 logger = get_rowset_logger(__name__)
@@ -81,6 +84,8 @@ ROWSET_AGENT_SETUP_INSTRUCTIONS = "".join(
             "the answer. On an affirmative answer: "
         ),
         ROWSET_AFFIRMATIVE_HANDOFF,
+        " ",
+        ROWSET_CONFIRMED_FIRST_PROJECT_CREATION_INSTRUCTIONS,
         (
             " On a negative answer, create nothing. Treat the project decision as resolved only "
             "after the selected branch finishes. Defer the daily Rowset tips offer until the "

@@ -515,6 +515,7 @@ func createDataset(ctx context.Context, streams IO, cfg config, args []string) e
 	columnTypesJSON := fs.String("column-types", "", "column type JSON object")
 	projectKey := fs.String("project-key", "", "project key")
 	sectionKey := fs.String("section-key", "", "section key")
+	preventDuplicateName := fs.Bool("prevent-duplicate-name", false, "reject a same-name dataset in the project")
 	rowsJSON := fs.String("rows", "", "JSON array of rows")
 	var rowValues repeatedStrings
 	fs.Var(&rowValues, "row", "JSON object row; may be repeated")
@@ -556,6 +557,9 @@ func createDataset(ctx context.Context, streams IO, cfg config, args []string) e
 	}
 	if flagWasSet(fs, "section-key") {
 		body["section_key"] = *sectionKey
+	}
+	if flagWasSet(fs, "prevent-duplicate-name") {
+		body["prevent_duplicate_name"] = *preventDuplicateName
 	}
 	rows, err := parseRows(*rowsJSON, rowValues)
 	if err != nil {

@@ -529,9 +529,22 @@ def test_get_rowset_capabilities_mcp_tool_can_return_full_guide(monkeypatch):
             "dataset_list",
         }
         assert handoff["post_confirmation"]["negative"] == "Create nothing."
+        assert handoff["post_confirmation"]["affirmative_workflow"] == (
+            "confirmed_first_project_creation"
+        )
         assert handoff["strong_context_template"].startswith("Rowset is ready to use.")
         assert handoff["strong_context_template"].endswith("Would you like me to create that now?")
         assert "MCP, CLI, or REST comparison" in handoff["normal_success_forbidden"]
+        creation = payload["confirmed_first_project_creation"]
+        assert creation["trigger"].startswith("Only after an explicit affirmative answer")
+        assert creation["duplicate_search"]["limit"] == 3
+        assert creation["interface_actions"]["mcp"]["search"] == [
+            "search_projects",
+            "search_datasets",
+        ]
+        assert creation["verification"]["required_dataset_checks"][-1] == (
+            "public_enabled is false"
+        )
         assert "daily Rowset tips automation" in startup
         assert "explicit agreement" in startup
         dataset_context = next(
@@ -669,6 +682,25 @@ def test_formula_column_type_is_explained_in_live_mcp_tool_schemas():
             assert '"calculation": "formula"' in description
             assert '"result_type": "date"' in description
             assert "DATEADD" in description
+
+    anyio.run(run)
+
+
+def test_confirmed_setup_mcp_tool_schemas_explain_safe_create_or_reuse_sequence():
+    async def run():
+        async with Client(mcp) as client:
+            tools = {tool.name: tool for tool in await client.list_tools()}
+
+        assert "limit=3 before create_project" in tools["search_projects"].description
+        assert "reuse an exact compatible match" in tools["create_project"].description
+        assert "project_key and limit=3 before create_dataset" in (
+            tools["search_datasets"].description
+        )
+        create_dataset_description = tools["create_dataset"].description
+        assert "private by default" in create_dataset_description
+        assert "durable instructions" in create_dataset_description
+        assert "semantic column types" in create_dataset_description
+        assert "empty schema instead of fabricated rows" in create_dataset_description
 
     anyio.run(run)
 
@@ -1456,6 +1488,7 @@ def test_create_dataset_mcp_tool_calls_dataset_service(monkeypatch):
         column_types=None,
         project_key=None,
         section_key=None,
+        prevent_duplicate_name=False,
         agent_api_key=None,
     ):
         calls.append(
@@ -1471,6 +1504,7 @@ def test_create_dataset_mcp_tool_calls_dataset_service(monkeypatch):
                 column_types,
                 project_key,
                 section_key,
+                prevent_duplicate_name,
             )
         )
         return {
@@ -1511,6 +1545,7 @@ def test_create_dataset_mcp_tool_calls_dataset_service(monkeypatch):
                     "column_types": {"sku": "text", "name": "text", "topics": "tags"},
                     "project_key": "project-key",
                     "section_key": "section-key",
+                    "prevent_duplicate_name": True,
                 },
             )
 
@@ -1534,6 +1569,7 @@ def test_create_dataset_mcp_tool_calls_dataset_service(monkeypatch):
                 {"sku": "text", "name": "text", "topics": "tags"},
                 "project-key",
                 "section-key",
+                True,
             )
         ]
 
@@ -2301,6 +2337,7 @@ def test_choice_column_metadata_mcp_tools_call_dataset_services(monkeypatch):
         column_types=None,
         project_key=None,
         section_key=None,
+        prevent_duplicate_name=False,
         agent_api_key=None,
     ):
         calls.append(("create", authenticated_profile.id, column_types))

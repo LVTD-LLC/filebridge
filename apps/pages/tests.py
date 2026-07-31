@@ -261,6 +261,48 @@ def test_agent_onboarding_guidance_recommends_one_authorized_first_project():
         assert still_weak_tail.startswith("Stop without inventing a generic recommendation")
 
 
+def test_agent_onboarding_guidance_creates_confirmed_resources_safely():
+    sources = {
+        "generated setup prompt": " ".join(build_content_agent_setup_prompt().split()),
+        **{
+            relative_path: " ".join(
+                Path(settings.BASE_DIR, relative_path).read_text(encoding="utf-8").split()
+            )
+            for relative_path in (
+                ".agents/skills/rowset-setup/SKILL.md",
+                "apps/pages/content/docs/quickstart.md",
+                "apps/pages/content/docs/configure-agent-access.md",
+                "apps/pages/content/docs/agent-discovery.md",
+            )
+        },
+    }
+
+    for source in sources.values():
+        source_lower = source.lower()
+        assert "Only after an explicit affirmative answer" in source
+        assert "bounded duplicate search with an explicit limit of 3" in source
+        assert "Reuse an exact compatible match" in source
+        assert "preserve existing project and dataset definitions" in source_lower
+        assert "one to three datasets" in source
+        assert "durable instructions" in source
+        assert "semantic column types" in source
+        assert "reliable business key" in source
+        assert "generated `rowset_id`" in source
+        assert "Create the schema empty" in source
+        assert "Never fabricate example rows" in source
+        assert "public previews disabled" in source
+        assert "real user-provided row" in source
+        assert "read it back by index" in source
+        assert "same-name" in source
+        assert "conflict" in source
+        assert "prevent_duplicate_name" in source or "--prevent-duplicate-name" in source
+        assert "stable business-key index" in source
+        assert "initial `create_dataset` request" in source
+        assert "only for a dataset that remains empty" in source
+        assert "created or reused" in source
+        assert "re-run the bounded searches" in source
+
+
 PUBLIC_CONTENT_PATH_PREFIXES = ("/blog/", "/docs/", "/use-cases/", "/vs/")
 PUBLIC_CONTENT_ROOT_PATHS = {
     "/blog",

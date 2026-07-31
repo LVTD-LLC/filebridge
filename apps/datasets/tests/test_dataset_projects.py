@@ -1,13 +1,24 @@
 import json
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
+from threading import Barrier
 
 import pytest
 from django.contrib import messages as message_constants
 from django.contrib.messages import get_messages
+from django.db import close_old_connections
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.api.services import serialize_dataset_detail
+from apps.api.errors import DatasetServiceError
+from apps.api.services import (
+    create_profile_dataset,
+    create_profile_project,
+    get_profile_dataset,
+    search_profile_datasets,
+    search_profile_projects,
+    serialize_dataset_detail,
+)
 from apps.datasets import models as dataset_models
 from apps.datasets.choices import DatasetColumnType, DatasetMutationType
 from apps.datasets.models import Dataset, DatasetRow, Project
@@ -833,6 +844,295 @@ def test_project_api_rejects_case_insensitive_duplicate_names(api_client, profil
     assert response.status_code == 409
     assert response.json()["detail"] == "Project name already exists."
     assert Project.objects.filter(profile=profile).count() == 1
+
+
+def test_bounded_searches_rank_exact_resource_names_before_partial_matches(profile):
+    exact_project = Project.objects.create(
+        profile=profile,
+        name="ReviewGate",
+        description="Exact project.",
+    )
+    for name in ["Alpha", "Beta", "Delta", "Gamma"]:
+        Project.objects.create(
+            profile=profile,
+            name=name,
+            description="ReviewGate supporting work.",
+        )
+
+    exact_dataset = Dataset.objects.create(
+        profile=profile,
+        project=exact_project,
+        name="Improvement task board",
+        description="Exact dataset.",
+        headers=["task_id"],
+        index_column="task_id",
+    )
+    for index in range(4):
+        Dataset.objects.create(
+            profile=profile,
+            project=exact_project,
+            name=f"Supporting notes {index}",
+            description="Improvement task board research.",
+            headers=["note_id"],
+            index_column="note_id",
+        )
+
+    project_search = search_profile_projects(profile, query="reviewgate", limit=3)
+    dataset_search = search_profile_datasets(
+        profile,
+        query="improvement task board",
+        project_key=str(exact_project.key),
+        limit=3,
+    )
+
+    assert project_search["projects"][0]["key"] == str(exact_project.key)
+    assert dataset_search["datasets"][0]["key"] == str(exact_dataset.key)
+
+
+def test_confirmed_setup_dataset_create_rejects_duplicate_name_inside_project(profile):
+    project = Project.objects.create(profile=profile, name="ReviewGate")
+    create_profile_dataset(
+        profile,
+        name="Improvement task board",
+        instructions="Use task_id as the stable key.",
+        headers=["task_id"],
+        index_column="task_id",
+        project_key=str(project.key),
+        prevent_duplicate_name=True,
+        enqueue_background_work=False,
+    )
+
+    with pytest.raises(DatasetServiceError) as exc:
+        create_profile_dataset(
+            profile,
+            name="improvement task board",
+            instructions="Use task_id as the stable key.",
+            headers=["task_id"],
+            index_column="task_id",
+            project_key=str(project.key),
+            prevent_duplicate_name=True,
+            enqueue_background_work=False,
+        )
+
+    assert exc.value.status_code == 409
+    assert exc.value.message == "Dataset name already exists in this project."
+    assert Dataset.objects.filter(profile=profile, project=project).count() == 1
+
+
+def test_confirmed_setup_duplicate_name_guard_requires_project(profile):
+    with pytest.raises(DatasetServiceError) as exc:
+        create_profile_dataset(
+            profile,
+            name="Improvement task board",
+            headers=["task_id"],
+            index_column="task_id",
+            prevent_duplicate_name=True,
+            enqueue_background_work=False,
+        )
+
+    assert exc.value.status_code == 400
+    assert exc.value.message == "prevent_duplicate_name requires project_key."
+
+
+@pytest.mark.django_db(transaction=True)
+def test_confirmed_setup_dataset_create_serializes_concurrent_same_name_creates(profile):
+    project = Project.objects.create(profile=profile, name="ReviewGate")
+    start = Barrier(2)
+
+    def create_dataset_once():
+        close_old_connections()
+        try:
+            start.wait()
+            result = create_profile_dataset(
+                type(profile).objects.get(pk=profile.pk),
+                name="Improvement task board",
+                instructions="Use task_id as the stable key.",
+                headers=["task_id"],
+                index_column="task_id",
+                project_key=str(project.key),
+                prevent_duplicate_name=True,
+                enqueue_background_work=False,
+            )
+        except DatasetServiceError as exc:
+            return exc.status_code, exc.message
+        finally:
+            close_old_connections()
+        return 201, result["dataset"]["key"]
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        outcomes = list(executor.map(lambda _: create_dataset_once(), range(2)))
+
+    assert sorted(status for status, _ in outcomes) == [201, 409]
+    assert Dataset.objects.filter(profile=profile, project=project).count() == 1
+
+
+def test_confirmed_setup_resume_creates_only_missing_datasets(profile):
+    project = Project.objects.create(
+        profile=profile,
+        name="ReviewGate",
+        description="Tracks recurring ReviewGate improvement work.",
+    )
+    existing = create_profile_dataset(
+        profile,
+        name="Improvement task board",
+        description="Tracks independently executable product improvements.",
+        instructions="Use task_id as the immutable index.",
+        headers=["task_id", "title"],
+        index_column="task_id",
+        project_key=str(project.key),
+        prevent_duplicate_name=True,
+        enqueue_background_work=False,
+    )["dataset"]
+
+    existing_search = search_profile_datasets(
+        profile,
+        query="improvement task board",
+        project_key=str(project.key),
+        limit=3,
+    )
+    missing_search = search_profile_datasets(
+        profile,
+        query="agent feedback",
+        project_key=str(project.key),
+        limit=3,
+    )
+    created = create_profile_dataset(
+        profile,
+        name="Agent feedback",
+        description="Stores actionable agent feedback.",
+        instructions="Use feedback_id as the immutable index.",
+        headers=["feedback_id", "summary"],
+        index_column="feedback_id",
+        project_key=str(project.key),
+        prevent_duplicate_name=True,
+        enqueue_background_work=False,
+    )["dataset"]
+
+    assert existing_search["datasets"][0]["key"] == existing["key"]
+    assert missing_search["count"] == 0
+    assert created["key"] != existing["key"]
+    assert Dataset.objects.filter(profile=profile, project=project).count() == 2
+    assert get_profile_dataset(profile, existing["key"]).instructions == (
+        "Use task_id as the immutable index."
+    )
+
+
+def test_dataset_api_duplicate_name_guard_is_opt_in(api_client, profile):
+    project = Project.objects.create(profile=profile, name="ReviewGate")
+    payload = {
+        "name": "Improvement task board",
+        "instructions": "Use task_id as the stable key.",
+        "headers": ["task_id"],
+        "index_column": "task_id",
+        "project_key": str(project.key),
+        "prevent_duplicate_name": True,
+    }
+
+    first_response = api_client.post(
+        "/api/datasets",
+        data=payload,
+        content_type="application/json",
+    )
+    duplicate_response = api_client.post(
+        "/api/datasets",
+        data={**payload, "name": "improvement task board"},
+        content_type="application/json",
+    )
+    unguarded_response = api_client.post(
+        "/api/datasets",
+        data={**payload, "prevent_duplicate_name": False},
+        content_type="application/json",
+    )
+
+    assert first_response.status_code == 201
+    assert duplicate_response.status_code == 409
+    assert duplicate_response.json()["detail"] == "Dataset name already exists in this project."
+    assert unguarded_response.status_code == 201
+    assert Dataset.objects.filter(profile=profile, project=project).count() == 2
+
+
+def test_confirmed_first_project_flow_discovers_then_creates_private_empty_schema(profile):
+    project_search = search_profile_projects(
+        profile,
+        query="ReviewGate",
+        limit=3,
+    )
+
+    assert project_search["count"] == 0
+    assert project_search["limit"] == 3
+
+    project_result = create_profile_project(
+        profile,
+        name="ReviewGate",
+        description="Tracks recurring ReviewGate improvement work.",
+    )
+    project_key = project_result["project"]["key"]
+
+    dataset_search = search_profile_datasets(
+        profile,
+        query="Improvement task board",
+        project_key=project_key,
+        limit=3,
+    )
+
+    assert dataset_search["count"] == 0
+    assert dataset_search["limit"] == 3
+
+    dataset_result = create_profile_dataset(
+        profile,
+        name="Improvement task board",
+        description="Tracks independently executable product improvements.",
+        instructions=(
+            "Use task_id as the immutable index. Inspect this context before every write."
+        ),
+        headers=["task_id", "title", "status"],
+        rows=[],
+        index_column="task_id",
+        column_types={
+            "task_id": {"type": "text", "description": "Stable task identifier."},
+            "title": {"type": "text", "description": "Outcome-oriented task title."},
+            "status": {
+                "type": "choice",
+                "choices": ["Ready", "Doing", "Done"],
+                "description": "Current execution state.",
+            },
+        },
+        project_key=project_key,
+        enqueue_background_work=False,
+    )
+
+    repeat_project_search = search_profile_projects(
+        profile,
+        query="reviewgate",
+        limit=3,
+    )
+    repeat_dataset_search = search_profile_datasets(
+        profile,
+        query="improvement task board",
+        project_key=project_key,
+        limit=3,
+    )
+    dataset = serialize_dataset_detail(
+        get_profile_dataset(profile, dataset_result["dataset"]["key"])
+    )
+
+    assert repeat_project_search["count"] == 1
+    assert repeat_project_search["projects"][0]["key"] == project_key
+    assert repeat_dataset_search["count"] == 1
+    assert repeat_dataset_search["datasets"][0]["key"] == dataset["key"]
+    assert dataset["project"]["key"] == project_key
+    assert dataset["headers"] == ["task_id", "title", "status"]
+    assert dataset["column_schema"]["status"] == {
+        "type": "choice",
+        "choices": ["Ready", "Doing", "Done"],
+        "description": "Current execution state.",
+    }
+    assert dataset["index_column"] == "task_id"
+    assert dataset["index_generated"] is False
+    assert dataset["instructions"].startswith("Use task_id as the immutable index.")
+    assert dataset["row_count"] == 0
+    assert dataset["public_enabled"] is False
+    assert DatasetRow.objects.filter(dataset__key=dataset["key"]).count() == 0
 
 
 def test_project_api_updates_project_metadata(api_client, profile):

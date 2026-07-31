@@ -120,8 +120,15 @@ def test_capabilities_endpoint_exposes_first_project_recommendation_contract(cli
         "dataset_list",
     }
     assert handoff["post_confirmation"]["negative"] == "Create nothing."
+    assert handoff["post_confirmation"]["affirmative_workflow"] == (
+        "confirmed_first_project_creation"
+    )
     assert handoff["strong_context_template"].startswith("Rowset is ready to use.")
     assert handoff["strong_context_template"].endswith("Would you like me to create that now?")
+    creation = response.json()["confirmed_first_project_creation"]
+    assert creation["trigger"].startswith("Only after an explicit affirmative answer")
+    assert creation["duplicate_search"]["limit"] == 3
+    assert creation["verification"]["required_dataset_checks"][-1] == "public_enabled is false"
 
 
 def test_capabilities_endpoint_rejects_unknown_topics(client):
@@ -853,6 +860,7 @@ class PostDeploySmokeDatasetApiUnitTests(SimpleTestCase):
             column_types=None,
             project_key=None,
             section_key=None,
+            prevent_duplicate_name=False,
         )
 
         with patch(
@@ -884,6 +892,7 @@ class PostDeploySmokeDatasetApiUnitTests(SimpleTestCase):
             column_types=None,
             project_key=None,
             section_key=None,
+            prevent_duplicate_name=False,
         )
 
         with patch(

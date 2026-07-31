@@ -692,7 +692,9 @@ def get_archived_datasets(
     name="search_datasets",
     description=(
         "Search active datasets and return compact discovery cards. Filter by name, project, "
-        "section, header, or update time, then call get_dataset for full context."
+        "section, header, or update time, then call get_dataset for full context. During "
+        "confirmed first-project setup, search with the selected project_key and limit=3 before "
+        "create_dataset."
     ),
 )
 def search_datasets(
@@ -799,7 +801,11 @@ def get_all_projects(
 
 @read_tool(
     name="search_projects",
-    description="Search project metadata by project name, description, or JSON metadata.",
+    description=(
+        "Search project metadata by project name, description, or JSON metadata. During "
+        "confirmed first-project setup, search the recommended name with limit=3 before "
+        "create_project, then inspect any exact candidate."
+    ),
 )
 def search_projects(
     query: Annotated[
@@ -828,7 +834,11 @@ def search_projects(
 
 @write_tool(
     name="create_project",
-    description="Create a semantic project for grouping Rowset datasets.",
+    description=(
+        "Create a semantic project for grouping Rowset datasets. During confirmed first-project "
+        "setup, call only after an explicit yes and a bounded search; reuse an exact compatible "
+        "match instead of creating a duplicate."
+    ),
 )
 def create_project(
     name: Annotated[str, Field(description="Human-readable project name.")],
@@ -1097,7 +1107,12 @@ def archive_project(
     description=(
         "Create an API-backed dataset for the authenticated Rowset profile. "
         "Provide headers, rows, or both. If index_column is omitted, Rowset generates "
-        "a rowset_id index column so the dataset can be used immediately."
+        "a rowset_id index column so the dataset can be used immediately. New datasets are "
+        "private by default. During confirmed first-project setup, search inside the selected "
+        "project first, then create with durable instructions, explicit headers, semantic column "
+        "types, a stable index, and prevent_duplicate_name=true. That opt-in guard serializes "
+        "same-project creates and rejects a concurrent same-name dataset instead of duplicating "
+        "it. When no real rows are available, create an empty schema instead of fabricated rows."
     ),
 )
 def create_dataset(
@@ -1201,6 +1216,16 @@ def create_dataset(
             ),
         ),
     ] = None,
+    prevent_duplicate_name: Annotated[
+        bool,
+        Field(
+            default=False,
+            description=(
+                "When true, require project_key and atomically reject an active case-insensitive "
+                "same-name dataset in that project. Use true during confirmed first-project setup."
+            ),
+        ),
+    ] = False,
 ) -> dict:
     close_old_connections()
     profile = _mcp_authenticated_profile(AgentApiKeyAccessLevel.READ_WRITE)
@@ -1217,6 +1242,7 @@ def create_dataset(
             column_types=column_types,
             project_key=project_key,
             section_key=section_key,
+            prevent_duplicate_name=prevent_duplicate_name,
             **_agent_actor_kwargs(profile),
         )
     except DatasetServiceError as exc:
