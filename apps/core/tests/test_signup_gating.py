@@ -72,7 +72,7 @@ def test_social_signup_adapter_defaults_open_when_setting_is_absent(monkeypatch)
 def test_signup_closed_template_tells_existing_users_to_log_in():
     content = render_to_string("account/signup_closed.html")
 
-    assert "Signups paused" in content
+    assert "Rowset is not accepting new accounts right now." in content
     assert "Existing users can continue using the product as usual" in content
     assert 'href="/accounts/login/"' in content
     assert 'name="email"' not in content

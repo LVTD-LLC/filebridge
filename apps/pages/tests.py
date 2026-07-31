@@ -943,7 +943,7 @@ def test_landing_page_omits_prompt_and_shows_agent_native_positioning(client):
     assert "Rowset skill install:" not in content
     assert "Backend for AI agent workflows" in content
     assert "Private structured data for trusted agents" in content
-    assert "Three steps to agent-ready data" in content
+    assert "Connect once. Then ask your agent to build." in content
     assert "Agent task board" in content
     assert "Feedback triage" in content
     assert "Personal CRM" in content
@@ -964,6 +964,37 @@ def test_public_layout_keeps_footer_at_viewport_bottom(client):
     content = response.content.decode()
     assert 'class="isolate flex min-h-dvh flex-col ' in content
     assert '<main id="main-content" tabindex="-1" class="flex-1">' in content
+
+
+def test_user_facing_templates_do_not_use_decorative_eyebrow_labels():
+    templates_dir = Path(settings.BASE_DIR, "frontend", "templates")
+    decorative_pre_heading = re.compile(
+        r'<p\b[^>]*class="(?=[^"]*font-mono)(?=[^"]*(?:uppercase|tracking-wide))[^"]*"[^>]*>'
+        r".*?</p>\s*<h[12]\b",
+        re.DOTALL,
+    )
+    decorative_metadata = (
+        "OPEN SOURCE / SELF-HOSTABLE</span>",
+        "NO CREDIT CARD / CANCEL ANYTIME / EXPORT EVERYTHING",
+        "Rowset comparison / field brief",
+    )
+    legacy_component_users = []
+    pre_heading_users = []
+    metadata_users = []
+
+    for template_path in sorted(templates_dir.rglob("*.html")):
+        source = template_path.read_text(encoding="utf-8")
+        relative_path = str(template_path.relative_to(settings.BASE_DIR))
+        if "fb-label-caps" in source:
+            legacy_component_users.append(relative_path)
+        if decorative_pre_heading.search(source):
+            pre_heading_users.append(relative_path)
+        if any(label in source for label in decorative_metadata):
+            metadata_users.append(relative_path)
+
+    assert legacy_component_users == []
+    assert pre_heading_users == []
+    assert metadata_users == []
 
 
 def test_landing_page_shows_product_dashboard_screenshot(client):
@@ -1032,7 +1063,6 @@ def test_landing_page_presents_open_source_and_self_hosting_as_core_identity(cli
         'self-hostable." />'
     )
 
-    assert "OPEN SOURCE / SELF-HOSTABLE" in hero
     assert "open-source, self-hostable" in hero
     assert "View source on GitHub" in hero
     assert "Open source. Self-hostable." in open_source_section
@@ -1104,12 +1134,14 @@ def test_changelog_html_and_markdown_share_the_repository_changelog(client):
     html_response = client.get(reverse("changelog"))
     markdown_response = client.get(reverse("changelog_markdown"))
     source = Path(settings.BASE_DIR, "CHANGELOG.md").read_text(encoding="utf-8")
+    html_content = html_response.content.decode()
 
     assert html_response.status_code == 200
     assert markdown_response.status_code == 200
     assert markdown_response.content.decode() == f"{source.rstrip()}\n"
-    assert "Product updates" in html_response.content.decode()
-    assert "Added a public changelog page" in html_response.content.decode()
+    assert html_content.count("<h1") == 1
+    assert "Product updates" in html_content
+    assert "Added a public changelog page" in html_content
 
 
 def test_app_sidebar_shows_trial_rewards_after_agent_setup_completes(client):

@@ -11,8 +11,7 @@
     {% if has_access %}
       <div class="space-y-10">
         <header>
-          <p class="fb-label-caps text-emerald-600 dark:text-emerald-400">Shared Rowset dataset</p>
-          <h1 class="fb-page-title mt-2 break-words">{{ dataset.name }}</h1>
+          <h1 class="fb-page-title break-words">{{ dataset.name }}</h1>
           {% if dataset.description %}
             <p class="mt-4 max-w-[56ch] text-base/7 text-pretty text-slate-600 dark:text-slate-300 sm:text-sm/6">{{ dataset.description }}</p>
           {% else %}

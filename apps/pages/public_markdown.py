@@ -62,7 +62,11 @@ def render_changelog_markdown() -> str:
 
 
 def render_changelog_html() -> str:
-    return markdown.markdown(render_changelog_markdown(), extensions=MARKDOWN_EXTENSIONS)
+    source = render_changelog_markdown()
+    _, separator, body = source.partition("\n")
+    if source.startswith("# ") and separator:
+        source = body
+    return markdown.markdown(source, extensions=MARKDOWN_EXTENSIONS)
 
 
 def render_public_page_markdown(page_slug: str) -> str:

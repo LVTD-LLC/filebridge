@@ -23,6 +23,8 @@ deployment or release cut date.
   signup CTA through the first verified indexed-row update.
 
 ### Changed
+- Removed decorative eyebrow labels throughout the public and authenticated
+  interface while preserving semantic navigation, status, and table labels.
 - Agent setup now inspects the runtime and configures the best supported Rowset
   interface automatically, pausing only when an external permission is required.
 - Interrupted agent setup now reports precise progress and one safe retry action,
