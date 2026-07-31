@@ -16,7 +16,6 @@
 
       <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div class="min-w-0 space-y-3">
-          <p class="fb-label-caps text-emerald-600 dark:text-emerald-400">Shared Rowset row</p>
           <h1 class="break-words text-3xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Row {{ dataset_row.row_number }}</h1>
           <p class="break-words text-sm text-slate-600 dark:text-slate-300">
             {{ dataset.name }} · {{ dataset.headers|length }} columns{% if dataset.index_column %} · {{ dataset.index_column }}: <span class="font-semibold text-slate-900 dark:text-slate-100">{{ dataset_row.index_value }}</span>{% endif %}
