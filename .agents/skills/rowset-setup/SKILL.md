@@ -172,7 +172,8 @@ healthy connection and proceed with the user's requested Rowset task.
    Wait for the user's answer.
 6. Resolve the confirmation branch before continuing:
    - On an affirmative answer: Complete and verify the confirmed project and
-     dataset creation before offering tips or starting unrelated work.
+     dataset creation using the workflow below before offering tips or starting
+     unrelated work.
    - On a negative answer, create nothing.
    - Treat the project decision as resolved only after the selected branch
      finishes.
@@ -187,6 +188,60 @@ healthy connection and proceed with the user's requested Rowset task.
    > tip, use case, or feature you may not know about?
 
    Only create the automation after explicit agreement.
+
+### After a Yes: Create and Verify
+
+Only after an explicit affirmative answer, run a bounded duplicate search with
+an explicit limit of 3 for the project and then for datasets inside the selected
+project. Inspect each candidate. Reuse an exact compatible match and preserve
+existing project and dataset definitions. A same-name project or dataset with a
+different purpose, project assignment, durable instructions, headers, semantic
+schema, index, or privacy state is a conflict to report, not permission to
+overwrite it or create a duplicate. Exact names rank before partial text matches
+inside the bounded search page.
+
+Use the selected interface's current schemas:
+
+- MCP: `search_projects`, `get_project`, and `create_project`; then
+  `search_datasets` with the project key, `get_dataset`, and `create_dataset`
+  with `prevent_duplicate_name: true`.
+- CLI: `rowset project search QUERY --limit 3`, `rowset project get`, and
+  `rowset project create`; then `rowset dataset search QUERY --project-key
+  PROJECT_KEY --limit 3`, `rowset dataset get`, and `rowset dataset create
+  --prevent-duplicate-name`.
+- REST: bounded `GET /api/projects` and `GET /api/datasets` searches, detail
+  reads by key, then `POST /api/projects` and `POST /api/datasets` only when no
+  compatible match exists. Send `prevent_duplicate_name: true` with each
+  confirmed-setup dataset create.
+
+Otherwise create the one confirmed project and one to three datasets. Give
+every new dataset a concise description, durable instructions, explicit headers
+with semantic column types, and a stable index. Use a reliable business key when
+one exists; otherwise use the generated `rowset_id`. Create the schema empty
+when no real user-provided rows are available. Never fabricate example rows or
+guessed private facts. Keep public previews disabled.
+
+This multi-resource sequence is non-transactional. After an interruption or
+partial failure, re-run the bounded searches and reuse verified partial results
+instead of creating duplicates. The dataset create guard serializes concurrent
+same-name creates inside the selected project. On a duplicate-name conflict,
+repeat the exact-first search and inspect the existing dataset. Do not modify
+compatible existing definitions.
+
+Verify the project and every dataset by key. For each dataset, confirm the
+project assignment, headers and semantic column types, index settings, durable
+instructions and purpose match the confirmed plan, and `public_enabled: false`.
+Only when one real user-provided row is already available and appropriate, write
+it separately for a stable business-key index: read that index before creation
+and after any indeterminate response, then read it back by index. For a
+generated index, include the row in the initial `create_dataset` request or
+leave the dataset empty; never retry a standalone probe whose generated index
+was not returned.
+
+Report the project and dataset names and keys, whether each was created or
+reused, and the verification result. State the first real input needed only for
+a dataset that remains empty. Do not claim completion until every selected
+resource has been inspected by key.
 
 Examples:
 

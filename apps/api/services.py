@@ -11,7 +11,19 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import storages
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Exists, F, Func, IntegerField, OuterRef, Q, TextField
+from django.db.models import (
+    Case,
+    Count,
+    Exists,
+    F,
+    Func,
+    IntegerField,
+    OuterRef,
+    Q,
+    TextField,
+    Value,
+    When,
+)
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Cast, Trim
 from django.urls import reverse
@@ -496,10 +508,21 @@ def search_profile_projects(
         "archived_at",
     )
     if normalized_query:
-        queryset = queryset.annotate(metadata_text=Cast("metadata", TextField())).filter(
-            Q(name__icontains=normalized_query)
-            | Q(description__icontains=normalized_query)
-            | Q(metadata_text__icontains=normalized_query)
+        queryset = (
+            queryset.annotate(
+                metadata_text=Cast("metadata", TextField()),
+                exact_name_rank=Case(
+                    When(name__iexact=normalized_query, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                ),
+            )
+            .filter(
+                Q(name__icontains=normalized_query)
+                | Q(description__icontains=normalized_query)
+                | Q(metadata_text__icontains=normalized_query)
+            )
+            .order_by("exact_name_rank", "name", "-created_at")
         )
     total_count = queryset.count()
     projects = list(queryset[offset : offset + limit])
@@ -1268,26 +1291,36 @@ def search_profile_datasets(  # noqa: C901
 
     queryset = _dataset_card_queryset(_active_dataset_queryset(profile.datasets))
     if normalized_query:
-        queryset = queryset.filter(
-            Q(name__icontains=normalized_query)
-            | Q(description__icontains=normalized_query)
-            | Q(instructions__icontains=normalized_query)
-            | Q(
-                project__archived_at__isnull=True,
-                project__name__icontains=normalized_query,
+        queryset = (
+            queryset.annotate(
+                exact_name_rank=Case(
+                    When(name__iexact=normalized_query, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                )
             )
-            | Q(
-                project__archived_at__isnull=True,
-                project__description__icontains=normalized_query,
+            .filter(
+                Q(name__icontains=normalized_query)
+                | Q(description__icontains=normalized_query)
+                | Q(instructions__icontains=normalized_query)
+                | Q(
+                    project__archived_at__isnull=True,
+                    project__name__icontains=normalized_query,
+                )
+                | Q(
+                    project__archived_at__isnull=True,
+                    project__description__icontains=normalized_query,
+                )
+                | Q(
+                    section__archived_at__isnull=True,
+                    section__name__icontains=normalized_query,
+                )
+                | Q(
+                    section__archived_at__isnull=True,
+                    section__description__icontains=normalized_query,
+                )
             )
-            | Q(
-                section__archived_at__isnull=True,
-                section__name__icontains=normalized_query,
-            )
-            | Q(
-                section__archived_at__isnull=True,
-                section__description__icontains=normalized_query,
-            )
+            .order_by("exact_name_rank", "-created_at")
         )
     if normalized_project_key:
         try:
@@ -2391,6 +2424,7 @@ def create_profile_dataset(
     column_types: dict[str, ColumnTypeSpec] | None = None,
     project_key: str | None = None,
     section_key: str | None = None,
+    prevent_duplicate_name: bool = False,
     agent_api_key: AgentApiKey | None = None,
     enqueue_background_work: bool = True,
 ) -> dict:
@@ -2403,6 +2437,11 @@ def create_profile_dataset(
     project = (
         get_profile_project(profile, normalized_project_key) if normalized_project_key else None
     )
+    if prevent_duplicate_name and project is None:
+        raise DatasetServiceError(
+            400,
+            "prevent_duplicate_name requires project_key.",
+        )
     section = _resolve_project_section_assignment(profile, project, section_key)
     normalized_rows = _normalize_create_rows(rows)
     base_headers = _normalize_create_headers(headers, normalized_rows)
@@ -2463,6 +2502,19 @@ def create_profile_dataset(
         row_payloads.append((row_number, index_value, serialized_data))
 
     with transaction.atomic():
+        if prevent_duplicate_name:
+            Project.objects.select_for_update().get(pk=project.pk)
+            if _active_dataset_queryset(
+                Dataset.objects.filter(
+                    profile=profile,
+                    project=project,
+                    name__iexact=normalized_name,
+                )
+            ).exists():
+                raise DatasetServiceError(
+                    409,
+                    "Dataset name already exists in this project.",
+                )
         dataset = Dataset.objects.create(
             profile=profile,
             project=project,

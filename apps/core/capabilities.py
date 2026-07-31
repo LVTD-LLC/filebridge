@@ -61,6 +61,32 @@ class RowsetCapabilityTopic:
 
 
 ROWSET_PROJECT_CONFIRMATION_QUESTION = "Would you like me to create that now?"
+ROWSET_CONFIRMED_FIRST_PROJECT_CREATION_ID = "confirmed_first_project_creation"
+ROWSET_CONFIRMED_FIRST_PROJECT_CREATION_INSTRUCTIONS = (
+    "Only after an explicit affirmative answer, run a bounded duplicate search with an explicit "
+    "limit of 3 for the project and then for datasets inside the selected project. Inspect each "
+    "candidate. Reuse an exact compatible match and preserve existing project and dataset "
+    "definitions. A same-name resource with incompatible purpose, instructions, schema, index, "
+    "project assignment, or privacy state is a conflict to report; do not overwrite it or create "
+    "a duplicate. Otherwise create the one confirmed project and one to three datasets. Give "
+    "every new dataset a concise description, durable instructions, explicit headers with "
+    "semantic column types, and a stable index: use a reliable business key when one exists, or "
+    "the generated `rowset_id` when it does not. For every confirmed-setup dataset create, set "
+    "`prevent_duplicate_name=true`; on a duplicate-name conflict, repeat the exact-first search "
+    "and inspect the existing dataset. Create the schema empty when no real user-provided rows "
+    "are available. Never fabricate example rows. Keep public previews disabled. This "
+    "multi-resource sequence is non-transactional, so after an interruption or partial failure, "
+    "re-run the bounded searches and reuse verified partial results instead of creating "
+    "duplicates. Verify the project and every dataset by key, including project assignment, "
+    "description, schema, index settings, instructions, and `public_enabled` being false. If one "
+    "real user-provided row is already available and appropriate, write it separately only when "
+    "the dataset uses a stable business-key index: read that index before creation and after any "
+    "indeterminate response, then read it back by index. For a generated index, "
+    "include the row in the initial `create_dataset` request or leave the dataset empty; never "
+    "retry a standalone probe whose generated index was not returned. Report each project and "
+    "dataset key and whether it was created or reused. Report the first real input still needed "
+    "only for a dataset that remains empty."
+)
 
 ROWSET_RECOMMENDED_STARTUP = (
     "Read the setup prompt and Rowset setup skill, then store the full API key privately.",
@@ -100,6 +126,10 @@ ROWSET_RECOMMENDED_STARTUP = (
         "already-authorized context with one to three concrete datasets; and "
         f"{ROWSET_PROJECT_CONFIRMATION_QUESTION} Do not include an interface recap, setup "
         "checklist, credential status, URL list, or generic starters."
+    ),
+    (
+        "After an explicit yes, create or reuse and verify the confirmed private project and "
+        "datasets before doing unrelated work. After a no, create nothing."
     ),
     (
         "After the project decision is resolved, when the agent runtime supports scheduled "
@@ -195,6 +225,7 @@ ROWSET_SUCCESSFUL_SETUP_HANDOFF = {
             "Complete and verify the confirmed project and dataset creation before offering "
             "tips or starting unrelated work."
         ),
+        "affirmative_workflow": ROWSET_CONFIRMED_FIRST_PROJECT_CREATION_ID,
         "negative": "Create nothing.",
         "resolved_when": "the selected branch finishes",
     },
@@ -233,6 +264,145 @@ ROWSET_SUCCESSFUL_SETUP_HANDOFF = {
             "branch finishes."
         ),
     ],
+}
+
+ROWSET_CONFIRMED_FIRST_PROJECT_CREATION = {
+    "trigger": (
+        "Only after an explicit affirmative answer to the successful setup creation question."
+    ),
+    "project_count": 1,
+    "dataset_count": {"minimum": 1, "maximum": 3},
+    "duplicate_search": {
+        "limit": 3,
+        "project_match": "case-insensitive exact project name with compatible purpose",
+        "dataset_match": (
+            "case-insensitive exact dataset name inside the selected project, with compatible "
+            "purpose, durable instructions, headers, semantic schema, index settings, and private "
+            "preview state"
+        ),
+        "rules": [
+            (
+                "Search before every create decision. Exact case-insensitive name matches rank "
+                "ahead of partial text matches inside the bounded result page."
+            ),
+            "Inspect each candidate by key before reuse.",
+            (
+                "Reuse only an exact compatible match. A same-name incompatible resource is a "
+                "conflict to report, not permission to overwrite or duplicate it."
+            ),
+        ],
+    },
+    "interface_actions": {
+        "mcp": {
+            "search": ["search_projects", "search_datasets"],
+            "inspect": ["get_project", "get_dataset"],
+            "create": ["create_project", "create_dataset"],
+        },
+        "cli": {
+            "search": [
+                "rowset project search QUERY --limit 3",
+                "rowset dataset search QUERY --project-key PROJECT_KEY --limit 3",
+            ],
+            "inspect": [
+                "rowset project get PROJECT_KEY",
+                "rowset dataset get DATASET_KEY",
+            ],
+            "create": [
+                "rowset project create",
+                "rowset dataset create",
+            ],
+        },
+        "rest": {
+            "search": [
+                "GET /api/projects?query=QUERY&limit=3",
+                "GET /api/datasets?query=QUERY&project_key=PROJECT_KEY&limit=3",
+            ],
+            "inspect": [
+                "GET /api/projects/{project_key}",
+                "GET /api/datasets/{dataset_key}",
+            ],
+            "create": [
+                "POST /api/projects",
+                "POST /api/datasets",
+            ],
+        },
+    },
+    "concurrency_guard": {
+        "mcp": {"tool": "create_dataset", "argument": {"prevent_duplicate_name": True}},
+        "cli": "rowset dataset create --prevent-duplicate-name",
+        "rest": "POST /api/datasets with prevent_duplicate_name=true",
+        "conflict_recovery": (
+            "On a duplicate-name conflict, repeat the exact-first search and inspect the "
+            "existing dataset before deciding whether to reuse it or report an incompatibility."
+        ),
+    },
+    "creation_rules": [
+        "Reuse an exact compatible match instead of creating a duplicate.",
+        (
+            "A same-name incompatible resource is a conflict. Do not overwrite it or create "
+            "another resource with that name."
+        ),
+        (
+            "Preserve existing project and dataset definitions. Never overwrite schemas, index "
+            "settings, instructions, metadata, or rows merely to fit the recommendation."
+        ),
+        "Create exactly one confirmed project and one to three datasets.",
+        (
+            "Give every new dataset a concise description, durable instructions, explicit "
+            "headers, and semantic column types."
+        ),
+        (
+            "Use a reliable business key as the stable index when one exists; otherwise use "
+            "the generated rowset_id."
+        ),
+        (
+            "Create the schema empty when no real user-provided rows are available. Never "
+            "fabricate example rows or guessed private facts."
+        ),
+        "Keep new datasets private with public previews disabled.",
+        (
+            "For confirmed-setup dataset creation, set prevent_duplicate_name=true and provide "
+            "the selected project key so concurrent same-name creates serialize to one dataset."
+        ),
+        (
+            "The multi-resource sequence is non-transactional. After an interruption or partial "
+            "failure, re-run the bounded searches and reuse verified partial results instead of "
+            "creating duplicates."
+        ),
+    ],
+    "verification": {
+        "project": "Inspect the selected project by key after all create or reuse decisions.",
+        "datasets": "Inspect every selected dataset by key after creation or reuse.",
+        "required_dataset_checks": [
+            "project assignment matches the confirmed project",
+            "headers and semantic column schema match the confirmed plan",
+            "index column and generated-index setting match the confirmed plan",
+            "description, purpose, and durable instructions match the confirmed plan",
+            "public_enabled is false",
+        ],
+        "optional_row_probe": (
+            "Only when one real user-provided row is already available and appropriate, write it "
+            "separately when the dataset has a stable business-key index: read that index before "
+            "creation and after any indeterminate response, then read it back by index. For "
+            "a generated index, include the row in the initial create_dataset request or leave "
+            "the dataset empty; never retry a standalone probe whose generated index was not "
+            "returned."
+        ),
+    },
+    "completion_response": {
+        "report": [
+            "project name, key, and whether it was created or reused",
+            "each dataset name, key, and whether it was created or reused",
+            "verification result",
+        ],
+        "when_empty": (
+            "Report the first real input still needed for each dataset that remains empty."
+        ),
+        "rules": [
+            "Do not claim success until every selected resource has been inspected by key.",
+            "If work is partial, report exactly what exists and one safe resume action.",
+        ],
+    },
 }
 
 ROWSET_FIRST_PROJECT_RECOMMENDATION = {
@@ -1052,6 +1222,9 @@ def rowset_capabilities_payload(
         payload["setup_recovery"] = ROWSET_SETUP_RECOVERY
         payload["first_project_recommendation"] = ROWSET_FIRST_PROJECT_RECOMMENDATION
         payload["successful_setup_handoff"] = ROWSET_SUCCESSFUL_SETUP_HANDOFF
+        payload[ROWSET_CONFIRMED_FIRST_PROJECT_CREATION_ID] = (
+            ROWSET_CONFIRMED_FIRST_PROJECT_CREATION
+        )
     if include_use_cases:
         use_cases = _visible_rowset_use_cases(visible_capabilities)
         payload["use_cases"] = [use_case.as_dict() for use_case in use_cases]

@@ -310,6 +310,13 @@ class DatasetCreateIn(Schema):
     )
     project_key: str | None = None
     section_key: str | None = None
+    prevent_duplicate_name: bool = Field(
+        default=False,
+        description=(
+            "When true, require project_key and atomically reject an active case-insensitive "
+            "same-name dataset in that project."
+        ),
+    )
 
 
 class DatasetCreateOut(Schema):

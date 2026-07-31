@@ -269,6 +269,7 @@ func TestCommandRoutesCoverRowsetOperations(t *testing.T) {
 				"--row", `{"sku":"A-1","name":"Adapter","price":19.99,"tags":"hardware, usb-c"}`,
 				"--column-types", `{"price":"currency","tags":"tags"}`,
 				"--project-key", "project-key",
+				"--prevent-duplicate-name",
 			},
 			want: requestCapture{
 				method: http.MethodPost,
@@ -281,8 +282,9 @@ func TestCommandRoutesCoverRowsetOperations(t *testing.T) {
 					"rows": []any{
 						map[string]any{"sku": "A-1", "name": "Adapter", "price": 19.99, "tags": "hardware, usb-c"},
 					},
-					"column_types": map[string]any{"price": "currency", "tags": "tags"},
-					"project_key":  "project-key",
+					"column_types":           map[string]any{"price": "currency", "tags": "tags"},
+					"project_key":            "project-key",
+					"prevent_duplicate_name": true,
 				},
 			},
 		},

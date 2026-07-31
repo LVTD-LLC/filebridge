@@ -843,6 +843,7 @@ def create_dataset(request: HttpRequest, payload: DatasetCreateIn):
                 column_types=payload.column_types,
                 project_key=payload.project_key,
                 section_key=payload.section_key,
+                prevent_duplicate_name=payload.prevent_duplicate_name,
                 enqueue_background_work=not _is_post_deploy_smoke_request(request),
                 **_agent_actor_kwargs(request),
             ),

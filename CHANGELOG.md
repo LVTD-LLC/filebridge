@@ -27,6 +27,10 @@ deployment or release cut date.
   datasets from already-authorized working context.
 - Successful first-run setup now ends with a short personalized recommendation
   and direct creation question instead of a technical recap.
+- After a user confirms the recommendation, setup now guides agents through
+  bounded duplicate discovery, private project and dataset creation or reuse,
+  schema verification, retry-safe recovery, and an opt-in atomic same-project
+  dataset-name guard.
 
 ## 2026-07-30
 
