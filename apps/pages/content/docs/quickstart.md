@@ -94,6 +94,21 @@ REST. A successful response verifies the connection and completes onboarding.
 MCP reads and API-key creation stay trial-neutral, so the MCP trial starts on the
 first dataset or project mutation; CLI and REST user-info requests start it immediately.
 
+For first-run activation, use already-authorized context from the current
+conversation, repository and steering documents, active task, and sources
+already authorized for that task. Produce one high-confidence project
+recommendation with one to three concrete datasets, and explain the evidence in
+one short sentence. Do not enumerate unrelated private resources. If evidence
+is weak or contradictory, ask only:
+
+> What are you working on that you want Rowset to help organize?
+
+Return immediately after asking the weak-context question and wait for the
+answer. Do not create the recommended project or datasets until the user
+confirms. End a strong recommendation by asking, "Would you like me to create
+that project and those datasets?" Defer the daily Rowset tips offer until the
+project decision is resolved.
+
 After verification, begin the requested task. If the user supplied a dataset
 key or URL, inspect it directly: MCP `get_dataset` accepts either value; for CLI
 or REST, extract the dataset key from the URL before using `rowset dataset get`

@@ -23,6 +23,8 @@ deployment or release cut date.
   interface automatically, pausing only when an external permission is required.
 - Interrupted agent setup now reports precise progress and one safe retry action,
   while reusing existing configuration and credentials.
+- First-run setup now recommends one evidence-backed project with one to three
+  datasets from already-authorized working context.
 
 ## 2026-07-30
 

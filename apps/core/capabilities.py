@@ -93,14 +93,16 @@ ROWSET_RECOMMENDED_STARTUP = (
         "CLI and REST user-info requests start it immediately."
     ),
     (
-        "Report the verified connection, inspect existing Rowset structure read-only, and "
-        "suggest two to four project, section, and dataset structures based on context the "
-        "agent already has about the user's work. Ask before creating anything."
+        "After verification, use already-authorized context to produce one high-confidence "
+        "project recommendation with one to three concrete datasets. Explain the evidence in "
+        "one short sentence, and do not create the recommended project or datasets until the "
+        "user confirms. Ask: Would you like me to create that project and those datasets? Then "
+        "wait for the user's answer."
     ),
     (
-        "When the agent runtime supports scheduled tasks, separately offer an opt-in daily "
-        "Rowset tips automation. Create it only after explicit agreement and ground tips in "
-        "current Rowset resources."
+        "After the project decision is resolved, when the agent runtime supports scheduled "
+        "tasks, separately offer an opt-in daily Rowset tips automation. Create it only after "
+        "explicit agreement and ground tips in current Rowset resources."
     ),
 )
 
@@ -138,6 +140,88 @@ ROWSET_SETUP_RECOVERY = {
             "the user explicitly requests it."
         ),
         "Give exactly one safe retry action after an interruption or failure.",
+    ],
+}
+
+ROWSET_FIRST_PROJECT_RECOMMENDATION = {
+    "project_count": 1,
+    "dataset_count": {"minimum": 1, "maximum": 3},
+    "output_fields": [
+        "project_name",
+        "dataset_names",
+        "evidence_summary",
+        "rationale",
+    ],
+    "confirmation_question": "Would you like me to create that project and those datasets?",
+    "automation_offer_timing": "after the user answers the project confirmation question",
+    "authorized_evidence": [
+        "current conversation",
+        "current repository and steering documents",
+        "active task description",
+        "sources already authorized for the current task",
+    ],
+    "rules": [
+        (
+            "Produce one high-confidence project recommendation with one to three concrete "
+            "datasets, not a menu of generic options."
+        ),
+        (
+            "Prefer recurring structured operational state such as tasks, research, feedback, "
+            "contacts, inventory, or content queues."
+        ),
+        (
+            "Make the recommendation traceable to already-authorized context with one short "
+            "evidence summary and one short rationale."
+        ),
+        (
+            "Do not enumerate unrelated private resources or broaden access to email, private "
+            "datasets, or unrelated workspaces."
+        ),
+        (
+            "When evidence is weak or contradictory, ask exactly one short question: "
+            "What are you working on that you want Rowset to help organize? Return immediately "
+            "after asking it and wait for the user's answer."
+        ),
+        (
+            "Do not create the recommended project or datasets until the user confirms. After "
+            "a strong recommendation, ask exactly: Would you like me to create that project and "
+            "those datasets? Then wait for the user's answer."
+        ),
+        (
+            "Defer the daily Rowset tips automation offer until after the user answers the "
+            "project confirmation question."
+        ),
+    ],
+    "examples": [
+        {
+            "context": "code_project",
+            "evidence_summary": (
+                "The current repository and task concern ReviewGate agent feedback."
+            ),
+            "project_name": "ReviewGate",
+            "dataset_names": [
+                "Improvement task board",
+                "Agent feedback",
+            ],
+            "rationale": "These datasets preserve recurring improvement work and agent findings.",
+        },
+        {
+            "context": "content_workflow",
+            "evidence_summary": (
+                "The current task concerns a recurring content production workflow."
+            ),
+            "project_name": "Content operations",
+            "dataset_names": [
+                "Content queue",
+                "Research library",
+                "Performance tracker",
+            ],
+            "rationale": "These datasets connect planning, evidence, and outcome tracking.",
+        },
+        {
+            "context": "insufficient_context",
+            "question": "What are you working on that you want Rowset to help organize?",
+        },
     ],
 }
 
@@ -858,6 +942,7 @@ def rowset_capabilities_payload(
         payload["interfaces"] = list(ROWSET_INTERFACES)
         payload["recommended_startup"] = list(ROWSET_RECOMMENDED_STARTUP)
         payload["setup_recovery"] = ROWSET_SETUP_RECOVERY
+        payload["first_project_recommendation"] = ROWSET_FIRST_PROJECT_RECOMMENDATION
     if include_use_cases:
         use_cases = _visible_rowset_use_cases(visible_capabilities)
         payload["use_cases"] = [use_case.as_dict() for use_case in use_cases]

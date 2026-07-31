@@ -199,6 +199,33 @@ def test_agent_onboarding_guidance_makes_failed_setup_resumable():
         assert "not run, failed, or succeeded" in source
 
 
+def test_agent_onboarding_guidance_recommends_one_authorized_first_project():
+    sources = {
+        relative_path: " ".join(
+            Path(settings.BASE_DIR, relative_path).read_text(encoding="utf-8").split()
+        )
+        for relative_path in (
+            ".agents/skills/rowset-setup/SKILL.md",
+            "apps/pages/content/docs/quickstart.md",
+            "apps/pages/content/docs/configure-agent-access.md",
+            "apps/pages/content/docs/agent-discovery.md",
+        )
+    }
+
+    for source in sources.values():
+        assert "one high-confidence project recommendation" in source
+        assert "one to three concrete datasets" in source
+        assert "already-authorized context" in source
+        assert "Do not enumerate unrelated private resources" in source
+        assert "What are you working on that you want Rowset to help organize?" in source
+        assert "Do not create the recommended project or datasets until the user confirms" in source
+        assert "Would you like me to create that project and those datasets?" in source
+        assert "Return immediately after asking the weak-context question" in source
+        assert "Defer the daily Rowset tips offer until the project decision is resolved" in source
+        assert "two to four" not in source
+        assert "which option" not in source
+
+
 PUBLIC_CONTENT_PATH_PREFIXES = ("/blog/", "/docs/", "/use-cases/", "/vs/")
 PUBLIC_CONTENT_ROOT_PATHS = {
     "/blog",

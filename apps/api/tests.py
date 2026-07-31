@@ -96,6 +96,24 @@ def test_capabilities_endpoint_supports_topic_filters(client):
     }
 
 
+def test_capabilities_endpoint_exposes_first_project_recommendation_contract(client):
+    response = client.get("/api/capabilities?topics=setup")
+    recommendation = response.json()["first_project_recommendation"]
+
+    assert response.status_code == 200
+    assert recommendation["project_count"] == 1
+    assert recommendation["dataset_count"] == {"minimum": 1, "maximum": 3}
+    assert recommendation["confirmation_question"] == (
+        "Would you like me to create that project and those datasets?"
+    )
+    output_fields = set(recommendation["output_fields"])
+    assert all(
+        output_fields <= set(example)
+        for example in recommendation["examples"]
+        if "project_name" in example
+    )
+
+
 def test_capabilities_endpoint_rejects_unknown_topics(client):
     response = client.get("/api/capabilities?topics=unknown")
 
