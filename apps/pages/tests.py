@@ -941,8 +941,8 @@ def test_landing_page_omits_prompt_and_shows_agent_native_positioning(client):
     assert "Agent setup prompt" not in content
     assert "Rowset MCP URL:" not in content
     assert "Rowset skill install:" not in content
-    assert "Backend for AI agent workflows" in content
-    assert "Private structured data for trusted agents" in content
+    assert "Database for agent-managed work" in content
+    assert "Private structured records agents can update across sessions" in content
     assert "Connect once. Then ask your agent to build." in content
     assert "Agent task board" in content
     assert "Feedback triage" in content
@@ -955,6 +955,66 @@ def test_landing_page_omits_prompt_and_shows_agent_native_positioning(client):
     assert '"@type": "Organization"' in content
     assert "LVTD" not in content.partition("<title>")[2].partition("</title>")[0]
     assert f"&copy; {time.localtime().tm_year} Rowset" in content
+
+
+def test_landing_hero_explains_concrete_agent_managed_work(client):
+    response = client.get(reverse("landing"))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    hero = _section_html(content, "product")
+    signup_href = f'href="{reverse("account_signup")}"'
+    task_board_href = f'href="{reverse("use_case_page", kwargs={"slug": "agent-task-board"})}"'
+    heading = re.search(r"<h1\b[^>]*>(.*?)</h1>", hero, re.DOTALL)
+
+    assert heading
+    heading_text = " ".join(strip_tags(heading.group(1).replace("<br />", " ")).split())
+    assert heading_text == "The database for agent-managed work."
+    assert "across sessions" in hero
+    for record_type in ("tasks", "contacts", "research", "feedback"):
+        assert record_type in hero
+    signup_link = re.search(r"<a\b(?P<attributes>[^>]*)>Connect an agent →</a>", hero)
+    task_board_link = re.search(
+        r"<a\b(?P<attributes>[^>]*)>See an agent task board</a>",
+        hero,
+    )
+    assert signup_link
+    assert signup_href in signup_link.group("attributes")
+    assert 'data-posthog-cta="signup"' in signup_link.group("attributes")
+    assert 'data-posthog-cta-location="landing_hero"' in signup_link.group("attributes")
+    assert task_board_link
+    assert task_board_href in task_board_link.group("attributes")
+    assert hero.index("Connect an agent") < hero.index("See an agent task board")
+    assert "Any agent." not in hero
+    assert "Any workflow." not in hero
+
+
+def test_primary_positioning_surfaces_use_the_same_concrete_records(client):
+    landing_response = client.get(reverse("landing"))
+    markdown_response = client.get("/index.md")
+
+    assert landing_response.status_code == 200
+    assert markdown_response.status_code == 200
+    landing_content = landing_response.content.decode()
+    markdown_content = markdown_response.content.decode()
+    schema = json.loads(_json_ld_payload(landing_content))
+    software_application = next(
+        entry for entry in schema if entry["@type"] == "SoftwareApplication"
+    )
+    surfaces = {
+        "landing": landing_content,
+        "public Markdown": markdown_content,
+        "schema": software_application["description"],
+    }
+
+    for source in surfaces.values():
+        normalized = " ".join(source.lower().split())
+        assert "across sessions" in normalized
+        for record_type in ("tasks", "contacts", "research", "feedback"):
+            assert record_type in normalized
+    assert "database for agent-managed work" in markdown_content.lower()
+    assert "[Connect an agent]" in markdown_content
+    assert "[see an agent task board]" in markdown_content
 
 
 def test_public_layout_keeps_footer_at_viewport_bottom(client):
@@ -1058,13 +1118,13 @@ def test_landing_page_presents_open_source_and_self_hosting_as_core_identity(cli
     repository_href = 'href="https://github.com/LVTD-LLC/rowset"'
     self_hosting_href = 'href="https://github.com/LVTD-LLC/rowset#deployment"'
     meta_description = (
-        '<meta name="description" content="Give AI agents a private, searchable backend for '
-        "structured data. Create and manage rows through MCP, REST, or CLI—open source and "
-        'self-hostable." />'
+        '<meta name="description" content="Give AI agents a private place to read and update '
+        "tasks, "
+        "contacts, research, feedback, and other structured records across sessions. Open source "
+        'and self-hostable." />'
     )
 
-    assert "open-source, self-hostable" in hero
-    assert "View source on GitHub" in hero
+    assert "open source and self-hostable" in hero
     assert "Open source. Self-hostable." in open_source_section
     assert "Run Rowset in our cloud or on your own infrastructure." in open_source_section
     assert self_hosting_href in open_source_section
@@ -1886,8 +1946,8 @@ def test_schema_helpers_render_valid_homepage_json_ld(client):
     )
     organization = next(entry for entry in schema if entry["@type"] == "Organization")
     assert software_application["description"] == (
-        "An open-source, self-hostable backend for AI agent workflows with private MCP, REST, "
-        "and CLI access to structured data."
+        "An open-source, self-hostable database for AI agents to read and update private "
+        "structured records such as tasks, contacts, research, and feedback across sessions."
     )
     assert organization["url"].endswith("/")
 
@@ -1947,8 +2007,8 @@ def test_pricing_schema_uses_configured_public_url(client):
 
     assert schema["@type"] == "Product"
     assert schema["description"] == (
-        "An open-source, self-hostable backend for AI agent workflows with private MCP, REST, "
-        "and CLI access to structured data."
+        "An open-source, self-hostable database for AI agents to read and update private "
+        "structured records such as tasks, contacts, research, and feedback across sessions."
     )
     assert schema["url"] == "https://rowset.example/pricing"
     assert schema["image"] == (
