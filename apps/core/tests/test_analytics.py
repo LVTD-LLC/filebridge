@@ -46,6 +46,26 @@ def test_track_activation_event_propagates_safe_browser_session(monkeypatch):
     assert queued[0]["session_id"] == "session-123"
 
 
+@override_settings(POSTHOG_API_KEY="phc_test")
+def test_track_activation_event_adds_canonical_funnel_position(monkeypatch):
+    queued = []
+    monkeypatch.setattr(analytics, "async_task", lambda _path, **kwargs: queued.append(kwargs))
+
+    analytics.track_activation_event(
+        SimpleNamespace(id=42),
+        analytics.ROWSET_SIGNUP_COMPLETED,
+        {
+            "activation_stage": "caller_cannot_override",
+            "activation_stage_order": 999,
+        },
+    )
+
+    assert queued[0]["properties"] == {
+        "activation_stage": "signup_completed",
+        "activation_stage_order": 2,
+    }
+
+
 @pytest.mark.django_db
 @override_settings(POSTHOG_API_KEY="phc_test")
 def test_track_account_deleted_event_snapshots_profile_before_commit(

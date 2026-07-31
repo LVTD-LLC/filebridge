@@ -169,11 +169,22 @@ healthy connection and proceed with the user's requested Rowset task.
    Do not recap the selected interface or compare MCP, CLI, and REST. Do not
    include a setup or verification checklist, API key or credential status,
    documentation or setup URL list, generic starter menu, or daily tips offer.
+   Immediately before returning that personalized recommendation, record only
+   the `recommendation_emitted` activation milestone through the selected
+   interface. With MCP, call `record_activation_milestone`. With CLI, call
+   `rowset request POST /activation/milestones --json
+   '{"milestone":"recommendation_emitted"}'`.
+   With REST, post the same bounded body to `/api/activation/milestones`. Never
+   send the recommendation, context, resource names, secrets, or dataset
+   contents as analytics.
    Wait for the user's answer.
 6. Resolve the confirmation branch before continuing:
-   - On an affirmative answer: Complete and verify the confirmed project and
-     dataset creation using the workflow below before offering tips or starting
-     unrelated work.
+   - On an affirmative answer: First record only the
+     `recommendation_accepted` activation milestone through the selected
+     interface. With CLI, call `rowset request POST /activation/milestones
+     --json '{"milestone":"recommendation_accepted"}'`. Complete and verify the
+     confirmed project and dataset creation using the workflow below before
+     offering tips or starting unrelated work.
    - On a negative answer, create nothing.
    - Treat the project decision as resolved only after the selected branch
      finishes.

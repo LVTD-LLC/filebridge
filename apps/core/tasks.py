@@ -3,7 +3,15 @@ import posthog
 import requests
 from django.conf import settings
 
-from apps.core.analytics import ROWSET_ACCOUNT_DELETED, ROWSET_USER_LOGGED_IN
+from apps.core.analytics import (
+    ROWSET_ACCOUNT_DELETED,
+    ROWSET_FIRST_DATASET_CREATED,
+    ROWSET_FIRST_PROJECT_CREATED,
+    ROWSET_FIRST_VERIFIED_INDEXED_ROW_UPDATE,
+    ROWSET_PERSONALIZED_RECOMMENDATION_ACCEPTED,
+    ROWSET_PERSONALIZED_RECOMMENDATION_EMITTED,
+    ROWSET_USER_LOGGED_IN,
+)
 from apps.core.attribution import attribution_event_properties
 from apps.core.models import Feedback, Profile
 from rowset.utils import get_rowset_logger
@@ -13,6 +21,11 @@ _POSTHOG_DURABLE_EVENTS = frozenset(
     {
         "rowset_signup_completed",
         "rowset_agent_setup_completed",
+        ROWSET_PERSONALIZED_RECOMMENDATION_EMITTED,
+        ROWSET_PERSONALIZED_RECOMMENDATION_ACCEPTED,
+        ROWSET_FIRST_PROJECT_CREATED,
+        ROWSET_FIRST_DATASET_CREATED,
+        ROWSET_FIRST_VERIFIED_INDEXED_ROW_UPDATE,
         "rowset_checkout_started",
         "rowset_subscription_started",
         "rowset_subscription_cancellation_requested",

@@ -1,5 +1,5 @@
 import json
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from django.db import IntegrityError, close_old_connections
 from fastmcp import FastMCP
@@ -58,6 +58,7 @@ from apps.api.services import (
     update_profile_project_metadata,
     update_profile_project_section,
 )
+from apps.core.activation import record_profile_activation_milestone
 from apps.core.analytics import (
     ROWSET_GET_USER_INFO_SUCCEEDED,
     agent_api_key_tracking_properties,
@@ -436,6 +437,30 @@ def get_user_info() -> dict:
         source_function="apps.mcp_server.server.get_user_info",
     )
     return payload
+
+
+@idempotent_write_tool(
+    name="record_activation_milestone",
+    description=(
+        "Record an agent-observed onboarding milestone exactly once. Call recommendation_emitted "
+        "immediately before sending a personalized first-project recommendation. Call "
+        "recommendation_accepted only after the user explicitly agrees. Never send recommendation "
+        "text, user context, secrets, or dataset contents."
+    ),
+)
+def record_activation_milestone(
+    milestone: Annotated[
+        Literal["recommendation_emitted", "recommendation_accepted"],
+        Field(description="Bounded onboarding milestone observed in the agent conversation."),
+    ],
+) -> dict:
+    close_old_connections()
+    profile = _mcp_authenticated_profile(AgentApiKeyAccessLevel.READ_WRITE)
+    return record_profile_activation_milestone(
+        profile,
+        milestone,
+        interface="mcp",
+    )
 
 
 @admin_tool(
@@ -865,6 +890,7 @@ def create_project(
             name=name,
             description=description,
             metadata=metadata,
+            **_agent_actor_kwargs(profile),
         )
     except DatasetServiceError as exc:
         raise _service_error_to_tool_error(exc) from exc

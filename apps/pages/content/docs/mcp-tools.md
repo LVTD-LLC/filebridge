@@ -34,6 +34,13 @@ only the topic IDs needed for detailed workflow guidance:
 Add `"include_use_cases": true` only when examples help. Use `{"full": true}`
 for the complete guide; `full` cannot be combined with `topics`.
 
+During the first-run handoff, call
+`record_activation_milestone {"milestone":"recommendation_emitted"}` immediately
+before returning a personalized first-project recommendation. If the user says
+yes, call it again with `recommendation_accepted` before creating resources.
+The tool is idempotent and accepts no recommendation text, context, resource
+names, secrets, or dataset contents.
+
 ## Dataset discovery
 
 If the user supplied a dataset key or URL, skip discovery and call `get_dataset`.

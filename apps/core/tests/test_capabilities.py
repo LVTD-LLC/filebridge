@@ -176,6 +176,44 @@ def test_setup_recovery_contract_handles_failed_verification():
     assert "Never expose the credential" in rules
 
 
+def test_setup_handoff_exposes_bounded_activation_milestone_calls():
+    payload = rowset_capabilities_payload(topics=["setup"])
+    milestones = payload["successful_setup_handoff"]["activation_milestones"]
+    account_capability = next(
+        capability
+        for capability in payload["capabilities"]
+        if capability["id"] == "account_and_setup"
+    )
+
+    assert milestones["allowed_payload_fields"] == ["milestone"]
+    assert milestones["interfaces"] == {
+        "mcp": {
+            "tool": "record_activation_milestone",
+            "recommendation_emitted_arguments": {"milestone": "recommendation_emitted"},
+            "recommendation_accepted_arguments": {"milestone": "recommendation_accepted"},
+        },
+        "cli": {
+            "recommendation_emitted_command": (
+                "rowset request POST /activation/milestones "
+                '--json \'{"milestone":"recommendation_emitted"}\''
+            ),
+            "recommendation_accepted_command": (
+                "rowset request POST /activation/milestones "
+                '--json \'{"milestone":"recommendation_accepted"}\''
+            ),
+        },
+        "rest": {
+            "method": "POST",
+            "path": "/api/activation/milestones",
+            "recommendation_emitted_body": {"milestone": "recommendation_emitted"},
+            "recommendation_accepted_body": {"milestone": "recommendation_accepted"},
+        },
+    }
+    assert "recommendation text or rationale" in milestones["forbidden_payload_content"]
+    assert "record_activation_milestone" in account_capability["mcp_tools"]
+    assert "/api/activation/milestones" in account_capability["rest_paths"]
+
+
 def test_first_project_recommendation_uses_only_authorized_context():
     recommendation = rowset_capabilities_payload(topics=["setup"])["first_project_recommendation"]
     rules = " ".join(recommendation["rules"])

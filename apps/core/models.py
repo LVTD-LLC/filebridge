@@ -5,6 +5,7 @@ from django_q.tasks import async_task
 
 from apps.core.base_models import BaseModel
 from apps.core.choices import (
+    ActivationMilestoneType,
     AgentApiKeyAccessLevel,
     EmailType,
     FeedbackSource,
@@ -148,6 +149,24 @@ class AgentApiKey(BaseModel):
 
     def __str__(self):
         return f"{self.name} ({self.profile.user.email})"
+
+
+class ProfileActivationMilestone(BaseModel):
+    profile = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name="activation_milestones",
+    )
+    milestone = models.CharField(max_length=64, choices=ActivationMilestoneType.choices)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["profile", "milestone"],
+                name="unique_profile_activation_milestone",
+            )
+        ]
 
 
 class TrialRewardClaim(BaseModel):

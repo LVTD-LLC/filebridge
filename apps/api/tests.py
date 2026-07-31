@@ -21,7 +21,7 @@ from apps.api.views import (
 )
 from apps.core.analytics import ROWSET_GET_USER_INFO_SUCCEEDED
 from apps.core.choices import AgentApiKeyAccessLevel
-from apps.core.models import Feedback
+from apps.core.models import Feedback, ProfileActivationMilestone
 from apps.core.post_deploy_smoke_auth import SMOKE_HEADER, create_smoke_token
 from apps.datasets import models as dataset_models
 from apps.datasets.choices import DatasetColumnType
@@ -29,6 +29,73 @@ from apps.datasets.embeddings import EmbeddingResult
 from apps.datasets.models import Dataset, DatasetRelationship, DatasetRow, Project
 from apps.datasets.tests.factories import configure_filterable_dataset, create_dataset
 from apps.datasets.vector_search import DatasetRowVectorSearchHit
+
+
+@pytest.mark.django_db
+def test_activation_milestone_api_records_only_bounded_agent_reported_stages(
+    client,
+    django_user_model,
+    monkeypatch,
+):
+    from apps.core.services import create_agent_api_key
+
+    user = django_user_model.objects.create_user(
+        username="activation-api",
+        email="activation-api@example.com",
+        password="password123",
+    )
+    credential = create_agent_api_key(user.profile, "Activation API")
+    tracked = []
+    monkeypatch.setattr(
+        "apps.core.activation.track_activation_event",
+        lambda profile, event_name, properties, **_kwargs: tracked.append((event_name, properties)),
+    )
+
+    first = client.post(
+        "/api/activation/milestones",
+        data={"milestone": "recommendation_emitted"},
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {credential.raw_key}",
+    )
+    retry = client.post(
+        "/api/activation/milestones",
+        data={"milestone": "recommendation_emitted"},
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {credential.raw_key}",
+    )
+    forbidden = client.post(
+        "/api/activation/milestones",
+        data={"milestone": "first_verified_indexed_row_update"},
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {credential.raw_key}",
+    )
+    private_payload = client.post(
+        "/api/activation/milestones",
+        data={
+            "milestone": "recommendation_accepted",
+            "recommendation": "private contents must not be accepted",
+        },
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {credential.raw_key}",
+    )
+
+    assert first.status_code == 200
+    assert first.json()["recorded"] is True
+    assert retry.status_code == 200
+    assert retry.json()["recorded"] is False
+    assert forbidden.status_code == 422
+    assert private_payload.status_code == 422
+    assert ProfileActivationMilestone.objects.filter(profile=user.profile).count() == 1
+    assert tracked == [
+        (
+            "rowset_personalized_recommendation_emitted",
+            {
+                "activation_stage": "personalized_recommendation_emitted",
+                "activation_stage_order": 6,
+                "interface": "rest",
+            },
+        )
+    ]
 
 
 def test_openapi_dataset_asset_thumbnail_url_is_required_string(client):

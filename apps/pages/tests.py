@@ -280,6 +280,11 @@ def test_agent_onboarding_guidance_recommends_one_authorized_first_project():
         assert "Do not create the recommended project or datasets until the user confirms" in source
         assert "Rowset is ready to use." in source
         assert "Would you like me to create that now?" in source
+        assert "recommendation_emitted" in source
+        assert "recommendation_accepted" in source
+        assert "record_activation_milestone" in source
+        assert "/activation/milestones" in source
+        assert "Never send the recommendation, context, resource names, secrets" in source
         assert "Make this the entire normal success response" in source
         assert "Do not recap the selected interface" in source
         assert "Do not include a setup or verification checklist" in source
@@ -307,6 +312,39 @@ def test_agent_onboarding_guidance_recommends_one_authorized_first_project():
 
         still_weak_tail = plain_source.split(still_weak_message, 1)[1].lstrip(' "')
         assert still_weak_tail.startswith("Stop without inventing a generic recommendation")
+
+
+def test_agent_onboarding_guidance_has_executable_cli_milestone_calls():
+    sources = {
+        "generated setup prompt": " ".join(build_content_agent_setup_prompt().split()),
+        "README": " ".join(
+            Path(settings.BASE_DIR, "README.md").read_text(encoding="utf-8").split()
+        ),
+        **{
+            relative_path: " ".join(
+                Path(settings.BASE_DIR, relative_path).read_text(encoding="utf-8").split()
+            )
+            for relative_path in (
+                ".agents/skills/rowset-setup/SKILL.md",
+                "apps/pages/content/docs/quickstart.md",
+                "apps/pages/content/docs/configure-agent-access.md",
+                "apps/pages/content/docs/agent-discovery.md",
+            )
+        },
+    }
+
+    emitted_command = (
+        "rowset request POST /activation/milestones "
+        '--json \'{"milestone":"recommendation_emitted"}\''
+    )
+    accepted_command = (
+        "rowset request POST /activation/milestones "
+        '--json \'{"milestone":"recommendation_accepted"}\''
+    )
+
+    for source in sources.values():
+        assert emitted_command in source
+        assert accepted_command in source
 
 
 def test_agent_onboarding_guidance_creates_confirmed_resources_safely():
