@@ -42,6 +42,18 @@ interface.
 Do not load capabilities or list datasets merely because a session started.
 Do not enumerate unrelated projects or datasets during discovery.
 
+## Recover interrupted setup
+
+Treat setup as `inspect -> choose -> configure -> verify`. After an interruption
+or failure, report completed steps, the failed or cancelled step, whether
+private credential storage is confirmed, unknown, or absent, whether
+verification was not run, failed, or succeeded, and exactly one safe retry
+action. Cancelled authentication or permission leaves setup incomplete.
+Verification that was not run or failed leaves setup incomplete; only succeeded
+verification makes setup complete. Before retrying, inspect existing
+configuration and secret storage. Do not create duplicate configuration or
+rotate or replace credentials unless explicitly requested.
+
 ## Capability guide
 
 The same progressive capability guide is available through

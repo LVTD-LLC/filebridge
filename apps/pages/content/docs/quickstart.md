@@ -48,6 +48,16 @@ It should configure that interface end to end without asking you to compare the
 options. It should pause only for an unavoidable operating-system,
 authentication, or secret-manager permission prompt.
 
+If setup is interrupted, treat it as `inspect -> choose -> configure -> verify`.
+The agent should report completed steps, the failed or cancelled step, whether
+private credential storage is confirmed, unknown, or absent, whether
+verification was not run, failed, or succeeded, and exactly one safe retry
+action. Cancelled authentication or permission leaves setup incomplete.
+Verification that was not run or failed leaves setup incomplete; only succeeded
+verification makes setup complete. Before retrying, inspect existing
+configuration and secret storage. Do not create duplicate configuration or
+rotate or replace credentials unless explicitly requested.
+
 ## 3. Configure the selected interface
 
 The agent stores the key as `ROWSET_API_KEY` or in an equivalent secret store,

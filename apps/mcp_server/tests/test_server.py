@@ -491,6 +491,11 @@ def test_get_rowset_capabilities_mcp_tool_can_return_full_guide(monkeypatch):
         assert "Prefer MCP when the runtime natively supports remote MCP" in startup
         assert "unavoidable operating-system, authentication, or secret-manager" in startup
         assert "authenticated user-info request" in startup
+        recovery = payload["setup_recovery"]
+        assert recovery["state_machine"] == ["inspect", "choose", "configure", "verify"]
+        assert recovery["retry_action_limit"] == 1
+        assert recovery["verification_states"] == ["not_run", "failed", "succeeded"]
+        assert "Cancelled authentication or permission is incomplete" in " ".join(recovery["rules"])
         assert "trial starts on the first dataset or project mutation" in startup
         assert "suggest two to four project, section, and dataset structures" in startup
         assert "Ask before creating anything" in startup

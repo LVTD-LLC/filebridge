@@ -97,6 +97,16 @@ private environment variable such as `ROWSET_API_KEY` or an equivalent secret
 store. MCP and REST use `Authorization: Bearer <key>`; the CLI reads the same key
 from its private runtime environment.
 
+Treat setup as `inspect -> choose -> configure -> verify`. After an interruption
+or failure, the agent reports completed steps, the failed or cancelled step,
+whether private credential storage is confirmed, unknown, or absent, whether
+verification was not run, failed, or succeeded, and exactly one safe retry
+action. Cancelled authentication or permission leaves setup incomplete.
+Verification that was not run or failed leaves setup incomplete; only succeeded
+verification makes setup complete. Before retrying, it inspects existing
+configuration and secret storage. Do not create duplicate configuration or
+rotate or replace credentials unless explicitly requested.
+
 Make authenticated user-info the final setup action: `get_user_info` over MCP,
 `rowset user info` through the CLI, or `GET /api/user` through REST. That request
 verifies the connection and completes onboarding. MCP reads and API-key creation

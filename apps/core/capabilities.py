@@ -81,6 +81,12 @@ ROWSET_RECOMMENDED_STARTUP = (
         "or secret-manager permission prompts."
     ),
     (
+        "Treat setup as inspect -> choose -> configure -> verify. After an interruption or "
+        "failure, report completed steps, the failed or cancelled step, credential-storage "
+        "state, verification status, and exactly one safe retry action. Inspect existing "
+        "configuration before retrying so setup remains idempotent."
+    ),
+    (
         "As the final setup step, make an authenticated user-info request through the chosen "
         "interface to verify access and complete onboarding. MCP reads and API-key creation "
         "stay trial-neutral, so its trial starts on the first dataset or project mutation; "
@@ -97,6 +103,43 @@ ROWSET_RECOMMENDED_STARTUP = (
         "current Rowset resources."
     ),
 )
+
+ROWSET_SETUP_RECOVERY = {
+    "state_machine": ["inspect", "choose", "configure", "verify"],
+    "failure_report_fields": [
+        "completed_steps",
+        "failed_or_cancelled_step",
+        "credential_storage_state",
+        "verification_status",
+        "retry_action",
+    ],
+    "credential_storage_states": ["confirmed", "unknown", "absent"],
+    "verification_states": ["not_run", "failed", "succeeded"],
+    "retry_action_limit": 1,
+    "rules": [
+        (
+            "Cancelled authentication or permission is incomplete and must never be reported "
+            "as success."
+        ),
+        (
+            "Verification must be reported as not_run, failed, or succeeded. Only succeeded "
+            "verification makes setup complete."
+        ),
+        (
+            "Never expose the credential. Report only whether private credential storage is "
+            "confirmed, unknown, or absent."
+        ),
+        (
+            "Before retrying, inspect existing configuration and secret storage. Reuse a "
+            "healthy entry and its credential when present."
+        ),
+        (
+            "Do not create duplicate configuration or rotate or replace credentials unless "
+            "the user explicitly requests it."
+        ),
+        "Give exactly one safe retry action after an interruption or failure.",
+    ],
+}
 
 ROWSET_INTERFACES = (
     {
@@ -814,6 +857,7 @@ def rowset_capabilities_payload(
     if full or "setup" in normalized_topics:
         payload["interfaces"] = list(ROWSET_INTERFACES)
         payload["recommended_startup"] = list(ROWSET_RECOMMENDED_STARTUP)
+        payload["setup_recovery"] = ROWSET_SETUP_RECOVERY
     if include_use_cases:
         use_cases = _visible_rowset_use_cases(visible_capabilities)
         payload["use_cases"] = [use_case.as_dict() for use_case in use_cases]

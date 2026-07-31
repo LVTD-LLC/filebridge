@@ -143,6 +143,37 @@ def test_capabilities_payload_setup_topic_includes_setup_details():
     assert "unavoidable operating-system, authentication, or secret-manager" in startup
 
 
+def test_setup_recovery_contract_handles_interrupted_configuration():
+    recovery = rowset_capabilities_payload(topics=["setup"])["setup_recovery"]
+    rules = " ".join(recovery["rules"])
+
+    assert recovery["state_machine"] == ["inspect", "choose", "configure", "verify"]
+    assert recovery["failure_report_fields"] == [
+        "completed_steps",
+        "failed_or_cancelled_step",
+        "credential_storage_state",
+        "verification_status",
+        "retry_action",
+    ]
+    assert recovery["credential_storage_states"] == ["confirmed", "unknown", "absent"]
+    assert recovery["retry_action_limit"] == 1
+    assert "Cancelled authentication or permission is incomplete" in rules
+    assert "inspect existing configuration and secret storage" in rules
+    assert "Do not create duplicate configuration" in rules
+    assert "rotate or replace credentials" in rules
+
+
+def test_setup_recovery_contract_handles_failed_verification():
+    recovery = rowset_capabilities_payload(topics=["setup"])["setup_recovery"]
+    rules = " ".join(recovery["rules"])
+
+    assert recovery["verification_states"] == ["not_run", "failed", "succeeded"]
+    assert "Verification must be reported as not_run, failed, or succeeded" in rules
+    assert "Only succeeded verification makes setup complete" in rules
+    assert "exactly one safe retry action" in rules
+    assert "Never expose the credential" in rules
+
+
 def test_capabilities_payload_makes_use_cases_opt_in():
     without_use_cases = rowset_capabilities_payload()
     with_use_cases = rowset_capabilities_payload(include_use_cases=True)

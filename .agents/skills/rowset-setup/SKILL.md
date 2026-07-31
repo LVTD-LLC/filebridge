@@ -96,6 +96,29 @@ user action.
 For a new connection, report which interface is connected without exposing the
 key, then complete the activation handoff below.
 
+## Recover Interrupted Setup
+
+Treat setup as `inspect -> choose -> configure -> verify`. If setup is
+interrupted, cancelled, or fails, report:
+
+- the steps that completed
+- the failed or cancelled step
+- whether private credential storage is confirmed, unknown, or absent, without
+  exposing the credential
+- whether verification was not run, failed, or succeeded
+- exactly one safe retry action
+
+Cancelled authentication or permission leaves setup incomplete. Verification
+that was not run or failed leaves setup incomplete; only succeeded verification
+makes setup complete.
+
+Before retrying, inspect existing configuration and secret storage. Reuse a
+healthy configuration entry and its credential when present. Do not create
+duplicate configuration or rotate or replace credentials unless the user
+explicitly requests it. When verification fails after configuration succeeds,
+report that distinction and retry verification only after the single recommended
+correction.
+
 ## Complete the Activation Handoff
 
 Complete this handoff only during first-run setup. Skip it for an existing,

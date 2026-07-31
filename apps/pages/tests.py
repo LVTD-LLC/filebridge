@@ -174,6 +174,31 @@ def test_agent_onboarding_docs_select_interface_automatically():
         assert "code-only or http-only" in source
 
 
+def test_agent_onboarding_guidance_makes_failed_setup_resumable():
+    sources = {
+        relative_path: " ".join(
+            Path(settings.BASE_DIR, relative_path).read_text(encoding="utf-8").split()
+        )
+        for relative_path in (
+            ".agents/skills/rowset-setup/SKILL.md",
+            "apps/pages/content/docs/quickstart.md",
+            "apps/pages/content/docs/configure-agent-access.md",
+            "apps/pages/content/docs/agent-discovery.md",
+        )
+    }
+
+    for source in sources.values():
+        assert "inspect -> choose -> configure -> verify" in source
+        assert "exactly one safe retry action" in source
+        assert "Cancelled authentication or permission leaves setup incomplete" in source
+        assert (
+            "Verification that was not run or failed leaves setup incomplete; only succeeded "
+            "verification makes setup complete"
+        ) in source
+        assert "Do not create duplicate configuration or rotate or replace credentials" in source
+        assert "not run, failed, or succeeded" in source
+
+
 PUBLIC_CONTENT_PATH_PREFIXES = ("/blog/", "/docs/", "/use-cases/", "/vs/")
 PUBLIC_CONTENT_ROOT_PATHS = {
     "/blog",
