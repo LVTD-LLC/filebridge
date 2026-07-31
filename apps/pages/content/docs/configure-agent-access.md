@@ -82,8 +82,8 @@ Agents and search tools can also read the generated Rowset overview:
 {{ llms_txt_url }}
 ```
 
-The agent should inspect the runtime and automatically select an interface in
-this order:
+The agent should inspect the runtime and automatically select the best supported
+interface in this order:
 
 - MCP when the runtime supports native remote MCP and private bearer-secret
   configuration.
@@ -96,6 +96,9 @@ authentication, or secret-manager permission prompt. It stores the key in a
 private environment variable such as `ROWSET_API_KEY` or an equivalent secret
 store. MCP and REST use `Authorization: Bearer <key>`; the CLI reads the same key
 from its private runtime environment.
+
+The detailed interface guides remain available for execution and
+troubleshooting. They are not a technical-choice step for the user.
 
 Treat setup as `inspect -> choose -> configure -> verify`. After an interruption
 or failure, the agent reports completed steps, the failed or cancelled step,
