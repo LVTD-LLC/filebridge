@@ -95,6 +95,10 @@
                 <h2 id="durable-agent-state-heading" class="max-w-[18ch] text-5xl font-semibold tracking-tight text-balance sm:text-6xl">One request becomes state the next run can use.</h2>
                 <p class="max-w-[42ch] text-xl text-pretty text-slate-600 dark:text-neutral-300">Follow one task from a chat request to an indexed row, a later agent handoff, and your review.</p>
             </div>
+            <aside class="mt-8 grid gap-4 border-l-4 border-[#1313a4] pl-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end dark:border-[#ffdd3d]">
+                <p class="max-w-[68ch] text-lg text-pretty"><strong>Memory helps an agent recall useful context.</strong> Rowset holds the current record under a stable key, so a trusted agent with write access can inspect and update the same answer across runs.</p>
+                <a href="{% url 'blog_post' slug='ai-agent-memory-vs-state' %}" class="font-semibold underline decoration-2 underline-offset-4 hover:text-[#1313a4] dark:hover:text-[#ffdd3d]">See when to use memory or structured state →</a>
+            </aside>
             <ol role="list" class="mt-10 grid gap-px border-2 border-slate-950 bg-slate-950/20 md:grid-cols-2 xl:grid-cols-4 dark:border-white dark:bg-white/20">
                 <li class="bg-[#f5f5ff] p-6 dark:bg-neutral-950">
                     <h3 class="flex items-center gap-3 text-2xl font-semibold tracking-tight"><span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1313a4] text-sm text-white dark:bg-[#ffdd3d] dark:text-[#1313a4]">1</span>You ask</h3>

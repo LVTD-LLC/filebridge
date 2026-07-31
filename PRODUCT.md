@@ -7,6 +7,10 @@ Instead of asking humans to manage upload wizards or fragile third-party sync,
 trusted agents create, inspect, update, export, and share datasets through MCP or
 REST.
 
+Rowset is structured operational state, not agent recall memory: each mutable
+record has explicit fields and stable identity so one authoritative current row
+can settle the answer across runs.
+
 Rowset is open source and self-hostable. People can use the hosted product for
 the fastest setup or run the same code on infrastructure they control.
 

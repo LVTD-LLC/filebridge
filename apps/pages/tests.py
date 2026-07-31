@@ -1214,6 +1214,45 @@ def test_landing_page_demonstrates_durable_cross_session_agent_state(client):
     assert "product-dashboard-dark.webp" not in content
 
 
+def test_landing_distinguishes_authoritative_state_from_agent_memory(client):
+    response = client.get(reverse("landing"))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    demonstration = _section_html(content, "durable-agent-state")
+    guide_url = reverse("blog_post", kwargs={"slug": "ai-agent-memory-vs-state"})
+    distinction = (
+        "Memory helps an agent recall useful context. Rowset holds the current record under "
+        "a stable key, so a trusted agent with write access can inspect and update the same "
+        "answer across runs."
+    )
+    distinction_link = re.search(
+        r"<a\b(?P<attributes>[^>]*)>See when to use memory or structured state →</a>",
+        demonstration,
+    )
+    normalized_demonstration = unescape(" ".join(strip_tags(demonstration).split()))
+
+    assert distinction in normalized_demonstration
+    assert distinction_link
+    assert f'href="{guide_url}"' in distinction_link.group("attributes")
+    assert demonstration.index("Memory helps an agent") < demonstration.index("<ol")
+
+    guide_response = client.get(guide_url)
+    assert guide_response.status_code == 200
+    guide_content = guide_response.content.decode()
+    guide_heading = re.search(r"<h1\b[^>]*>(.*?)</h1>", guide_content, re.DOTALL)
+    assert guide_heading
+    assert (
+        " ".join(strip_tags(guide_heading.group(1)).split())
+        == "AI agent memory vs structured state: what goes where?"
+    )
+    assert "The boundary is authority." in guide_content
+
+    product = " ".join(Path(settings.BASE_DIR, "PRODUCT.md").read_text(encoding="utf-8").split())
+    assert "structured operational state, not agent recall memory" in product
+    assert "one authoritative current row can settle the answer across runs" in product
+
+
 def test_landing_page_links_to_projects_using_rowset(client):
     response = client.get(reverse("landing"))
 
