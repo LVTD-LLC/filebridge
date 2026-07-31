@@ -280,11 +280,16 @@ test("command palette does not open stale results while a new search is pending"
 });
 
 async function runCopy({ copied }) {
-  const { component, rowset } = loadCopyPanel();
+  const { component, rowset, window } = loadCopyPanel();
   const dispatched = [];
+  const captures = [];
+  window.posthog = { capture: (...args) => captures.push(args) };
   const parent = new EventTarget();
   const element = new EventTarget();
-  element.dataset = { copySuccessEvent: "agent-setup-prompt-copied" };
+  element.dataset = {
+    copySuccessEvent: "agent-setup-prompt-copied",
+    copyTrackingEvent: "rowset_agent_setup_prompt_copied",
+  };
   const dispatchOnElement = element.dispatchEvent.bind(element);
   element.dispatchEvent = (event) => {
     const result = dispatchOnElement(event);
@@ -302,17 +307,26 @@ async function runCopy({ copied }) {
 
   await component.copy({ preventDefault() {} });
 
-  return { component, dispatched };
+  return { captures, component, dispatched };
 }
 
 test("successful clipboard copy dispatches prompt completion", async () => {
-  const { component, dispatched } = await runCopy({ copied: true });
+  const { captures, component, dispatched } = await runCopy({ copied: true });
 
   assert.equal(dispatched.length, 1);
   assert.equal(dispatched[0].type, "agent-setup-prompt-copied");
   assert.equal(dispatched[0].bubbles, true);
   assert.equal(dispatched[0].composed, false);
   assert.equal(dispatched[0].cancelable, false);
+  assert.deepEqual(JSON.parse(JSON.stringify(captures)), [
+    [
+      "rowset_agent_setup_prompt_copied",
+      {
+        activation_stage: "agent_setup_prompt_copied",
+        activation_stage_order: 4,
+      },
+    ],
+  ]);
   assert.equal(component.busy, false);
 });
 

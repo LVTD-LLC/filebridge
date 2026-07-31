@@ -249,7 +249,6 @@ class HomeView(DatasetListView):
     default_view_mode = DATASET_VIEW_MODE_GROUPED
     view_mode_options = ((DATASET_VIEW_MODE_GROUPED, "Grouped by project/section"),)
     dataset_list_url_name = "home"
-    dataset_list_eyebrow = "Home"
     dataset_list_title = "Datasets by project"
     dataset_list_description = (
         "Browse every active dataset your agents have created, grouped by project and section."

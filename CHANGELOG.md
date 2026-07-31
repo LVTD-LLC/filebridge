@@ -21,6 +21,25 @@ deployment or release cut date.
 ### Fixed
 - Styled the passkey confirmation step shown after password sign-in for
   passkey-protected accounts.
+### Added
+- Added a privacy-safe, retry-idempotent activation funnel from the primary
+  signup CTA through the first verified indexed-row update.
+
+### Changed
+- Removed decorative eyebrow labels throughout the public and authenticated
+  interface while preserving semantic navigation, status, and table labels.
+- Agent setup now inspects the runtime and configures the best supported Rowset
+  interface automatically, pausing only when an external permission is required.
+- Interrupted agent setup now reports precise progress and one safe retry action,
+  while reusing existing configuration and credentials.
+- First-run setup now recommends one evidence-backed project with one to three
+  datasets from already-authorized working context.
+- Successful first-run setup now ends with a short personalized recommendation
+  and direct creation question instead of a technical recap.
+- After a user confirms the recommendation, setup now guides agents through
+  bounded duplicate discovery, private project and dataset creation or reuse,
+  schema verification, retry-safe recovery, and an opt-in atomic same-project
+  dataset-name guard.
 
 ## 2026-07-30
 

@@ -370,7 +370,14 @@
           return;
         }
 
-        window.posthog.capture(eventName);
+        const properties =
+          eventName === "rowset_agent_setup_prompt_copied"
+            ? {
+                activation_stage: "agent_setup_prompt_copied",
+                activation_stage_order: 4,
+              }
+            : undefined;
+        window.posthog.capture(eventName, properties);
       },
 
       dispatchCopySuccess(copied, panelElement = this.$el) {

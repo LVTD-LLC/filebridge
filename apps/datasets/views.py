@@ -1624,7 +1624,6 @@ class DatasetListView(LoginRequiredMixin, ListView):
     default_view_mode = DATASET_VIEW_MODE_RAW
     dataset_list_url_name = "dataset_list"
     dataset_list_is_archived = False
-    dataset_list_eyebrow = "Datasets"
     dataset_list_title = "API-backed datasets"
     dataset_list_description = "Browse datasets created and managed through Rowset API or MCP."
     dataset_table_caption = "Datasets"
@@ -1840,7 +1839,6 @@ class DatasetListView(LoginRequiredMixin, ListView):
         )
         context["dataset_list_reset_url"] = reverse(self.dataset_list_url_name)
         context["dataset_list_is_archived"] = self.dataset_list_is_archived
-        context["dataset_list_eyebrow"] = self.dataset_list_eyebrow
         context["dataset_list_title"] = self.dataset_list_title
         context["dataset_list_description"] = self.dataset_list_description
         context["dataset_table_caption"] = self.dataset_table_caption
@@ -1877,7 +1875,6 @@ class ArchivedDatasetListView(DatasetListView):
     default_sort = "archived"
     dataset_list_url_name = "archived_dataset_list"
     dataset_list_is_archived = True
-    dataset_list_eyebrow = "Archive"
     dataset_list_title = "Archived datasets"
     dataset_list_description = (
         "Review datasets archived through Rowset API or MCP without restoring them to normal "

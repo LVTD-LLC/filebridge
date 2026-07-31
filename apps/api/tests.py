@@ -21,7 +21,7 @@ from apps.api.views import (
 )
 from apps.core.analytics import ROWSET_GET_USER_INFO_SUCCEEDED
 from apps.core.choices import AgentApiKeyAccessLevel
-from apps.core.models import Feedback
+from apps.core.models import Feedback, ProfileActivationMilestone
 from apps.core.post_deploy_smoke_auth import SMOKE_HEADER, create_smoke_token
 from apps.datasets import models as dataset_models
 from apps.datasets.choices import DatasetColumnType
@@ -29,6 +29,73 @@ from apps.datasets.embeddings import EmbeddingResult
 from apps.datasets.models import Dataset, DatasetRelationship, DatasetRow, Project
 from apps.datasets.tests.factories import configure_filterable_dataset, create_dataset
 from apps.datasets.vector_search import DatasetRowVectorSearchHit
+
+
+@pytest.mark.django_db
+def test_activation_milestone_api_records_only_bounded_agent_reported_stages(
+    client,
+    django_user_model,
+    monkeypatch,
+):
+    from apps.core.services import create_agent_api_key
+
+    user = django_user_model.objects.create_user(
+        username="activation-api",
+        email="activation-api@example.com",
+        password="password123",
+    )
+    credential = create_agent_api_key(user.profile, "Activation API")
+    tracked = []
+    monkeypatch.setattr(
+        "apps.core.activation.track_activation_event",
+        lambda profile, event_name, properties, **_kwargs: tracked.append((event_name, properties)),
+    )
+
+    first = client.post(
+        "/api/activation/milestones",
+        data={"milestone": "recommendation_emitted"},
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {credential.raw_key}",
+    )
+    retry = client.post(
+        "/api/activation/milestones",
+        data={"milestone": "recommendation_emitted"},
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {credential.raw_key}",
+    )
+    forbidden = client.post(
+        "/api/activation/milestones",
+        data={"milestone": "first_verified_indexed_row_update"},
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {credential.raw_key}",
+    )
+    private_payload = client.post(
+        "/api/activation/milestones",
+        data={
+            "milestone": "recommendation_accepted",
+            "recommendation": "private contents must not be accepted",
+        },
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {credential.raw_key}",
+    )
+
+    assert first.status_code == 200
+    assert first.json()["recorded"] is True
+    assert retry.status_code == 200
+    assert retry.json()["recorded"] is False
+    assert forbidden.status_code == 422
+    assert private_payload.status_code == 422
+    assert ProfileActivationMilestone.objects.filter(profile=user.profile).count() == 1
+    assert tracked == [
+        (
+            "rowset_personalized_recommendation_emitted",
+            {
+                "activation_stage": "personalized_recommendation_emitted",
+                "activation_stage_order": 6,
+                "interface": "rest",
+            },
+        )
+    ]
 
 
 def test_openapi_dataset_asset_thumbnail_url_is_required_string(client):
@@ -94,6 +161,41 @@ def test_capabilities_endpoint_supports_topic_filters(client):
         "dataset_context",
         "schema_mutations",
     }
+
+
+def test_capabilities_endpoint_exposes_first_project_recommendation_contract(client):
+    response = client.get("/api/capabilities?topics=setup")
+    recommendation = response.json()["first_project_recommendation"]
+
+    assert response.status_code == 200
+    assert recommendation["project_count"] == 1
+    assert recommendation["dataset_count"] == {"minimum": 1, "maximum": 3}
+    assert recommendation["confirmation_question"] == "Would you like me to create that now?"
+    output_fields = set(recommendation["output_fields"])
+    assert all(
+        output_fields <= set(example)
+        for example in recommendation["examples"]
+        if "project_name" in example
+    )
+    handoff = response.json()["successful_setup_handoff"]
+    assert handoff["minimum_sentences"] == 2
+    assert handoff["maximum_sentences"] == 3
+    assert handoff["weak_context_question_limit"] == 1
+    assert set(handoff["template_fields"]) == {
+        "context_label",
+        "project_name",
+        "dataset_list",
+    }
+    assert handoff["post_confirmation"]["negative"] == "Create nothing."
+    assert handoff["post_confirmation"]["affirmative_workflow"] == (
+        "confirmed_first_project_creation"
+    )
+    assert handoff["strong_context_template"].startswith("Rowset is ready to use.")
+    assert handoff["strong_context_template"].endswith("Would you like me to create that now?")
+    creation = response.json()["confirmed_first_project_creation"]
+    assert creation["trigger"].startswith("Only after an explicit affirmative answer")
+    assert creation["duplicate_search"]["limit"] == 3
+    assert creation["verification"]["required_dataset_checks"][-1] == "public_enabled is false"
 
 
 def test_capabilities_endpoint_rejects_unknown_topics(client):
@@ -825,6 +927,7 @@ class PostDeploySmokeDatasetApiUnitTests(SimpleTestCase):
             column_types=None,
             project_key=None,
             section_key=None,
+            prevent_duplicate_name=False,
         )
 
         with patch(
@@ -856,6 +959,7 @@ class PostDeploySmokeDatasetApiUnitTests(SimpleTestCase):
             column_types=None,
             project_key=None,
             section_key=None,
+            prevent_duplicate_name=False,
         )
 
         with patch(

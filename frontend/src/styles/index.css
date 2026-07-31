@@ -87,10 +87,6 @@
     @apply text-slate-600 dark:text-slate-300;
   }
 
-  .fb-label-caps {
-    @apply text-sm font-semibold leading-6;
-  }
-
   .fb-input {
     @apply rounded-md border-slate-300 bg-white text-slate-900 placeholder:text-slate-500 focus:border-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus-visible:ring-offset-slate-950;
   }

@@ -864,7 +864,6 @@ def test_public_dataset_row_detail_displays_full_row_data(client, profile):
     assert response.status_code == 200
     assert response.headers["X-Robots-Tag"] == "noindex, nofollow, noarchive"
     assert '<meta name="robots" content="noindex, nofollow, noarchive" />' in content
-    assert "Shared Rowset row" in content
     assert "Row 1" in content
     assert "notes" in content
     assert full_value in content

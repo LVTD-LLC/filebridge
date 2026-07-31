@@ -11,7 +11,19 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import storages
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Exists, F, Func, IntegerField, OuterRef, Q, TextField
+from django.db.models import (
+    Case,
+    Count,
+    Exists,
+    F,
+    Func,
+    IntegerField,
+    OuterRef,
+    Q,
+    TextField,
+    Value,
+    When,
+)
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Cast, Trim
 from django.urls import reverse
@@ -39,11 +51,13 @@ from apps.api.row_mutations import (
 from apps.api.row_mutations import (
     patch_dataset_row as patch_api_dataset_row,
 )
+from apps.core.activation import record_profile_activation_milestone
 from apps.core.analytics import (
     ROWSET_DATASET_CREATED,
     agent_api_key_tracking_properties,
     track_activation_event,
 )
+from apps.core.choices import ActivationMilestoneType
 from apps.core.models import AgentApiKey, Profile
 from apps.core.trials import get_trial_status
 from apps.datasets.choices import DatasetColumnType, DatasetMutationType
@@ -496,10 +510,21 @@ def search_profile_projects(
         "archived_at",
     )
     if normalized_query:
-        queryset = queryset.annotate(metadata_text=Cast("metadata", TextField())).filter(
-            Q(name__icontains=normalized_query)
-            | Q(description__icontains=normalized_query)
-            | Q(metadata_text__icontains=normalized_query)
+        queryset = (
+            queryset.annotate(
+                metadata_text=Cast("metadata", TextField()),
+                exact_name_rank=Case(
+                    When(name__iexact=normalized_query, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                ),
+            )
+            .filter(
+                Q(name__icontains=normalized_query)
+                | Q(description__icontains=normalized_query)
+                | Q(metadata_text__icontains=normalized_query)
+            )
+            .order_by("exact_name_rank", "name", "-created_at")
         )
     total_count = queryset.count()
     projects = list(queryset[offset : offset + limit])
@@ -528,6 +553,7 @@ def create_profile_project(
     name: str,
     description: str | None = None,
     metadata: dict[str, Any] | None = None,
+    agent_api_key: AgentApiKey | None = None,
 ) -> dict:
     """Create a semantic dataset group for an authenticated profile."""
     normalized_name = _normalize_project_name(name)
@@ -538,6 +564,7 @@ def create_profile_project(
     ).exists():
         raise DatasetServiceError(409, "Project name already exists.")
 
+    had_projects = Project.objects.filter(profile=profile).exists()
     try:
         project = Project.objects.create(
             profile=profile,
@@ -547,6 +574,13 @@ def create_profile_project(
         )
     except IntegrityError as exc:
         raise DatasetServiceError(409, "Project name already exists.") from exc
+
+    if agent_api_key is not None and not had_projects:
+        record_profile_activation_milestone(
+            profile,
+            ActivationMilestoneType.FIRST_PROJECT_CREATED,
+            interface="server",
+        )
 
     project.dataset_count = 0
     return {
@@ -1268,26 +1302,36 @@ def search_profile_datasets(  # noqa: C901
 
     queryset = _dataset_card_queryset(_active_dataset_queryset(profile.datasets))
     if normalized_query:
-        queryset = queryset.filter(
-            Q(name__icontains=normalized_query)
-            | Q(description__icontains=normalized_query)
-            | Q(instructions__icontains=normalized_query)
-            | Q(
-                project__archived_at__isnull=True,
-                project__name__icontains=normalized_query,
+        queryset = (
+            queryset.annotate(
+                exact_name_rank=Case(
+                    When(name__iexact=normalized_query, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                )
             )
-            | Q(
-                project__archived_at__isnull=True,
-                project__description__icontains=normalized_query,
+            .filter(
+                Q(name__icontains=normalized_query)
+                | Q(description__icontains=normalized_query)
+                | Q(instructions__icontains=normalized_query)
+                | Q(
+                    project__archived_at__isnull=True,
+                    project__name__icontains=normalized_query,
+                )
+                | Q(
+                    project__archived_at__isnull=True,
+                    project__description__icontains=normalized_query,
+                )
+                | Q(
+                    section__archived_at__isnull=True,
+                    section__name__icontains=normalized_query,
+                )
+                | Q(
+                    section__archived_at__isnull=True,
+                    section__description__icontains=normalized_query,
+                )
             )
-            | Q(
-                section__archived_at__isnull=True,
-                section__name__icontains=normalized_query,
-            )
-            | Q(
-                section__archived_at__isnull=True,
-                section__description__icontains=normalized_query,
-            )
+            .order_by("exact_name_rank", "-created_at")
         )
     if normalized_project_key:
         try:
@@ -2378,6 +2422,21 @@ def _raise_if_unsupported_index_column_type(column_type: str) -> None:
         raise DatasetServiceError(400, "Calculated columns cannot be used as the dataset index.")
 
 
+def _record_first_dataset_created_activation(
+    profile: Profile,
+    agent_api_key: AgentApiKey | None,
+    *,
+    had_datasets: bool,
+) -> None:
+    if agent_api_key is None or had_datasets:
+        return
+    record_profile_activation_milestone(
+        profile,
+        ActivationMilestoneType.FIRST_DATASET_CREATED,
+        interface="server",
+    )
+
+
 def create_profile_dataset(
     profile: Profile,
     *,
@@ -2391,6 +2450,7 @@ def create_profile_dataset(
     column_types: dict[str, ColumnTypeSpec] | None = None,
     project_key: str | None = None,
     section_key: str | None = None,
+    prevent_duplicate_name: bool = False,
     agent_api_key: AgentApiKey | None = None,
     enqueue_background_work: bool = True,
 ) -> dict:
@@ -2403,6 +2463,11 @@ def create_profile_dataset(
     project = (
         get_profile_project(profile, normalized_project_key) if normalized_project_key else None
     )
+    if prevent_duplicate_name and project is None:
+        raise DatasetServiceError(
+            400,
+            "prevent_duplicate_name requires project_key.",
+        )
     section = _resolve_project_section_assignment(profile, project, section_key)
     normalized_rows = _normalize_create_rows(rows)
     base_headers = _normalize_create_headers(headers, normalized_rows)
@@ -2434,6 +2499,7 @@ def create_profile_dataset(
         normalized_rows,
     )
     active_dataset_count_before = _visible_profile_dataset_queryset(profile).count()
+    had_datasets = Dataset.objects.filter(profile=profile).exists()
 
     seen_index_values = set()
     row_payloads = []
@@ -2463,6 +2529,19 @@ def create_profile_dataset(
         row_payloads.append((row_number, index_value, serialized_data))
 
     with transaction.atomic():
+        if prevent_duplicate_name:
+            Project.objects.select_for_update().get(pk=project.pk)
+            if _active_dataset_queryset(
+                Dataset.objects.filter(
+                    profile=profile,
+                    project=project,
+                    name__iexact=normalized_name,
+                )
+            ).exists():
+                raise DatasetServiceError(
+                    409,
+                    "Dataset name already exists in this project.",
+                )
         dataset = Dataset.objects.create(
             profile=profile,
             project=project,
@@ -2529,6 +2608,11 @@ def create_profile_dataset(
                 **agent_api_key_tracking_properties(agent_api_key),
             },
             source_function="apps.api.services.create_profile_dataset",
+        )
+        _record_first_dataset_created_activation(
+            profile,
+            agent_api_key,
+            had_datasets=had_datasets,
         )
 
     return {
@@ -4798,7 +4882,7 @@ def patch_profile_dataset_row_by_index(
             row = dataset.rows.get(index_value=index_value)
         except DatasetRow.DoesNotExist as exc:
             raise DatasetServiceError(404, "Row not found.") from exc
-        return patch_api_dataset_row(
+        result = patch_api_dataset_row(
             profile,
             dataset,
             row,
@@ -4806,6 +4890,13 @@ def patch_profile_dataset_row_by_index(
             agent_api_key=agent_api_key,
             hooks=_row_mutation_hooks(),
         )
+        if agent_api_key is not None:
+            record_profile_activation_milestone(
+                profile,
+                ActivationMilestoneType.FIRST_VERIFIED_INDEXED_ROW_UPDATE,
+                interface="server",
+            )
+        return result
 
 
 def delete_profile_dataset_row(

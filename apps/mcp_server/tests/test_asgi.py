@@ -62,6 +62,7 @@ DESTRUCTIVE_TOOL_NAMES = {
 IDEMPOTENT_MUTATION_TOOL_NAMES = {
     "archive_dataset",
     "archive_project",
+    "record_activation_milestone",
     "restore_dataset",
     "update_dataset_metadata",
     "update_project",

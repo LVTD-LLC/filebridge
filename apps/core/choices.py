@@ -13,6 +13,17 @@ class FeedbackSource(models.TextChoices):
     MCP = "mcp", "MCP"
 
 
+class ActivationMilestoneType(models.TextChoices):
+    RECOMMENDATION_EMITTED = "recommendation_emitted", "Recommendation emitted"
+    RECOMMENDATION_ACCEPTED = "recommendation_accepted", "Recommendation accepted"
+    FIRST_PROJECT_CREATED = "first_project_created", "First project created"
+    FIRST_DATASET_CREATED = "first_dataset_created", "First dataset created"
+    FIRST_VERIFIED_INDEXED_ROW_UPDATE = (
+        "first_verified_indexed_row_update",
+        "First verified indexed row update",
+    )
+
+
 class TrialStatus(models.TextChoices):
     NOT_STARTED = "not_started", "Not started"
     ACTIVE = "active", "Active"

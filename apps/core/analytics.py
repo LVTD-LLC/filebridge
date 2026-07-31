@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any
 
 from django.conf import settings
@@ -17,11 +18,85 @@ ROWSET_AGENT_SETUP_COMPLETED = "rowset_agent_setup_completed"
 ROWSET_GET_USER_INFO_SUCCEEDED = "rowset_get_user_info_succeeded"
 ROWSET_DATASET_CREATED = "rowset_dataset_created"
 ROWSET_DATASET_ROW_MUTATED = "rowset_dataset_row_mutated"
+ROWSET_PERSONALIZED_RECOMMENDATION_EMITTED = "rowset_personalized_recommendation_emitted"
+ROWSET_PERSONALIZED_RECOMMENDATION_ACCEPTED = "rowset_personalized_recommendation_accepted"
+ROWSET_FIRST_PROJECT_CREATED = "rowset_first_project_created"
+ROWSET_FIRST_DATASET_CREATED = "rowset_first_dataset_created"
+ROWSET_FIRST_VERIFIED_INDEXED_ROW_UPDATE = "rowset_first_verified_indexed_row_update"
 ROWSET_CHECKOUT_STARTED = "rowset_checkout_started"
 ROWSET_SUBSCRIPTION_STARTED = "rowset_subscription_started"
 ROWSET_SUBSCRIPTION_CANCELLATION_REQUESTED = "rowset_subscription_cancellation_requested"
 ROWSET_SUBSCRIPTION_ENDED = "rowset_subscription_ended"
 ROWSET_PAYMENT_FAILED = "rowset_payment_failed"
+
+
+@dataclass(frozen=True)
+class ActivationFunnelStage:
+    name: str
+    order: int
+    event_name: str
+    milestone: str = ""
+
+
+ACTIVATION_FUNNEL = (
+    ActivationFunnelStage("landing_primary_cta", 1, "rowset_marketing_cta_clicked"),
+    ActivationFunnelStage("signup_completed", 2, ROWSET_SIGNUP_COMPLETED),
+    ActivationFunnelStage("agent_api_key_created", 3, ROWSET_AGENT_API_KEY_CREATED),
+    ActivationFunnelStage(
+        "agent_setup_prompt_copied",
+        4,
+        ROWSET_AGENT_SETUP_PROMPT_COPIED,
+    ),
+    ActivationFunnelStage(
+        "authenticated_verification",
+        5,
+        ROWSET_AGENT_SETUP_COMPLETED,
+    ),
+    ActivationFunnelStage(
+        "personalized_recommendation_emitted",
+        6,
+        ROWSET_PERSONALIZED_RECOMMENDATION_EMITTED,
+        "recommendation_emitted",
+    ),
+    ActivationFunnelStage(
+        "personalized_recommendation_accepted",
+        7,
+        ROWSET_PERSONALIZED_RECOMMENDATION_ACCEPTED,
+        "recommendation_accepted",
+    ),
+    ActivationFunnelStage(
+        "first_project_created",
+        8,
+        ROWSET_FIRST_PROJECT_CREATED,
+        "first_project_created",
+    ),
+    ActivationFunnelStage(
+        "first_dataset_created",
+        9,
+        ROWSET_FIRST_DATASET_CREATED,
+        "first_dataset_created",
+    ),
+    ActivationFunnelStage(
+        "first_verified_indexed_row_update",
+        10,
+        ROWSET_FIRST_VERIFIED_INDEXED_ROW_UPDATE,
+        "first_verified_indexed_row_update",
+    ),
+)
+ACTIVATION_FUNNEL_BY_EVENT = {stage.event_name: stage for stage in ACTIVATION_FUNNEL}
+ACTIVATION_FUNNEL_BY_MILESTONE = {
+    stage.milestone: stage for stage in ACTIVATION_FUNNEL if stage.milestone
+}
+
+
+def activation_funnel_event_properties(event_name: str) -> dict[str, str | int]:
+    stage = ACTIVATION_FUNNEL_BY_EVENT.get(event_name)
+    if stage is None:
+        return {}
+    return {
+        "activation_stage": stage.name,
+        "activation_stage_order": stage.order,
+    }
 
 
 def agent_api_key_tracking_properties(agent_api_key: AgentApiKey | None) -> dict[str, Any]:
@@ -51,7 +126,10 @@ def track_activation_event(
 
     profile_id = profile.id
     session_id = validate_correlation_id(session_id or get_contextvars().get("sessionId"))
-    event_properties = properties or {}
+    event_properties = {
+        **(properties or {}),
+        **activation_funnel_event_properties(event_name),
+    }
 
     def enqueue_event() -> None:
         async_task(

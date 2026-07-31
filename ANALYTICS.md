@@ -21,14 +21,37 @@ outcome/status class, environment, and approved public content identity fields w
 never supplies a raw URL, query string, IP address, user-agent, cookie, authorization value, or MCP
 method. The SDK may add its standard runtime and library context properties.
 
-The primary acquisition funnel is:
+The canonical first-run activation funnel is:
 
-1. `$pageview` and `rowset_marketing_cta_clicked`
-2. `rowset_signup_completed`
-3. `rowset_agent_api_key_created` and `rowset_agent_setup_prompt_copied`
-4. `rowset_agent_setup_completed`
-5. `rowset_dataset_created` and `rowset_dataset_row_mutated`
-6. `rowset_checkout_started` and `rowset_subscription_started`
+| Order | Stage | Canonical event | Proof |
+| --- | --- | --- | --- |
+| 1 | Landing primary CTA | `rowset_marketing_cta_clicked` with `cta_name=signup` | A consented visitor clicked a signup CTA. |
+| 2 | Signup completed | `rowset_signup_completed` | The account was created. |
+| 3 | Agent key created | `rowset_agent_api_key_created` | A scoped agent key was created. |
+| 4 | Setup prompt copied | `rowset_agent_setup_prompt_copied` | The setup prompt reached the clipboard. |
+| 5 | Authenticated verification | `rowset_agent_setup_completed` | The first successful authenticated agent request completed. |
+| 6 | Personalized recommendation emitted | `rowset_personalized_recommendation_emitted` | The agent recorded the bounded milestone immediately before returning its recommendation. |
+| 7 | Recommendation accepted | `rowset_personalized_recommendation_accepted` | The agent recorded an explicit affirmative answer. |
+| 8 | First project created | `rowset_first_project_created` | The authenticated agent created the profile's first project. |
+| 9 | First dataset created | `rowset_first_dataset_created` | The authenticated agent created the profile's first dataset. |
+| 10 | First verified indexed-row update | `rowset_first_verified_indexed_row_update` | An authenticated agent patched a row by stable index and Rowset re-read the persisted row successfully. |
+
+Each canonical event carries `activation_stage` and `activation_stage_order`, so delayed worker
+delivery cannot obscure funnel order. Recommendation milestone payloads accept only
+`recommendation_emitted` or `recommendation_accepted`; their PostHog properties are limited to the
+canonical stage, order, and bounded interface. Never send recommendation text, evidence, context,
+project or dataset names, keys, row indexes or values, API keys, or other secrets.
+
+Authenticated verification and every later server milestone are persisted once per profile before
+their event is queued. Retries therefore do not emit another milestone event. Browser copy and CTA
+events can recur, and a user can create more than one key; PostHog funnels must count unique
+profiles rather than raw events. `rowset_dataset_created` and `rowset_dataset_row_mutated` remain
+usage events, not substitutes for first-value activation. Checkout and subscription events remain
+the downstream revenue funnel.
+
+The first-value metric is `rowset_first_verified_indexed_row_update`. Dataset creation alone does
+not qualify: Rowset must complete a write addressed by the dataset's stable index and re-read the
+saved row, or a future event with an explicitly documented equivalent verification guarantee.
 
 Public dataset measurement uses the same funnel vocabulary:
 
@@ -66,8 +89,8 @@ Lifecycle events are `rowset_subscription_cancellation_requested`, `rowset_subsc
 and `rowset_payment_failed`. Additive property changes keep the current event version; incompatible
 meaning changes require a new event name or version.
 
-Critical signup, setup, checkout, and subscription events flush the server SDK queue before their
-worker task completes. High-volume dataset activity remains buffered.
+Critical signup, setup, first-run milestone, checkout, and subscription events flush the server SDK
+queue before their worker task completes. High-volume dataset activity remains buffered.
 
 ## Traffic categories and metric sources
 

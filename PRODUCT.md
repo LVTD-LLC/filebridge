@@ -7,12 +7,18 @@ Instead of asking humans to manage upload wizards or fragile third-party sync,
 trusted agents create, inspect, update, export, and share datasets through MCP or
 REST.
 
+Rowset is structured operational state, not agent recall memory: each mutable
+record has explicit fields and stable identity so one authoritative current row
+can settle the answer across runs.
+
 Rowset is open source and self-hostable. People can use the hosted product for
 the fastest setup or run the same code on infrastructure they control.
 
-The core promise is simple: sign in, copy the agent setup prompt, give a trusted
-agent an API key as a bearer token, and let it manage API-backed datasets with
-clear ownership boundaries.
+The core promise is simple: sign in, copy the agent setup prompt, and let a
+trusted agent configure the best supported authenticated interface. After
+verification, the agent recommends one useful first project with one to three
+datasets, asks whether to create it, and manages the confirmed private
+API-backed resources with clear ownership boundaries.
 
 ## Audience
 
@@ -27,7 +33,10 @@ clear ownership boundaries.
 ## Primary Jobs
 
 - Copy a Rowset setup prompt into a trusted AI agent.
-- Let the agent authenticate through hosted MCP or REST with a bearer API key.
+- Let the agent inspect its runtime, choose the best supported MCP, CLI, or REST
+  path, and authenticate with a privately stored bearer API key.
+- Receive one context-specific first-project recommendation and approve or
+  reject its creation without choosing technical plumbing or designing schemas.
 - Let agents create datasets with headers, rows, and a stable index.
 - Let agents discover datasets, inspect schemas, and perform row operations
   through authenticated MCP or REST.
@@ -39,11 +48,15 @@ clear ownership boundaries.
 ## Core Workflows
 
 1. A user signs in and copies the Rowset setup prompt.
-2. The agent reads `SKILL.md` and configures hosted MCP with a bearer API key.
-3. The agent creates or discovers datasets through MCP or REST.
-4. The agent performs row CRUD, exports snapshots, or enables a public preview
+2. The agent reads the setup skill, inspects its runtime, configures the best
+   supported MCP, CLI, or REST path, and verifies authentication.
+3. The agent uses already-authorized context to recommend one project with one
+   to three datasets and asks whether the user wants it created.
+4. After an affirmative answer, the agent creates or reuses the private project
+   and datasets, verifies their schema and stable indexes, and reports the keys.
+5. The agent performs row CRUD, exports snapshots, or enables a public preview
    when the user asks.
-5. The UI remains a control surface for setup, settings, recent dataset state,
+6. The UI remains a control surface for setup, settings, recent dataset state,
    exports, and public preview review.
 
 Agents can read local files, Google Sheets, databases, or other sources using
@@ -97,6 +110,8 @@ for the footer or deployment documentation.
 ## What Good Looks Like
 
 - A new user can sign in, copy the prompt, and connect an agent in minutes.
+- The first successful setup response recommends a specific project and one to
+  three datasets from authorized context, then asks whether to create them.
 - An AI agent can verify a new setup with `get_user_info`, find an unknown
   dataset with `search_datasets(limit=3)`, inspect it with `get_dataset`, create
   datasets with `create_dataset`, and operate on rows without browser
