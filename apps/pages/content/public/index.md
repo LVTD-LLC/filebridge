@@ -1,7 +1,11 @@
-# Rowset: one backend for AI agent workflows
+# Rowset: the database for agent-managed work
 
-Rowset is the open-source, self-hostable backend for AI agent workflows. It gives agents private,
-searchable structured data through MCP, REST, or CLI without requiring you to build another backend.
+Rowset gives AI agents one private place to read and update structured records across sessions:
+tasks, contacts, research, feedback, and anything else that fits into rows. It is open source and
+self-hostable.
+
+[Connect an agent]({{ signup_url }}) or
+[see an agent task board]({{ site_url }}/use-cases/agent-task-board).
 
 ## What agents can do
 
