@@ -982,8 +982,8 @@ def test_landing_page_omits_prompt_and_shows_agent_native_positioning(client):
     assert "Private structured records agents can update across sessions" in content
     assert "Connect once. Then ask your agent to build." in content
     assert "Agent task board" in content
-    assert "Shared research" in content
-    assert "Personal CRM" in content
+    assert "Feedback and bug tracker" in content
+    assert ">CRM</a>" in content
     assert reverse("use_cases") in content
     assert reverse("docs_page", kwargs={"slug": "connect-mcp"}) in content
     assert reverse("docs_page", kwargs={"slug": "dataset-api"}) in content
@@ -1055,32 +1055,30 @@ def test_landing_explains_three_workflows_immediately_after_hero(client):
             ),
         ),
         (
-            "Shared research",
+            "Feedback and bug tracker",
             (
-                ("You ask", "“Research these options and keep the evidence together.”"),
+                ("You ask", "“Collect feedback and bugs, then show me what needs attention.”"),
                 (
                     "Agent writes",
-                    "Sources, findings, confidence, and unresolved questions.",
+                    "Reports with source, category, severity, status, and next step.",
                 ),
                 (
                     "Later",
-                    "A later run searches the evidence, adds what changed, and helps your "
-                    "agent avoid repeating the research.",
+                    "New reports join the same queue, while resolved items stay searchable.",
                 ),
             ),
         ),
         (
-            "Personal CRM",
+            "CRM",
             (
-                ("You ask", "“Remember who I should follow up with and why.”"),
+                ("You ask", "“Show me who needs a follow-up and why.”"),
                 (
                     "Agent writes",
-                    "Contacts, context, last interaction, and next follow-up.",
+                    "Contacts, companies, relationship stage, last interaction, and next step.",
                 ),
                 (
                     "Later",
-                    "Future runs recover the relationship history and update the same "
-                    "contact rows.",
+                    "Future runs update the same contact history and follow-up queue.",
                 ),
             ),
         ),
@@ -1102,7 +1100,13 @@ def test_landing_explains_three_workflows_immediately_after_hero(client):
     assert f'href="{reverse("use_cases")}"' in use_cases
     assert f'href="{reverse("use_case_page", kwargs={"slug": "agent-task-board"})}"' in articles[0]
     assert f'href="{reverse("use_case_page", kwargs={"slug": "personal-crm"})}"' in articles[2]
-    assert content.index('<section id="use-cases"') < content.index("Built with Rowset")
+    for comparison in (
+        "Can replace Linear, Asana, and ClickUp",
+        "Can replace Zendesk, Intercom, and Jira",
+        "Can replace HubSpot, Zoho, and SAP",
+    ):
+        assert f'aria-label="{comparison}"' in use_cases
+    assert content.index('<section id="use-cases"') < content.index("Projects using Rowset")
     assert content.index('<section id="use-cases"') < content.index('<section id="open-source"')
     assert "Give your agent a workflow it can keep up to date." not in content
 
@@ -1297,21 +1301,22 @@ def test_landing_page_links_to_projects_using_rowset(client):
     assert response.status_code == 200
     content = response.content.decode()
     projects = (
-        ("djass.dev", "djass.svg"),
-        ("awesome.lvtd.dev", "awesome.svg"),
-        ("builtwithdjango.com", "builtwithdjango.png"),
-        ("gettjalerts.com", "gettjalerts.png"),
-        ("gettalentleads.com", "gettalentleads.png"),
-        ("pagefresh.lvtd.dev", "pagefresh.svg"),
-        ("pgsandbox-mcp.lvtd.dev", "pgsandbox-mcp.svg"),
+        ("djass.dev", "Djass", "djass.svg"),
+        ("awesome.lvtd.dev", "Awesome Repos", "awesome.svg"),
+        ("builtwithdjango.com", "Built With Django", "builtwithdjango.png"),
+        ("gettjalerts.com", "Tech Job Alerts", "gettjalerts.png"),
+        ("gettalentleads.com", "Get Talent Leads", "gettalentleads.png"),
+        ("pagefresh.lvtd.dev", "Pagefresh", "pagefresh.svg"),
+        ("pgsandbox-mcp.lvtd.dev", "PGSandbox", "pgsandbox-mcp.svg"),
     )
 
-    assert "Built with Rowset" in content
+    assert "Projects using Rowset" in content
     assert "data-uidotsh" not in content
     assert "ui-picker.js" not in content
-    for hostname, icon_name in projects:
+    for hostname, label, icon_name in projects:
         assert content.count(f'href="https://{hostname}/"') == 2
         assert content.count(f'aria-label="Visit {hostname} in a new tab"') == 1
+        assert content.count(f">{label}</span>") == 2
         icon_path = f"vendors/images/landing/customer-icons/{icon_name}"
         assert content.count(f'src="{static(icon_path)}"') == 2
 
