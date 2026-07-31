@@ -10,8 +10,8 @@
 {% block content %}
     <section id="product" class="bg-[#1313a4] text-white">
         <p class="sr-only">Database for agent-managed work. Private structured records agents can update across sessions.</p>
-        <div class="mx-auto flex min-h-[calc(100svh-4rem)] max-w-7xl flex-col justify-between px-4 py-10 sm:px-6 lg:px-8">
-            <div class="py-16 lg:py-24">
+        <div class="mx-auto flex max-w-7xl flex-col px-4 py-10 sm:px-6 lg:px-8">
+            <div class="py-10 sm:py-16 lg:py-24">
                 <h1 class="max-w-[20ch] font-display text-5xl font-semibold tracking-tight text-balance sm:text-7xl">
                     The database for<br /><span class="text-[#ffdd3d]">agent-managed work.</span>
                 </h1>
@@ -34,26 +34,50 @@
             <div class="mt-12 grid border-y-2 border-[#1313a4] lg:grid-cols-3">
                 <article class="py-8 lg:pr-8">
                     <h3 class="text-2xl font-semibold tracking-tight"><a href="{% url 'use_case_page' slug='agent-task-board' %}" class="underline decoration-2 underline-offset-4 hover:text-white">Agent task board</a></h3>
-                    <dl class="mt-6 divide-y divide-[#1313a4]/25">
+                    <div class="mt-4" aria-label="Can replace Linear, Asana, and ClickUp">
+                        <p class="text-xs font-semibold uppercase tracking-wide">Can replace</p>
+                        <ul class="mt-2 flex flex-wrap gap-4" role="list">
+                            <li class="flex items-center gap-2 text-sm font-semibold"><img src="{% static 'vendors/images/landing/competitor-icons/linear.svg' %}" alt="" width="20" height="20" class="size-5" />Linear</li>
+                            <li class="flex items-center gap-2 text-sm font-semibold"><img src="{% static 'vendors/images/landing/competitor-icons/asana.svg' %}" alt="" width="20" height="20" class="size-5" />Asana</li>
+                            <li class="flex items-center gap-2 text-sm font-semibold"><img src="{% static 'vendors/images/landing/competitor-icons/clickup.svg' %}" alt="" width="20" height="20" class="size-5" />ClickUp</li>
+                        </ul>
+                    </div>
+                    <dl class="mt-5 divide-y divide-[#1313a4]/25">
                         <div class="py-4 first:pt-0"><dt class="text-sm font-semibold">You ask</dt><dd class="mt-2 text-base text-pretty">“Keep this project moving and tell me what is blocked.”</dd></div>
                         <div class="py-4"><dt class="text-sm font-semibold">Agent writes</dt><dd class="mt-2 text-base text-pretty">Tasks with owners, status, priority, and next steps.</dd></div>
                         <div class="py-4 last:pb-0"><dt class="text-sm font-semibold">Later</dt><dd class="mt-2 text-base text-pretty">The next agent run resumes open work and updates the same task rows.</dd></div>
                     </dl>
                 </article>
                 <article class="border-t-2 border-[#1313a4] py-8 lg:border-l-2 lg:border-t-0 lg:px-8">
-                    <h3 class="text-2xl font-semibold tracking-tight">Shared research</h3>
-                    <dl class="mt-6 divide-y divide-[#1313a4]/25">
-                        <div class="py-4 first:pt-0"><dt class="text-sm font-semibold">You ask</dt><dd class="mt-2 text-base text-pretty">“Research these options and keep the evidence together.”</dd></div>
-                        <div class="py-4"><dt class="text-sm font-semibold">Agent writes</dt><dd class="mt-2 text-base text-pretty">Sources, findings, confidence, and unresolved questions.</dd></div>
-                        <div class="py-4 last:pb-0"><dt class="text-sm font-semibold">Later</dt><dd class="mt-2 text-base text-pretty">A later run searches the evidence, adds what changed, and helps your agent avoid repeating the research.</dd></div>
+                    <h3 class="text-2xl font-semibold tracking-tight">Feedback and bug tracker</h3>
+                    <div class="mt-4" aria-label="Can replace Zendesk, Intercom, and Jira">
+                        <p class="text-xs font-semibold uppercase tracking-wide">Can replace</p>
+                        <ul class="mt-2 flex flex-wrap gap-4" role="list">
+                            <li class="flex items-center gap-2 text-sm font-semibold"><img src="{% static 'vendors/images/landing/competitor-icons/zendesk.svg' %}" alt="" width="20" height="20" class="size-5" />Zendesk</li>
+                            <li class="flex items-center gap-2 text-sm font-semibold"><img src="{% static 'vendors/images/landing/competitor-icons/intercom.svg' %}" alt="" width="20" height="20" class="size-5" />Intercom</li>
+                            <li class="flex items-center gap-2 text-sm font-semibold"><img src="{% static 'vendors/images/landing/competitor-icons/jira.svg' %}" alt="" width="20" height="20" class="size-5" />Jira</li>
+                        </ul>
+                    </div>
+                    <dl class="mt-5 divide-y divide-[#1313a4]/25">
+                        <div class="py-4 first:pt-0"><dt class="text-sm font-semibold">You ask</dt><dd class="mt-2 text-base text-pretty">“Collect feedback and bugs, then show me what needs attention.”</dd></div>
+                        <div class="py-4"><dt class="text-sm font-semibold">Agent writes</dt><dd class="mt-2 text-base text-pretty">Reports with source, category, severity, status, and next step.</dd></div>
+                        <div class="py-4 last:pb-0"><dt class="text-sm font-semibold">Later</dt><dd class="mt-2 text-base text-pretty">New reports join the same queue, while resolved items stay searchable.</dd></div>
                     </dl>
                 </article>
                 <article class="border-t-2 border-[#1313a4] py-8 lg:border-l-2 lg:border-t-0 lg:pl-8">
-                    <h3 class="text-2xl font-semibold tracking-tight"><a href="{% url 'use_case_page' slug='personal-crm' %}" class="underline decoration-2 underline-offset-4 hover:text-white">Personal CRM</a></h3>
-                    <dl class="mt-6 divide-y divide-[#1313a4]/25">
-                        <div class="py-4 first:pt-0"><dt class="text-sm font-semibold">You ask</dt><dd class="mt-2 text-base text-pretty">“Remember who I should follow up with and why.”</dd></div>
-                        <div class="py-4"><dt class="text-sm font-semibold">Agent writes</dt><dd class="mt-2 text-base text-pretty">Contacts, context, last interaction, and next follow-up.</dd></div>
-                        <div class="py-4 last:pb-0"><dt class="text-sm font-semibold">Later</dt><dd class="mt-2 text-base text-pretty">Future runs recover the relationship history and update the same contact rows.</dd></div>
+                    <h3 class="text-2xl font-semibold tracking-tight"><a href="{% url 'use_case_page' slug='personal-crm' %}" class="underline decoration-2 underline-offset-4 hover:text-white">CRM</a></h3>
+                    <div class="mt-4" aria-label="Can replace HubSpot, Zoho, and SAP">
+                        <p class="text-xs font-semibold uppercase tracking-wide">Can replace</p>
+                        <ul class="mt-2 flex flex-wrap gap-4" role="list">
+                            <li class="flex items-center gap-2 text-sm font-semibold"><img src="{% static 'vendors/images/landing/competitor-icons/hubspot.svg' %}" alt="" width="20" height="20" class="size-5" />HubSpot</li>
+                            <li class="flex items-center gap-2 text-sm font-semibold"><img src="{% static 'vendors/images/landing/competitor-icons/zoho.svg' %}" alt="" width="20" height="20" class="size-5" />Zoho</li>
+                            <li class="flex items-center gap-2 text-sm font-semibold"><img src="{% static 'vendors/images/landing/competitor-icons/sap.svg' %}" alt="" width="20" height="20" class="size-5" />SAP</li>
+                        </ul>
+                    </div>
+                    <dl class="mt-5 divide-y divide-[#1313a4]/25">
+                        <div class="py-4 first:pt-0"><dt class="text-sm font-semibold">You ask</dt><dd class="mt-2 text-base text-pretty">“Show me who needs a follow-up and why.”</dd></div>
+                        <div class="py-4"><dt class="text-sm font-semibold">Agent writes</dt><dd class="mt-2 text-base text-pretty">Contacts, companies, relationship stage, last interaction, and next step.</dd></div>
+                        <div class="py-4 last:pb-0"><dt class="text-sm font-semibold">Later</dt><dd class="mt-2 text-base text-pretty">Future runs update the same contact history and follow-up queue.</dd></div>
                     </dl>
                 </article>
             </div>
@@ -62,14 +86,14 @@
     </section>
     <section class="border-b border-slate-950/10 bg-white text-slate-950 dark:border-white/15 dark:bg-neutral-950 dark:text-white" aria-labelledby="social-proof-heading">
         <div class="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center lg:gap-10 lg:px-8">
-            <h2 id="social-proof-heading" class="text-sm font-semibold whitespace-nowrap">Built with Rowset</h2>
-            <div class="rs-logo-carousel py-2" aria-label="Built with Rowset">
+            <h2 id="social-proof-heading" class="text-sm font-semibold whitespace-nowrap">Projects using Rowset</h2>
+            <div class="rs-logo-carousel py-2" aria-label="Projects using Rowset">
                 <div class="rs-logo-track">
                     <div class="rs-logo-group">
-                        {% for site in social_proof_sites %}<a href="https://{{ site.name }}/" target="_blank" rel="noopener noreferrer" class="fb-focus flex size-16 shrink-0 items-center justify-center transition hover:scale-110" title="{{ site.name }}" aria-label="Visit {{ site.name }} in a new tab"><img src="{% static site.icon %}" alt="" width="64" height="64" decoding="async" class="size-16 shrink-0 object-contain" /></a>{% endfor %}
+                        {% for site in social_proof_sites %}<a href="https://{{ site.name }}/" target="_blank" rel="noopener noreferrer" class="fb-focus flex w-28 shrink-0 flex-col items-center justify-center gap-2 text-center transition hover:scale-105" title="{{ site.name }}" aria-label="Visit {{ site.name }} in a new tab"><img src="{% static site.icon %}" alt="" width="56" height="56" decoding="async" class="size-14 shrink-0 object-contain" /><span class="text-xs font-semibold leading-tight">{{ site.label }}</span></a>{% endfor %}
                     </div>
                     <div class="rs-logo-group" aria-hidden="true">
-                        {% for site in social_proof_sites %}<a href="https://{{ site.name }}/" target="_blank" rel="noopener noreferrer" tabindex="-1" class="flex size-16 shrink-0 items-center justify-center transition hover:scale-110"><img src="{% static site.icon %}" alt="" width="64" height="64" decoding="async" class="size-16 shrink-0 object-contain" /></a>{% endfor %}
+                        {% for site in social_proof_sites %}<a href="https://{{ site.name }}/" target="_blank" rel="noopener noreferrer" tabindex="-1" class="flex w-28 shrink-0 flex-col items-center justify-center gap-2 text-center transition hover:scale-105"><img src="{% static site.icon %}" alt="" width="56" height="56" decoding="async" class="size-14 shrink-0 object-contain" /><span class="text-xs font-semibold leading-tight">{{ site.label }}</span></a>{% endfor %}
                     </div>
                 </div>
             </div>
@@ -153,7 +177,7 @@
     </section>
     <section class="bg-[#1313a4] text-white">
         <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[3fr_2fr] lg:items-end lg:px-8 lg:py-24">
-            <div><h2 class="max-w-[18ch] font-display text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Your next agent workflow needs somewhere to live.</h2></div>
+            <div><h2 class="max-w-[18ch] font-display text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Give your work one place to stay current.</h2></div>
             <div><p class="max-w-[40ch] text-xl text-pretty text-blue-100">Start with full product access for 7 days. Keep control with bearer-key authentication, explicit sharing, and exports whenever you want them.</p><a href="{% url 'account_signup' %}" data-posthog-cta="signup" data-posthog-cta-location="landing_bottom" class="mt-8 inline-flex min-h-12 items-center justify-center bg-[#ffdd3d] px-4 py-3 font-semibold text-[#1313a4] hover:bg-white">Start your 7-day trial →</a></div>
         </div>
     </section>

@@ -63,23 +63,39 @@ from rowset.utils import build_absolute_public_url, get_rowset_logger
 logger = get_rowset_logger(__name__)
 
 SOCIAL_PROOF_SITES = (
-    {"name": "djass.dev", "icon": "vendors/images/landing/customer-icons/djass.svg"},
-    {"name": "awesome.lvtd.dev", "icon": "vendors/images/landing/customer-icons/awesome.svg"},
+    {
+        "name": "djass.dev",
+        "label": "Djass",
+        "icon": "vendors/images/landing/customer-icons/djass.svg",
+    },
+    {
+        "name": "awesome.lvtd.dev",
+        "label": "Awesome Repos",
+        "icon": "vendors/images/landing/customer-icons/awesome.svg",
+    },
     {
         "name": "builtwithdjango.com",
+        "label": "Built With Django",
         "icon": "vendors/images/landing/customer-icons/builtwithdjango.png",
     },
     {
         "name": "gettjalerts.com",
+        "label": "Tech Job Alerts",
         "icon": "vendors/images/landing/customer-icons/gettjalerts.png",
     },
     {
         "name": "gettalentleads.com",
+        "label": "Get Talent Leads",
         "icon": "vendors/images/landing/customer-icons/gettalentleads.png",
     },
-    {"name": "pagefresh.lvtd.dev", "icon": "vendors/images/landing/customer-icons/pagefresh.svg"},
+    {
+        "name": "pagefresh.lvtd.dev",
+        "label": "Pagefresh",
+        "icon": "vendors/images/landing/customer-icons/pagefresh.svg",
+    },
     {
         "name": "pgsandbox-mcp.lvtd.dev",
+        "label": "PGSandbox",
         "icon": "vendors/images/landing/customer-icons/pgsandbox-mcp.svg",
     },
 )
