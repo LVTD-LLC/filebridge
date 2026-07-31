@@ -142,15 +142,24 @@ response: "Rowset is ready to use. Based on your work on {context_label}, I
 recommend creating a {project_name} project with {dataset_list}. Would you like
 me to create that now?" Do not recap the selected interface. Do not include a
 setup or verification checklist, credential status, URL list, generic starter
-menu, or daily tips offer. Do not create the recommended project or datasets
-until the user confirms. Wait for the user's answer before continuing. On an
-affirmative answer: Complete and verify the confirmed project and dataset
-creation before offering tips or starting unrelated work. On a negative answer,
-create nothing. Treat the project decision as resolved only after the selected
-branch finishes. Defer the daily Rowset tips offer until the project decision is
-resolved. In runtimes with scheduled tasks, the agent then offers a separate
-opt-in daily Rowset tips automation; that automation runs in the agent account,
-not in Rowset.
+menu, or daily tips offer. Immediately before returning that personalized
+recommendation, record only the `recommendation_emitted` activation milestone
+through the selected interface. With MCP, call `record_activation_milestone`.
+With CLI, call `rowset request POST /activation/milestones --json
+'{"milestone":"recommendation_emitted"}'`. With REST, post the same bounded
+body to `/api/activation/milestones`. Never send the recommendation, context,
+resource names, secrets, or dataset contents as analytics. Do not create the
+recommended project or datasets until the user confirms. Wait for the user's
+answer before continuing. On an affirmative answer, first record only
+`recommendation_accepted` through the selected interface. With CLI, call
+`rowset request POST /activation/milestones --json
+'{"milestone":"recommendation_accepted"}'`. Complete and verify the confirmed
+project and dataset creation before offering tips or starting unrelated work.
+On a negative answer, create nothing. Treat the project decision as resolved
+only after the selected branch finishes. Defer the daily Rowset tips offer until
+the project decision is resolved. In runtimes with scheduled tasks, the agent
+then offers a separate opt-in daily Rowset tips automation; that automation runs
+in the agent account, not in Rowset.
 
 ### After a yes: create and verify
 

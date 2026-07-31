@@ -70,8 +70,14 @@ def render_llms_txt() -> str:
         ),
         ('- Keep the success response short and end with: "Would you like me to create that now?"'),
         (
+            "- Immediately before returning a personalized recommendation, record only "
+            "recommendation_emitted through the selected interface. Never send recommendation "
+            "details, context, resource names, secrets, or dataset contents as analytics."
+        ),
+        (
             "- Do not create the recommended project or datasets until the user says yes. "
-            "After yes, search for exact compatible resources, create or reuse the private "
+            "After yes, record only recommendation_accepted, search for exact compatible "
+            "resources, create or reuse the private "
             "project and datasets, and verify them by key."
         ),
         (

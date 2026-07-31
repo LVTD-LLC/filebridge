@@ -59,6 +59,23 @@ Agent API keys can be created with one of three permission levels:
 
 Use an admin key only for trusted automation that needs to provision other keys.
 
+## First-run activation milestones
+
+After composing a personalized first-project recommendation, a trusted
+read/write agent can record the bounded `recommendation_emitted` milestone
+immediately before returning it. After an explicit yes, record
+`recommendation_accepted` before creating resources:
+
+```http
+POST /api/activation/milestones
+{"milestone":"recommendation_emitted"}
+```
+
+The endpoint is idempotent and accepts only those two milestone names. Never
+send recommendation text, user context, resource names, secrets, or dataset
+contents. First project creation, first dataset creation, and the first verified
+indexed-row update are recorded by Rowset itself.
+
 ## Interactive API docs
 
 Rowset also exposes generated API docs from the backend schema:

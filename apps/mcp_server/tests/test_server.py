@@ -205,6 +205,40 @@ def test_get_user_info_mcp_tool_returns_safe_user_data(monkeypatch):
     ]
 
 
+def test_record_activation_milestone_mcp_tool_uses_bounded_service(monkeypatch):
+    calls = []
+
+    def record_milestone(authenticated_profile, milestone, *, interface):
+        calls.append((authenticated_profile.id, milestone, interface))
+        return {
+            "status": "success",
+            "message": "Activation milestone recorded.",
+            "milestone": milestone,
+            "recorded": True,
+        }
+
+    async def run():
+        monkeypatch.setattr(
+            "apps.mcp_server.server._authenticate_profile",
+            lambda: _profile(),
+        )
+        monkeypatch.setattr(
+            "apps.mcp_server.server.record_profile_activation_milestone",
+            record_milestone,
+        )
+
+        async with Client(mcp) as client:
+            result = await client.call_tool(
+                "record_activation_milestone",
+                {"milestone": "recommendation_accepted"},
+            )
+
+        assert result.data["recorded"] is True
+
+    anyio.run(run)
+    assert calls == [(11, "recommendation_accepted", "mcp")]
+
+
 @override_settings(SITE_URL="https://rowset.example")
 def test_expired_trial_returns_structured_mcp_upgrade_error(monkeypatch):
     ended_at = timezone.now() - timedelta(seconds=1)
@@ -1144,7 +1178,15 @@ def test_project_mcp_tools_call_project_services(monkeypatch):  # noqa: C901
             "projects": [{"key": "project-key", "name": "Launch"}],
         }
 
-    def create_project(authenticated_profile, *, name, description=None, metadata=None):
+    def create_project(
+        authenticated_profile,
+        *,
+        name,
+        description=None,
+        metadata=None,
+        agent_api_key=None,
+    ):
+        assert agent_api_key.id == 3
         calls.append(("create_project", authenticated_profile.id, name, description, metadata))
         return {
             "status": "success",

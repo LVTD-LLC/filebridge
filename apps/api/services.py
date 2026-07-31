@@ -51,11 +51,13 @@ from apps.api.row_mutations import (
 from apps.api.row_mutations import (
     patch_dataset_row as patch_api_dataset_row,
 )
+from apps.core.activation import record_profile_activation_milestone
 from apps.core.analytics import (
     ROWSET_DATASET_CREATED,
     agent_api_key_tracking_properties,
     track_activation_event,
 )
+from apps.core.choices import ActivationMilestoneType
 from apps.core.models import AgentApiKey, Profile
 from apps.core.trials import get_trial_status
 from apps.datasets.choices import DatasetColumnType, DatasetMutationType
@@ -551,6 +553,7 @@ def create_profile_project(
     name: str,
     description: str | None = None,
     metadata: dict[str, Any] | None = None,
+    agent_api_key: AgentApiKey | None = None,
 ) -> dict:
     """Create a semantic dataset group for an authenticated profile."""
     normalized_name = _normalize_project_name(name)
@@ -561,6 +564,7 @@ def create_profile_project(
     ).exists():
         raise DatasetServiceError(409, "Project name already exists.")
 
+    had_projects = Project.objects.filter(profile=profile).exists()
     try:
         project = Project.objects.create(
             profile=profile,
@@ -570,6 +574,13 @@ def create_profile_project(
         )
     except IntegrityError as exc:
         raise DatasetServiceError(409, "Project name already exists.") from exc
+
+    if agent_api_key is not None and not had_projects:
+        record_profile_activation_milestone(
+            profile,
+            ActivationMilestoneType.FIRST_PROJECT_CREATED,
+            interface="server",
+        )
 
     project.dataset_count = 0
     return {
@@ -2411,6 +2422,21 @@ def _raise_if_unsupported_index_column_type(column_type: str) -> None:
         raise DatasetServiceError(400, "Calculated columns cannot be used as the dataset index.")
 
 
+def _record_first_dataset_created_activation(
+    profile: Profile,
+    agent_api_key: AgentApiKey | None,
+    *,
+    had_datasets: bool,
+) -> None:
+    if agent_api_key is None or had_datasets:
+        return
+    record_profile_activation_milestone(
+        profile,
+        ActivationMilestoneType.FIRST_DATASET_CREATED,
+        interface="server",
+    )
+
+
 def create_profile_dataset(
     profile: Profile,
     *,
@@ -2473,6 +2499,7 @@ def create_profile_dataset(
         normalized_rows,
     )
     active_dataset_count_before = _visible_profile_dataset_queryset(profile).count()
+    had_datasets = Dataset.objects.filter(profile=profile).exists()
 
     seen_index_values = set()
     row_payloads = []
@@ -2581,6 +2608,11 @@ def create_profile_dataset(
                 **agent_api_key_tracking_properties(agent_api_key),
             },
             source_function="apps.api.services.create_profile_dataset",
+        )
+        _record_first_dataset_created_activation(
+            profile,
+            agent_api_key,
+            had_datasets=had_datasets,
         )
 
     return {
@@ -4850,7 +4882,7 @@ def patch_profile_dataset_row_by_index(
             row = dataset.rows.get(index_value=index_value)
         except DatasetRow.DoesNotExist as exc:
             raise DatasetServiceError(404, "Row not found.") from exc
-        return patch_api_dataset_row(
+        result = patch_api_dataset_row(
             profile,
             dataset,
             row,
@@ -4858,6 +4890,13 @@ def patch_profile_dataset_row_by_index(
             agent_api_key=agent_api_key,
             hooks=_row_mutation_hooks(),
         )
+        if agent_api_key is not None:
+            record_profile_activation_milestone(
+                profile,
+                ActivationMilestoneType.FIRST_VERIFIED_INDEXED_ROW_UPDATE,
+                interface="server",
+            )
+        return result
 
 
 def delete_profile_dataset_row(

@@ -2,6 +2,13 @@ from dataclasses import dataclass
 from typing import Any
 
 CAPABILITY_VERSION = "2026-07-31"
+ROWSET_ACTIVATION_MILESTONE_PATH = "/api/activation/milestones"
+ROWSET_CLI_RECOMMENDATION_EMITTED_COMMAND = (
+    'rowset request POST /activation/milestones --json \'{"milestone":"recommendation_emitted"}\''
+)
+ROWSET_CLI_RECOMMENDATION_ACCEPTED_COMMAND = (
+    'rowset request POST /activation/milestones --json \'{"milestone":"recommendation_accepted"}\''
+)
 
 
 class CapabilitySelectionError(ValueError):
@@ -128,8 +135,14 @@ ROWSET_RECOMMENDED_STARTUP = (
         "checklist, credential status, URL list, or generic starters."
     ),
     (
-        "After an explicit yes, create or reuse and verify the confirmed private project and "
-        "datasets before doing unrelated work. After a no, create nothing."
+        "Immediately before returning a personalized recommendation, record only the bounded "
+        "recommendation_emitted activation milestone through the selected interface. Never send "
+        "the recommendation, context, resource names, secrets, or dataset contents as analytics."
+    ),
+    (
+        "After an explicit yes, record only recommendation_accepted, then create or reuse and "
+        "verify the confirmed private project and datasets before doing unrelated work. After a "
+        "no, create nothing."
     ),
     (
         "After the project decision is resolved, when the agent runtime supports scheduled "
@@ -220,6 +233,39 @@ ROWSET_SUCCESSFUL_SETUP_HANDOFF = {
         "Rowset is ready to use. When you have a workflow to organize, tell me about it and "
         "I'll recommend a useful first project and datasets."
     ),
+    "activation_milestones": {
+        "recommendation_emitted": (
+            "Record immediately before returning a personalized first-project recommendation."
+        ),
+        "recommendation_accepted": (
+            "Record only after the user explicitly agrees, before creating resources."
+        ),
+        "interfaces": {
+            "mcp": {
+                "tool": "record_activation_milestone",
+                "recommendation_emitted_arguments": {"milestone": "recommendation_emitted"},
+                "recommendation_accepted_arguments": {"milestone": "recommendation_accepted"},
+            },
+            "cli": {
+                "recommendation_emitted_command": ROWSET_CLI_RECOMMENDATION_EMITTED_COMMAND,
+                "recommendation_accepted_command": ROWSET_CLI_RECOMMENDATION_ACCEPTED_COMMAND,
+            },
+            "rest": {
+                "method": "POST",
+                "path": ROWSET_ACTIVATION_MILESTONE_PATH,
+                "recommendation_emitted_body": {"milestone": "recommendation_emitted"},
+                "recommendation_accepted_body": {"milestone": "recommendation_accepted"},
+            },
+        },
+        "allowed_payload_fields": ["milestone"],
+        "forbidden_payload_content": [
+            "recommendation text or rationale",
+            "user or workspace context",
+            "project or dataset names",
+            "secrets or credentials",
+            "dataset contents",
+        ],
+    },
     "post_confirmation": {
         "affirmative": (
             "Complete and verify the confirmed project and dataset creation before offering "
@@ -553,14 +599,26 @@ ROWSET_CAPABILITIES = (
             "Connect through MCP, CLI, or REST; use live capabilities and interface "
             "documentation as the source of truth; and verify the authenticated profile."
         ),
-        mcp_tools=("get_user_info", "get_rowset_capabilities"),
-        rest_paths=("/api/user", "/api/agent-api-keys"),
+        mcp_tools=(
+            "get_user_info",
+            "get_rowset_capabilities",
+            "record_activation_milestone",
+        ),
+        rest_paths=(
+            "/api/user",
+            "/api/agent-api-keys",
+            "/api/activation/milestones",
+        ),
         notes=(
             "Hosted MCP uses Authorization: Bearer <ROWSET_API_KEY>.",
             "The API key must stay in a private environment variable or secret store.",
             (
                 "Read keys inspect data, Read + write keys can mutate datasets and "
                 "projects, and Admin keys can create other agent API keys."
+            ),
+            (
+                "Recommendation milestone calls accept only recommendation_emitted or "
+                "recommendation_accepted and never accept recommendation details."
             ),
         ),
     ),

@@ -33,6 +33,8 @@ test("captures a stable CTA contract without query parameters", () => {
     cta_location: "header",
     destination: "/accounts/signup/",
     traffic_category: "human",
+    activation_stage: "landing_primary_cta",
+    activation_stage_order: 1,
   }]]);
 });
 
@@ -118,4 +120,6 @@ test("adds the PostHog session ID to checkout form submissions", () => {
   assert.equal(sessionInput.value, "session-123");
   assert.equal(captures.length, 1);
   assert.equal(captures[0][0], "rowset_marketing_cta_clicked");
+  assert.equal("activation_stage" in captures[0][1], false);
+  assert.equal("activation_stage_order" in captures[0][1], false);
 });

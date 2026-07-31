@@ -1,7 +1,8 @@
 from datetime import datetime
+from typing import Literal
 
 from ninja import Schema
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from apps.api.services import MAX_API_DATASET_CREATE_ROWS
 from apps.core.choices import AgentApiKeyAccessLevel, TrialStatus
@@ -80,6 +81,19 @@ class UserInfoOut(Schema):
     full_name: str
     date_joined: datetime
     profile: UserProfileOut
+
+
+class AgentReportedActivationMilestoneIn(Schema):
+    model_config = ConfigDict(extra="forbid")
+
+    milestone: Literal["recommendation_emitted", "recommendation_accepted"]
+
+
+class ActivationMilestoneOut(Schema):
+    status: str
+    message: str
+    milestone: str
+    recorded: bool
 
 
 class AgentApiKeyCreateIn(Schema):

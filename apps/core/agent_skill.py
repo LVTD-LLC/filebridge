@@ -3,6 +3,8 @@ from pathlib import Path
 from django.conf import settings
 
 from apps.core.capabilities import (
+    ROWSET_CLI_RECOMMENDATION_ACCEPTED_COMMAND,
+    ROWSET_CLI_RECOMMENDATION_EMITTED_COMMAND,
     ROWSET_CONFIRMED_FIRST_PROJECT_CREATION_INSTRUCTIONS,
     ROWSET_SUCCESSFUL_SETUP_HANDOFF,
 )
@@ -78,10 +80,18 @@ ROWSET_AGENT_SETUP_INSTRUCTIONS = "".join(
         ),
         ROWSET_STRONG_SETUP_HANDOFF,
         (
-            " Do not recap the selected interface. Do not include a setup or verification "
-            "checklist, credential status, URL list, generic starters, or the daily tips offer. "
+            " Immediately before returning that personalized recommendation, record only the "
+            "recommendation_emitted activation milestone through the selected interface. "
+            "For CLI, run "
+            f"`{ROWSET_CLI_RECOMMENDATION_EMITTED_COMMAND}`. Never "
+            "send the recommendation, context, resource names, secrets, or dataset contents as "
+            "analytics. Do not recap the selected interface. Do not include a setup or "
+            "verification checklist, credential status, URL list, generic starters, or the "
+            "daily tips offer. "
             "Do not create the recommended project or datasets until the user confirms. Wait for "
-            "the answer. On an affirmative answer: "
+            "the answer. On an affirmative answer, first record only recommendation_accepted "
+            "through the selected interface. For CLI, run "
+            f"`{ROWSET_CLI_RECOMMENDATION_ACCEPTED_COMMAND}`. Then: "
         ),
         ROWSET_AFFIRMATIVE_HANDOFF,
         " ",

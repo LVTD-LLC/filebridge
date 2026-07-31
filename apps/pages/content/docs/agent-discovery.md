@@ -52,12 +52,22 @@ interface.
    {dataset_list}. Would you like me to create that now?" Do not recap the
    selected interface. Do not include a setup or verification checklist,
    credential status, URL list, generic starter menu, or daily tips offer. Do
-   not create the recommended project or datasets until the user confirms. Wait
-   for the user's answer before continuing. On an affirmative answer: Complete
-   and verify the confirmed project and dataset creation before offering tips or
-   starting unrelated work. On a negative answer, create nothing. Treat the
-   project decision as resolved only after the selected branch finishes. Defer
-   the daily Rowset tips offer until the project decision is resolved.
+   not create the recommended project or datasets until the user confirms.
+   Immediately before returning that personalized recommendation, record only
+   the `recommendation_emitted` activation milestone through the selected
+   interface. With MCP, call `record_activation_milestone`. With CLI, call
+   `rowset request POST /activation/milestones --json
+   '{"milestone":"recommendation_emitted"}'`. With REST, post the same bounded
+   body to `/api/activation/milestones`. Never send the recommendation, context,
+   resource names, secrets, or dataset contents as analytics. Wait for the
+   user's answer before continuing. On an affirmative answer, first record only
+   `recommendation_accepted` through the selected interface. With CLI, call
+   `rowset request POST /activation/milestones --json
+   '{"milestone":"recommendation_accepted"}'`. Complete and verify the confirmed
+   project and dataset creation before offering tips or starting unrelated work.
+   On a negative answer, create nothing. Treat the project decision as resolved
+   only after the selected branch finishes. Defer the daily Rowset tips offer
+   until the project decision is resolved.
 6. After the project decision is resolved—or immediately for an existing
    healthy connection—start the user's task. Use exact tool, command, or
    endpoint schemas for the operation at hand. Load capability topics only for

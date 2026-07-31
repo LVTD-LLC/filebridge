@@ -18,6 +18,10 @@ deployment or release cut date.
 
 ## 2026-07-31
 
+### Added
+- Added a privacy-safe, retry-idempotent activation funnel from the primary
+  signup CTA through the first verified indexed-row update.
+
 ### Changed
 - Agent setup now inspects the runtime and configures the best supported Rowset
   interface automatically, pausing only when an external permission is required.

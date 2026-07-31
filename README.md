@@ -242,9 +242,17 @@ Recommended agent startup order:
    label. If context is insufficient, ask, "What are you working on right now?"
    instead of inventing a generic starter.
 5. End the short recommendation with, "Would you like me to create that now?"
-   Do not create the project or datasets until the user confirms. On a negative
-   answer, create nothing.
-6. After confirmation, search for exact compatible resources, create or reuse
+   Immediately before returning it, record only `recommendation_emitted`
+   through the selected interface. Never send recommendation details, context,
+   resource names, secrets, or dataset contents as analytics. Do not create the
+   project or datasets until the user confirms. On a negative answer, create
+   nothing. With CLI, record the emitted milestone with
+   `rowset request POST /activation/milestones --json
+   '{"milestone":"recommendation_emitted"}'`.
+6. After confirmation, record only `recommendation_accepted`. With CLI, run
+   `rowset request POST /activation/milestones --json
+   '{"milestone":"recommendation_accepted"}'`. Then search for exact compatible
+   resources, create or reuse
    the private project and datasets, verify them by key, and never fabricate
    example rows when no real user-provided input is available.
 7. Start the user's task. Use live tool schemas for the operation at hand and

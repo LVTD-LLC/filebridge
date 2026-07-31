@@ -18,9 +18,11 @@ from apps.api.auth import (
     session_auth,
 )
 from apps.api.schemas import (
+    ActivationMilestoneOut,
     AgentApiKeyCreateIn,
     AgentApiKeyCreateOut,
     AgentFeedbackSubmitOut,
+    AgentReportedActivationMilestoneIn,
     DatasetApiOut,
     DatasetArchiveOut,
     DatasetAssetApiOut,
@@ -130,6 +132,7 @@ from apps.api.services import (
     update_profile_project_metadata,
     update_profile_project_section,
 )
+from apps.core.activation import record_profile_activation_milestone
 from apps.core.analytics import (
     ROWSET_GET_USER_INFO_SUCCEEDED,
     agent_api_key_tracking_properties,
@@ -426,6 +429,24 @@ def get_user_info(request: HttpRequest):
 
 
 @api.post(
+    "/activation/milestones",
+    response=ActivationMilestoneOut,
+    auth=[api_key_write_auth],
+    tags=["user"],
+)
+def record_activation_milestone(
+    request: HttpRequest,
+    payload: AgentReportedActivationMilestoneIn,
+):
+    """Record a bounded agent-observed recommendation milestone exactly once."""
+    return record_profile_activation_milestone(
+        request.auth,
+        payload.milestone,
+        interface="rest",
+    )
+
+
+@api.post(
     "/feedback",
     response={201: AgentFeedbackSubmitOut},
     auth=[api_key_write_auth],
@@ -580,6 +601,7 @@ def create_project(request: HttpRequest, payload: ProjectCreateIn):
                 name=payload.name,
                 description=payload.description,
                 metadata=payload.metadata,
+                **_agent_actor_kwargs(request),
             ),
         )
     except DatasetServiceError as exc:
