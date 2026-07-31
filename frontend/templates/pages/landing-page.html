@@ -89,30 +89,39 @@
             </div>
         </div>
     </section>
-    <section class="border-b border-slate-950/10 bg-[#f5f5ff] text-slate-950 dark:border-white/15 dark:bg-neutral-950 dark:text-white" aria-labelledby="product-screenshot-heading">
+    <section id="durable-agent-state" class="border-b border-slate-950/10 bg-[#f5f5ff] text-slate-950 dark:border-white/15 dark:bg-neutral-950 dark:text-white" aria-labelledby="durable-agent-state-heading">
         <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
             <div class="grid gap-6 lg:grid-cols-[3fr_2fr] lg:items-end">
-                <div>
-                    <h2 id="product-screenshot-heading" class="max-w-[18ch] text-5xl font-semibold tracking-tight text-balance sm:text-6xl">See what your agents changed.</h2>
-                </div>
-                <p class="max-w-[42ch] text-xl text-pretty text-slate-600 dark:text-neutral-300">Review recent datasets, row counts, schema, and sharing state before the next agent run.</p>
+                <h2 id="durable-agent-state-heading" class="max-w-[18ch] text-5xl font-semibold tracking-tight text-balance sm:text-6xl">One request becomes state the next run can use.</h2>
+                <p class="max-w-[42ch] text-xl text-pretty text-slate-600 dark:text-neutral-300">Follow one task from a chat request to an indexed row, a later agent handoff, and your review.</p>
             </div>
-            <figure class="mt-10 overflow-hidden border-2 border-slate-950 bg-white p-1 dark:border-white dark:bg-slate-950 sm:p-2">
-                <img src="{% static 'vendors/images/landing/product-dashboard-light.webp' %}"
-                     alt="Rowset dashboard showing projects and recently updated datasets"
-                     width="1600"
-                     height="1000"
-                     loading="lazy"
-                     decoding="async"
-                     class="block h-auto w-full bg-white dark:hidden" />
-                <img src="{% static 'vendors/images/landing/product-dashboard-dark.webp' %}"
-                     alt="Rowset dashboard showing projects and recently updated datasets"
-                     width="1600"
-                     height="1000"
-                     loading="lazy"
-                     decoding="async"
-                     class="hidden h-auto w-full bg-slate-950 dark:block" />
-            </figure>
+            <ol role="list" class="mt-10 grid gap-px border-2 border-slate-950 bg-slate-950/20 md:grid-cols-2 xl:grid-cols-4 dark:border-white dark:bg-white/20">
+                <li class="bg-[#f5f5ff] p-6 dark:bg-neutral-950">
+                    <h3 class="flex items-center gap-3 text-2xl font-semibold tracking-tight"><span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1313a4] text-sm text-white dark:bg-[#ffdd3d] dark:text-[#1313a4]">1</span>You ask</h3>
+                    <p class="mt-6 text-lg text-pretty">“Keep RFO-042 moving. Leave the next step where another agent can find it.”</p>
+                </li>
+                <li class="bg-white p-6 dark:bg-neutral-900">
+                    <h3 class="flex items-center gap-3 text-2xl font-semibold tracking-tight"><span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1313a4] text-sm text-white dark:bg-[#ffdd3d] dark:text-[#1313a4]">2</span>Agent A writes</h3>
+                    <p class="mt-6 text-pretty text-slate-600 dark:text-neutral-300">Agent A creates one row in <strong class="text-slate-950 dark:text-white">agent_tasks</strong>, indexed by <strong class="text-slate-950 dark:text-white">task_id</strong>.</p>
+                    <dl class="mt-5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 border-t border-slate-950/15 pt-4 text-sm dark:border-white/20">
+                        <dt class="font-mono text-slate-500 dark:text-neutral-400">task_id</dt><dd class="font-semibold">RFO-042</dd>
+                        <dt class="font-mono text-slate-500 dark:text-neutral-400">status</dt><dd>Doing</dd>
+                        <dt class="font-mono text-slate-500 dark:text-neutral-400">next_step</dt><dd>Review mobile copy</dd>
+                        <dt class="font-mono text-slate-500 dark:text-neutral-400">updated_by</dt><dd>Agent A</dd>
+                    </dl>
+                </li>
+                <li class="bg-[#f5f5ff] p-6 dark:bg-neutral-950">
+                    <h3 class="flex items-center gap-3 text-2xl font-semibold tracking-tight"><span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1313a4] text-sm text-white dark:bg-[#ffdd3d] dark:text-[#1313a4]">3</span>A later run reads</h3>
+                    <p class="mt-6 text-pretty text-slate-600 dark:text-neutral-300">Agent B retrieves the <strong class="text-slate-950 dark:text-white">same indexed row</strong> for <strong class="text-slate-950 dark:text-white">RFO-042</strong> and continues from “Review mobile copy” instead of rebuilding the plan.</p>
+                    <p class="mt-4 text-pretty text-slate-600 dark:text-neutral-300">Agent B updates that same row by <strong class="text-slate-950 dark:text-white">task_id</strong> when the work is ready for review.</p>
+                </li>
+                <li class="bg-white p-6 dark:bg-neutral-900">
+                    <h3 class="flex items-center gap-3 text-2xl font-semibold tracking-tight"><span aria-hidden="true" class="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1313a4] text-sm text-white dark:bg-[#ffdd3d] dark:text-[#1313a4]">4</span>You review</h3>
+                    <p class="mt-6 text-pretty text-slate-600 dark:text-neutral-300">In Rowset, you inspect the current row: <strong class="text-slate-950 dark:text-white">task_id RFO-042</strong>, <strong class="text-slate-950 dark:text-white">status Review</strong>, and <strong class="text-slate-950 dark:text-white">updated_by Agent B</strong>.</p>
+                    <p class="mt-4 text-pretty text-slate-600 dark:text-neutral-300">The record remains private and ready for the next run.</p>
+                </li>
+            </ol>
+            <a href="{% url 'use_case_page' slug='agent-task-board' %}" class="mt-8 inline-flex min-h-12 items-center font-semibold underline decoration-2 underline-offset-4 hover:text-[#1313a4] dark:hover:text-[#ffdd3d]">Build an agent task board →</a>
         </div>
     </section>
     <section class="bg-white text-slate-950 dark:bg-neutral-950 dark:text-white">

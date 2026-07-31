@@ -20,7 +20,6 @@ from django.templatetags.static import static
 from django.test import override_settings
 from django.urls import resolve, reverse
 from django.utils.html import strip_tags
-from PIL import Image
 
 from apps.core.capabilities import ROWSET_SUCCESSFUL_SETUP_HANDOFF, RowsetUseCase
 from apps.pages import use_cases as page_use_cases
@@ -1138,27 +1137,81 @@ def test_user_facing_templates_do_not_use_decorative_eyebrow_labels():
     assert metadata_users == []
 
 
-def test_landing_page_shows_product_dashboard_screenshot(client):
+def test_landing_page_demonstrates_durable_cross_session_agent_state(client):
     response = client.get(reverse("landing"))
 
     assert response.status_code == 200
     content = response.content.decode()
-    light_screenshot = "vendors/images/landing/product-dashboard-light.webp"
-    dark_screenshot = "vendors/images/landing/product-dashboard-dark.webp"
-    assert f'src="{static(light_screenshot)}"' in content
-    assert f'src="{static(dark_screenshot)}"' in content
-    screenshot_alt = 'alt="Rowset dashboard showing projects and recently updated datasets"'
-    assert content.count(screenshot_alt) == 2
-    assert content.count('width="1600"') == 2
-    assert content.count('height="1000"') == 2
-    assert 'class="block h-auto w-full bg-white dark:hidden"' in content
-    assert 'class="hidden h-auto w-full bg-slate-950 dark:block"' in content
-
-    for screenshot_name in (light_screenshot, dark_screenshot):
-        screenshot_path = settings.BASE_DIR / "frontend" / screenshot_name
-        with Image.open(screenshot_path) as screenshot:
-            assert screenshot.format == "WEBP"
-            assert screenshot.size == (1600, 1000)
+    demonstration = _section_html(content, "durable-agent-state")
+    heading = re.search(
+        r'<h2\b[^>]*id="durable-agent-state-heading"[^>]*>(.*?)</h2>',
+        demonstration,
+        re.DOTALL,
+    )
+    assert heading
+    assert "One request becomes state the next run can use." in strip_tags(heading.group(1))
+    section_opening_tag = demonstration[: demonstration.index(">") + 1]
+    assert 'aria-labelledby="durable-agent-state-heading"' in section_opening_tag
+    ordered_steps = re.search(
+        r"<ol\b(?P<attributes>[^>]*)>(?P<body>.*?)</ol>",
+        demonstration,
+        re.DOTALL,
+    )
+    assert ordered_steps
+    assert 'role="list"' in ordered_steps.group("attributes")
+    steps = re.findall(r"<li\b[^>]*>(.*?)</li>", ordered_steps.group("body"), re.DOTALL)
+    assert len(steps) == 4
+    expected_steps = (
+        ("You ask", "Keep RFO-042 moving"),
+        ("Agent A writes", "agent_tasks", "task_id", "RFO-042", "Review mobile copy"),
+        (
+            "A later run reads",
+            "same indexed row",
+            "RFO-042",
+            "Review mobile copy",
+            "updates that same row by task_id",
+        ),
+        ("You review", "task_id RFO-042", "status Review", "updated_by Agent B", "private"),
+    )
+    for step, expected_fragments in zip(steps, expected_steps, strict=True):
+        normalized_step = " ".join(strip_tags(step).split())
+        assert all(fragment in normalized_step for fragment in expected_fragments)
+    initial_row = tuple(
+        (
+            " ".join(strip_tags(label).split()),
+            " ".join(strip_tags(value).split()),
+        )
+        for label, value in re.findall(
+            r"<dt\b[^>]*>(.*?)</dt>\s*<dd\b[^>]*>(.*?)</dd>",
+            steps[1],
+            re.DOTALL,
+        )
+    )
+    assert initial_row == (
+        ("task_id", "RFO-042"),
+        ("status", "Doing"),
+        ("next_step", "Review mobile copy"),
+        ("updated_by", "Agent A"),
+    )
+    assert f'href="{reverse("use_case_page", kwargs={"slug": "agent-task-board"})}"' in (
+        demonstration
+    )
+    normalized_markup = demonstration.lower()
+    for unsupported_markup in (
+        "<img",
+        "<video",
+        "<audio",
+        "<picture",
+        "<source",
+        "autoplay",
+        "animation:",
+        "transition:",
+    ):
+        assert unsupported_markup not in normalized_markup
+    for class_value in re.findall(r'class="([^"]*)"', normalized_markup):
+        assert not re.search(r"(?:^|\s)(?:animate-|motion-|transition(?:$|\s|-|:))", class_value)
+    assert "product-dashboard-light.webp" not in content
+    assert "product-dashboard-dark.webp" not in content
 
 
 def test_landing_page_links_to_projects_using_rowset(client):
