@@ -77,6 +77,9 @@ Current interface references:
 - [Use Rowset from the CLI](/docs/use-cli)
 - [Dataset API](/docs/dataset-api)
 
+These are execution and troubleshooting references for the agent, not a menu
+you need to choose from.
+
 ## 4. Configure only what the connection needs
 
 Follow the current connection guide for the selected interface. Do not load
@@ -187,37 +190,35 @@ extract the dataset key from the URL before using `rowset dataset get` or
 `/api/datasets/{dataset_key}`. If the relevant dataset is unknown, search with
 an explicit limit of 3, select one result, then load its full context.
 
-## 6. Create one dataset
+## 6. Continue with a confirmed dataset
 
-Ask the agent to create a small dataset with a stable index column. For a first
-run, choose a workflow with a natural key:
+After the confirmed project and datasets are ready, add a row only when real
+user-provided input is available. Leave the dataset empty rather than inventing
+placeholder or example data. Ask the agent to inspect the confirmed dataset
+before writing, preserve its schema and stable index, and read the row back
+afterward.
 
-- `email` for a personal CRM
-- `task_id` for an agent task board
-- `feedback_id` for feedback triage
-- `sku` for a product catalog
-
-If the source has no stable key, ask the agent to let Rowset generate
-`rowset_id`.
-
-Example prompt:
+For example, after providing a real source row:
 
 ```text
-Create a Rowset dataset named agent_tasks with headers task_id, status, owner,
-next_action, and notes. Use task_id as the index column. Add three example rows
-and include instructions that status must be todo, doing, blocked, or done.
+Add the real row I just provided to the confirmed Rowset dataset. Inspect the
+dataset first, use its stable index, and do not invent missing values. Read the
+stored row back by index and summarize what was saved.
 ```
 
-The agent should call `get_dataset` after creation so it has the dataset key,
-headers, index column, instructions, and schema context.
+If the source has no reliable business key, use the dataset's generated
+`rowset_id` path and include the real row in the initial dataset creation
+request when appropriate. Do not retry a standalone generated-index write whose
+returned index is unknown.
 
 ## 7. Try one update
 
-Ask the agent to update a row by index value, then read it back:
+After a real row exists, ask the agent to update it by index value and read it
+back:
 
 ```text
-Update TASK-001 to status doing, then fetch that row by task_id and summarize
-what changed.
+Update the real row I identified to the new values I provided, then fetch it by
+its stable index and summarize what changed.
 ```
 
 You now have a private dataset the agent can continue using in later sessions.

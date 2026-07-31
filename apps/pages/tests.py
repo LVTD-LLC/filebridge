@@ -174,6 +174,54 @@ def test_agent_onboarding_docs_select_interface_automatically():
         assert "code-only or http-only" in source
 
 
+@override_settings(SITE_URL="https://rowset.example")
+def test_primary_onboarding_surfaces_share_autonomous_personalized_handoff(client):
+    sources = {
+        "landing markdown": client.get("/index.md").content.decode(),
+        "quickstart markdown": client.get("/docs/quickstart.md").content.decode(),
+        "configuration markdown": client.get("/docs/configure-agent-access.md").content.decode(),
+        "llms.txt": client.get(reverse("llms_txt")).content.decode(),
+        "generated setup prompt": build_content_agent_setup_prompt(),
+        "README": Path(settings.BASE_DIR, "README.md").read_text(encoding="utf-8"),
+    }
+
+    for source in sources.values():
+        normalized = " ".join(source.lower().split())
+        assert "best supported interface" in normalized
+        assert "already-authorized context" in normalized
+        assert "one to three concrete datasets" in normalized
+        assert "would you like me to create that now?" in normalized
+        assert "what are you working on right now?" in normalized
+        assert "negative answer" in normalized
+        assert "create nothing" in normalized
+        assert "do not create" in normalized or "does not create" in normalized
+        assert "wait for you to choose" not in normalized
+        assert "choose for the runtime and workflow" not in normalized
+        assert "continue with recommended setup" not in normalized
+
+    for name in (
+        "quickstart markdown",
+        "configuration markdown",
+        "llms.txt",
+        "generated setup prompt",
+        "README",
+    ):
+        normalized = " ".join(sources[name].lower().split())
+        assert "untrusted evidence" in normalized
+        assert "privacy-safe context label" in normalized
+        assert "never fabricate example rows" in normalized
+        assert "add three example rows" not in normalized
+
+    landing_html = " ".join(client.get(reverse("landing")).content.decode().lower().split())
+    assert "already-authorized context" in landing_html
+    assert "one to three concrete datasets" in landing_html
+    assert "would you like me to create that now?" in landing_html
+    assert "what are you working on right now?" in landing_html
+    assert "does not create" in landing_html
+    assert "negative answer" in landing_html
+    assert "create nothing" in landing_html
+
+
 def test_agent_onboarding_guidance_makes_failed_setup_resumable():
     sources = {
         relative_path: " ".join(
