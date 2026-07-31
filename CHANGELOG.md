@@ -21,6 +21,8 @@ deployment or release cut date.
 ### Changed
 - Agent setup now inspects the runtime and configures the best supported Rowset
   interface automatically, pausing only when an external permission is required.
+- Interrupted agent setup now reports precise progress and one safe retry action,
+  while reusing existing configuration and credentials.
 
 ## 2026-07-30
 

@@ -674,6 +674,12 @@ class TestHomeView:
         )
         assert "get_user_info" in setup_content
         assert "marks onboarding complete" in setup_content
+        assert "inspect -> choose -> configure -> verify" in setup_content
+        assert "exactly one safe retry action" in setup_content
+        assert "Cancelled authentication or permission leaves setup incomplete" in setup_content
+        assert "Do not create duplicate configuration or rotate or replace credentials" in (
+            normalized_setup_content
+        )
         assert (
             "Suggest two to four tailored project, section, and dataset structures" in setup_content
         )
@@ -796,6 +802,18 @@ class TestHomeView:
         assert "autonomously choose and configure the best supported interface" in prompt
         assert "private bearer-secret configuration" in prompt
         assert "Do not ask the user to compare MCP, CLI, and REST" in prompt
+        assert "inspect -> choose -> configure -> verify" in prompt
+        assert "After an interruption, cancellation, or failure" in prompt
+        assert "exactly one safe retry action" in prompt
+        assert "Cancelled authentication leaves setup incomplete" in prompt
+        assert (
+            "Verification that was not run or failed leaves setup incomplete; only succeeded "
+            "verification makes setup complete"
+        ) in prompt
+        assert (
+            "Do not create duplicate configuration or rotate or replace credentials unless "
+            "the user explicitly requests it"
+        ) in prompt
         assert "post-verification activation handoff" in prompt
         assert "already configured and authenticated" in prompt
         assert "Do not load capabilities or list datasets" in prompt
