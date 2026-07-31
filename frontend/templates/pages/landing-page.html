@@ -25,6 +25,41 @@
             </div>
         </div>
     </section>
+    <section id="use-cases" class="bg-[#ffdd3d] text-[#1313a4]" aria-labelledby="use-cases-heading">
+        <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+            <div class="grid gap-6 lg:grid-cols-[3fr_2fr] lg:items-end">
+                <h2 id="use-cases-heading" class="max-w-[18ch] font-display text-5xl font-semibold tracking-tight text-balance sm:text-6xl">Start with work your agent already does.</h2>
+                <p class="max-w-[42ch] text-xl text-pretty">You ask for the outcome. Your agent writes structured rows. Rowset keeps them ready for the next run.</p>
+            </div>
+            <div class="mt-12 grid border-y-2 border-[#1313a4] lg:grid-cols-3">
+                <article class="py-8 lg:pr-8">
+                    <h3 class="text-2xl font-semibold tracking-tight"><a href="{% url 'use_case_page' slug='agent-task-board' %}" class="underline decoration-2 underline-offset-4 hover:text-white">Agent task board</a></h3>
+                    <dl class="mt-6 divide-y divide-[#1313a4]/25">
+                        <div class="py-4 first:pt-0"><dt class="text-sm font-semibold">You ask</dt><dd class="mt-2 text-base text-pretty">“Keep this project moving and tell me what is blocked.”</dd></div>
+                        <div class="py-4"><dt class="text-sm font-semibold">Agent writes</dt><dd class="mt-2 text-base text-pretty">Tasks with owners, status, priority, and next steps.</dd></div>
+                        <div class="py-4 last:pb-0"><dt class="text-sm font-semibold">Later</dt><dd class="mt-2 text-base text-pretty">The next agent run resumes open work and updates the same task rows.</dd></div>
+                    </dl>
+                </article>
+                <article class="border-t-2 border-[#1313a4] py-8 lg:border-l-2 lg:border-t-0 lg:px-8">
+                    <h3 class="text-2xl font-semibold tracking-tight">Shared research</h3>
+                    <dl class="mt-6 divide-y divide-[#1313a4]/25">
+                        <div class="py-4 first:pt-0"><dt class="text-sm font-semibold">You ask</dt><dd class="mt-2 text-base text-pretty">“Research these options and keep the evidence together.”</dd></div>
+                        <div class="py-4"><dt class="text-sm font-semibold">Agent writes</dt><dd class="mt-2 text-base text-pretty">Sources, findings, confidence, and unresolved questions.</dd></div>
+                        <div class="py-4 last:pb-0"><dt class="text-sm font-semibold">Later</dt><dd class="mt-2 text-base text-pretty">A later run searches the evidence, adds what changed, and helps your agent avoid repeating the research.</dd></div>
+                    </dl>
+                </article>
+                <article class="border-t-2 border-[#1313a4] py-8 lg:border-l-2 lg:border-t-0 lg:pl-8">
+                    <h3 class="text-2xl font-semibold tracking-tight"><a href="{% url 'use_case_page' slug='personal-crm' %}" class="underline decoration-2 underline-offset-4 hover:text-white">Personal CRM</a></h3>
+                    <dl class="mt-6 divide-y divide-[#1313a4]/25">
+                        <div class="py-4 first:pt-0"><dt class="text-sm font-semibold">You ask</dt><dd class="mt-2 text-base text-pretty">“Remember who I should follow up with and why.”</dd></div>
+                        <div class="py-4"><dt class="text-sm font-semibold">Agent writes</dt><dd class="mt-2 text-base text-pretty">Contacts, context, last interaction, and next follow-up.</dd></div>
+                        <div class="py-4 last:pb-0"><dt class="text-sm font-semibold">Later</dt><dd class="mt-2 text-base text-pretty">Future runs recover the relationship history and update the same contact rows.</dd></div>
+                    </dl>
+                </article>
+            </div>
+            <a href="{% url 'use_cases' %}" class="mt-8 inline-flex min-h-12 items-center font-semibold underline decoration-2 underline-offset-4 hover:text-white">See all workflow guides →</a>
+        </div>
+    </section>
     <section class="border-b border-slate-950/10 bg-white text-slate-950 dark:border-white/15 dark:bg-neutral-950 dark:text-white" aria-labelledby="social-proof-heading">
         <div class="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center lg:gap-10 lg:px-8">
             <h2 id="social-proof-heading" class="text-sm font-semibold whitespace-nowrap">Built with Rowset</h2>
@@ -78,14 +113,6 @@
                      decoding="async"
                      class="hidden h-auto w-full bg-slate-950 dark:block" />
             </figure>
-        </div>
-    </section>
-    <section class="bg-[#ffdd3d] text-[#1313a4]">
-        <div class="mx-auto max-w-7xl border-t-2 border-[#1313a4] px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-            <h2 class="max-w-[18ch] font-display text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Give your agent a workflow it can keep up to date.</h2>
-            <div class="mt-12 flex flex-wrap gap-x-5 gap-y-2 font-display text-4xl font-semibold tracking-tight sm:text-6xl lg:text-7xl">
-                <a href="{% url 'use_case_page' slug='content-pipeline' %}" class="hover:text-white">Content pipeline.</a><a href="{% url 'use_case_page' slug='agent-task-board' %}" class="text-[#1313a4]/45 hover:text-white">Agent task board.</a><a href="{% url 'use_case_page' slug='personal-crm' %}" class="hover:text-white">Personal CRM.</a><a href="{% url 'use_case_page' slug='bug-qa-tracker' %}" class="text-[#1313a4]/45 hover:text-white">Bug tracker.</a><a href="{% url 'use_case_page' slug='product-inventory-catalog' %}" class="hover:text-white">Product catalog.</a><a href="{% url 'use_case_page' slug='feedback-triage' %}" class="text-[#1313a4]/45 hover:text-white">Feedback triage.</a><a href="{% url 'use_cases' %}" class="hover:text-white">Anything with rows.</a>
-            </div>
         </div>
     </section>
     <section class="bg-white text-slate-950 dark:bg-neutral-950 dark:text-white">

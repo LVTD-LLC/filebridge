@@ -945,7 +945,7 @@ def test_landing_page_omits_prompt_and_shows_agent_native_positioning(client):
     assert "Private structured records agents can update across sessions" in content
     assert "Connect once. Then ask your agent to build." in content
     assert "Agent task board" in content
-    assert "Feedback triage" in content
+    assert "Shared research" in content
     assert "Personal CRM" in content
     assert reverse("use_cases") in content
     assert reverse("docs_page", kwargs={"slug": "connect-mcp"}) in content
@@ -987,6 +987,87 @@ def test_landing_hero_explains_concrete_agent_managed_work(client):
     assert hero.index("Connect an agent") < hero.index("See an agent task board")
     assert "Any agent." not in hero
     assert "Any workflow." not in hero
+
+
+def test_landing_explains_three_workflows_immediately_after_hero(client):
+    response = client.get(reverse("landing"))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    hero_start = content.index('<section id="product"')
+    hero_end = content.index("</section>", hero_start) + len("</section>")
+    next_section_start = content.index("<section", hero_end)
+
+    assert content.startswith('<section id="use-cases"', next_section_start)
+    use_cases = _section_html(content, "use-cases")
+    articles = re.findall(r"<article\b[^>]*>(.*?)</article>", use_cases, re.DOTALL)
+    assert len(articles) == 3
+    expected_workflows = (
+        (
+            "Agent task board",
+            (
+                ("You ask", "“Keep this project moving and tell me what is blocked.”"),
+                (
+                    "Agent writes",
+                    "Tasks with owners, status, priority, and next steps.",
+                ),
+                (
+                    "Later",
+                    "The next agent run resumes open work and updates the same task rows.",
+                ),
+            ),
+        ),
+        (
+            "Shared research",
+            (
+                ("You ask", "“Research these options and keep the evidence together.”"),
+                (
+                    "Agent writes",
+                    "Sources, findings, confidence, and unresolved questions.",
+                ),
+                (
+                    "Later",
+                    "A later run searches the evidence, adds what changed, and helps your "
+                    "agent avoid repeating the research.",
+                ),
+            ),
+        ),
+        (
+            "Personal CRM",
+            (
+                ("You ask", "“Remember who I should follow up with and why.”"),
+                (
+                    "Agent writes",
+                    "Contacts, context, last interaction, and next follow-up.",
+                ),
+                (
+                    "Later",
+                    "Future runs recover the relationship history and update the same "
+                    "contact rows.",
+                ),
+            ),
+        ),
+    )
+    for article, (title, expected_steps) in zip(articles, expected_workflows, strict=True):
+        assert title in article
+        rendered_steps = tuple(
+            (
+                " ".join(strip_tags(label).split()),
+                unescape(" ".join(strip_tags(value).split())),
+            )
+            for label, value in re.findall(
+                r"<dt\b[^>]*>(.*?)</dt>\s*<dd\b[^>]*>(.*?)</dd>",
+                article,
+                re.DOTALL,
+            )
+        )
+        assert rendered_steps == expected_steps
+    assert f'href="{reverse("use_cases")}"' in use_cases
+    assert f'href="{reverse("use_case_page", kwargs={"slug": "agent-task-board"})}"' in articles[0]
+    assert f'href="{reverse("use_case_page", kwargs={"slug": "personal-crm"})}"' in articles[2]
+    assert content.index('<section id="use-cases"') < content.index("Built with Rowset")
+    assert content.index('<section id="use-cases"') < content.index('<section id="open-source"')
+    assert "Give your agent a workflow it can keep up to date." not in content
 
 
 def test_primary_positioning_surfaces_use_the_same_concrete_records(client):
