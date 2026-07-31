@@ -497,8 +497,30 @@ def test_get_rowset_capabilities_mcp_tool_can_return_full_guide(monkeypatch):
         assert recovery["verification_states"] == ["not_run", "failed", "succeeded"]
         assert "Cancelled authentication or permission is incomplete" in " ".join(recovery["rules"])
         assert "trial starts on the first dataset or project mutation" in startup
-        assert "suggest two to four project, section, and dataset structures" in startup
-        assert "Ask before creating anything" in startup
+        assert "one high-confidence project recommendation" in startup
+        assert "one to three concrete datasets" in startup
+        recommendation = payload["first_project_recommendation"]
+        assert recommendation["project_count"] == 1
+        assert recommendation["dataset_count"] == {"minimum": 1, "maximum": 3}
+        assert [example["context"] for example in recommendation["examples"]] == [
+            "code_project",
+            "content_workflow",
+            "insufficient_context",
+        ]
+        output_fields = set(recommendation["output_fields"])
+        assert all(
+            output_fields <= set(example)
+            for example in recommendation["examples"]
+            if "project_name" in example
+        )
+        assert recommendation["confirmation_question"] == (
+            "Would you like me to create that project and those datasets?"
+        )
+        assert (
+            recommendation["automation_offer_timing"]
+            == "after the user answers the project confirmation question"
+        )
+        assert "Do not enumerate unrelated private resources" in " ".join(recommendation["rules"])
         assert "daily Rowset tips automation" in startup
         assert "explicit agreement" in startup
         dataset_context = next(

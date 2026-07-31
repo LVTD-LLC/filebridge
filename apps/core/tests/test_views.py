@@ -681,7 +681,24 @@ class TestHomeView:
             normalized_setup_content
         )
         assert (
-            "Suggest two to four tailored project, section, and dataset structures" in setup_content
+            "Produce one high-confidence project recommendation with one to three concrete datasets"
+        ) in normalized_setup_content
+        assert "Do not enumerate unrelated private resources" in setup_content
+        assert "What are you working on that you want Rowset to help organize?" in setup_content
+        assert "ReviewGate" in setup_content
+        assert "Improvement task board" in setup_content
+        assert "Content operations" in setup_content
+        assert (
+            "Do not create the recommended project or datasets until the user confirms"
+            in setup_content
+        )
+        assert "Would you like me to create that project and those datasets?" in setup_content
+        assert (
+            "Return immediately after asking the weak-context question" in normalized_setup_content
+        )
+        assert (
+            "Defer the daily Rowset tips offer until the project decision is resolved"
+            in normalized_setup_content
         )
         assert "daily Rowset tips automation" in setup_content
         assert "runs in the user's agent account" in setup_content
@@ -815,6 +832,15 @@ class TestHomeView:
             "the user explicitly requests it"
         ) in prompt
         assert "post-verification activation handoff" in prompt
+        assert "one high-confidence project recommendation" in prompt
+        assert "one to three concrete datasets" in prompt
+        assert "already-authorized context" in prompt
+        assert "Do not enumerate unrelated private resources" in prompt
+        assert "What are you working on that you want Rowset to help organize?" in prompt
+        assert "Do not create the recommended project or datasets until the user confirms" in prompt
+        assert "Would you like me to create that project and those datasets?" in prompt
+        assert "Return immediately after asking the weak-context question" in prompt
+        assert "Defer the daily Rowset tips offer until the project decision is resolved" in prompt
         assert "already configured and authenticated" in prompt
         assert "Do not load capabilities or list datasets" in prompt
         assert "search with an explicit limit of 3" in prompt

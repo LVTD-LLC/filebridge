@@ -124,17 +124,32 @@ correction.
 Complete this handoff only during first-run setup. Skip it for an existing,
 healthy connection and proceed with the user's requested Rowset task.
 
-1. Use context already available from working with the user. When checking for
-   duplicates would materially improve a suggestion, run a bounded Rowset
-   search with an explicit limit of 3; do not enumerate unrelated projects or datasets,
-   search unrelated private sources, or invent facts about their work.
-2. Suggest two to four tailored project, section, and dataset structures.
-   Briefly explain why each would help and avoid duplicating existing Rowset
-   data.
-3. Ask which option the user wants to create. Do not create a first dataset or
-   perform another Rowset mutation unless the user explicitly chooses one.
-4. If the current agent runtime supports scheduled tasks or automations, make a
-   separate opt-in offer to create a daily Rowset tips automation. Use this
+1. Use already-authorized context: the current conversation, current repository
+   and steering documents, active task description, and sources the user already
+   authorized for the current task.
+2. Do not enumerate unrelated private resources or broaden access to email,
+   private datasets, or unrelated workspaces. When checking for duplicates would
+   materially improve the recommendation, run one bounded Rowset search with an
+   explicit limit of 3.
+3. Prefer recurring structured operational state such as tasks, research,
+   feedback, contacts, inventory, or content queues. Produce one high-confidence
+   project recommendation with one to three concrete datasets. Name the evidence
+   and explain the recommendation in one short sentence.
+4. If evidence is weak or contradictory, ask exactly one short question:
+
+   > What are you working on that you want Rowset to help organize?
+
+   Do not invent a recommendation. Return immediately after asking the
+   weak-context question. Resume only after the user answers.
+5. Do not create the recommended project or datasets until the user confirms.
+   End a strong recommendation by asking exactly:
+
+   > Would you like me to create that project and those datasets?
+
+   Wait for the user's answer.
+6. Defer the daily Rowset tips offer until the project decision is resolved. If
+   the current agent runtime supports scheduled tasks or automations, then make
+   a separate opt-in offer to create a daily Rowset tips automation. Use this
    wording or a concise equivalent:
 
    > Did you know you can extend your Rowset trial by completing specific
@@ -143,6 +158,17 @@ healthy connection and proceed with the user's requested Rowset task.
    > tip, use case, or feature you may not know about?
 
    Only create the automation after explicit agreement.
+
+Examples:
+
+- Code project: repository and task context concern ReviewGate agent feedback.
+  Recommend a `ReviewGate` project with an `Improvement task board` and
+  `Agent feedback` dataset.
+- Content workflow: the current task concerns recurring content production.
+  Recommend a `Content operations` project with a `Content queue`, `Research
+  library`, and `Performance tracker`.
+- Insufficient context: ask the single question above instead of proposing a
+  generic project.
 
 Daily tips must be grounded in Rowset's current capabilities, docs, or blog
 resources. Be clear that the scheduled task runs in the user's agent account;

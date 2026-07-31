@@ -113,12 +113,19 @@ verifies the connection and completes onboarding. MCP reads and API-key creation
 stay trial-neutral, so the MCP trial starts on the first dataset or project mutation;
 CLI and REST user-info requests start it immediately.
 
-After verification, the setup prompt asks the agent to use context it already
-has about the user's work and read-only Rowset discovery to propose a few useful
-project, section, and dataset structures. The agent asks which option to create
-before changing data. In runtimes with scheduled tasks, it also offers a
-separate opt-in daily Rowset tips automation; that automation runs in the agent
-account, not in Rowset.
+After verification, the setup prompt uses already-authorized context from the
+current conversation, repository and steering documents, active task, and
+sources already authorized for that task. It produces one high-confidence
+project recommendation with one to three concrete datasets and explains the
+evidence in one short sentence. Do not enumerate unrelated private resources.
+If evidence is weak or contradictory, the agent asks only, "What are you working
+on that you want Rowset to help organize?" Return immediately after asking the
+weak-context question and wait for the answer. Do not create the recommended
+project or datasets until the user confirms. End a strong recommendation by
+asking, "Would you like me to create that project and those datasets?" Defer the
+daily Rowset tips offer until the project decision is resolved. In runtimes with
+scheduled tasks, the agent then offers a separate opt-in daily Rowset tips
+automation; that automation runs in the agent account, not in Rowset.
 
 ## Recommended agent behavior
 

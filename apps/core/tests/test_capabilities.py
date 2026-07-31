@@ -174,6 +174,64 @@ def test_setup_recovery_contract_handles_failed_verification():
     assert "Never expose the credential" in rules
 
 
+def test_first_project_recommendation_uses_only_authorized_context():
+    recommendation = rowset_capabilities_payload(topics=["setup"])["first_project_recommendation"]
+    rules = " ".join(recommendation["rules"])
+
+    assert recommendation["project_count"] == 1
+    assert recommendation["dataset_count"] == {"minimum": 1, "maximum": 3}
+    assert recommendation["output_fields"] == [
+        "project_name",
+        "dataset_names",
+        "evidence_summary",
+        "rationale",
+    ]
+    assert recommendation["authorized_evidence"] == [
+        "current conversation",
+        "current repository and steering documents",
+        "active task description",
+        "sources already authorized for the current task",
+    ]
+    assert "Do not enumerate unrelated private resources" in rules
+    assert "Do not create the recommended project or datasets until the user confirms" in rules
+
+
+def test_first_project_recommendation_covers_code_content_and_weak_context():
+    recommendation = rowset_capabilities_payload(topics=["setup"])["first_project_recommendation"]
+    examples = recommendation["examples"]
+
+    assert [example["context"] for example in examples] == [
+        "code_project",
+        "content_workflow",
+        "insufficient_context",
+    ]
+    assert examples[0]["project_name"] == "ReviewGate"
+    assert examples[0]["dataset_names"] == [
+        "Improvement task board",
+        "Agent feedback",
+    ]
+    assert examples[1]["project_name"] == "Content operations"
+    assert examples[1]["dataset_names"] == [
+        "Content queue",
+        "Research library",
+        "Performance tracker",
+    ]
+    output_fields = set(recommendation["output_fields"])
+    for example in examples:
+        if "project_name" in example:
+            assert output_fields <= set(example)
+    assert examples[2]["question"] == (
+        "What are you working on that you want Rowset to help organize?"
+    )
+    assert recommendation["confirmation_question"] == (
+        "Would you like me to create that project and those datasets?"
+    )
+    assert (
+        recommendation["automation_offer_timing"]
+        == "after the user answers the project confirmation question"
+    )
+
+
 def test_capabilities_payload_makes_use_cases_opt_in():
     without_use_cases = rowset_capabilities_payload()
     with_use_cases = rowset_capabilities_payload(include_use_cases=True)

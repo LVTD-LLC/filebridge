@@ -27,9 +27,15 @@ interface.
    API-key creation stay trial-neutral, so the MCP trial starts on the first
    dataset or project mutation; CLI and REST user-info requests start it immediately.
    Skip verification and the activation handoff for an existing healthy connection.
-5. During first-run activation, use existing user context and bounded read-only
-   Rowset discovery to suggest two to four useful project, section, and dataset
-   structures, then ask which one to create.
+5. During first-run activation, use already-authorized context to produce one
+   high-confidence project recommendation with one to three concrete datasets.
+   Explain the evidence in one short sentence. Do not enumerate unrelated
+   private resources. If evidence is weak or contradictory, ask only, "What are
+   you working on that you want Rowset to help organize?" Do not create the
+   recommended project or datasets until the user confirms. Return immediately
+   after asking the weak-context question. End a strong recommendation by
+   asking, "Would you like me to create that project and those datasets?" Defer
+   the daily Rowset tips offer until the project decision is resolved.
 6. Start the user's task. Use exact tool, command, or endpoint schemas for the
    operation at hand. Load capability topics only for unfamiliar features or
    troubleshooting.
