@@ -513,14 +513,25 @@ def test_get_rowset_capabilities_mcp_tool_can_return_full_guide(monkeypatch):
             for example in recommendation["examples"]
             if "project_name" in example
         )
-        assert recommendation["confirmation_question"] == (
-            "Would you like me to create that project and those datasets?"
-        )
+        assert recommendation["confirmation_question"] == "Would you like me to create that now?"
         assert (
             recommendation["automation_offer_timing"]
             == "after the user answers the project confirmation question"
         )
         assert "Do not enumerate unrelated private resources" in " ".join(recommendation["rules"])
+        handoff = payload["successful_setup_handoff"]
+        assert handoff["minimum_sentences"] == 2
+        assert handoff["maximum_sentences"] == 3
+        assert handoff["weak_context_question_limit"] == 1
+        assert set(handoff["template_fields"]) == {
+            "context_label",
+            "project_name",
+            "dataset_list",
+        }
+        assert handoff["post_confirmation"]["negative"] == "Create nothing."
+        assert handoff["strong_context_template"].startswith("Rowset is ready to use.")
+        assert handoff["strong_context_template"].endswith("Would you like me to create that now?")
+        assert "MCP, CLI, or REST comparison" in handoff["normal_success_forbidden"]
         assert "daily Rowset tips automation" in startup
         assert "explicit agreement" in startup
         dataset_context = next(

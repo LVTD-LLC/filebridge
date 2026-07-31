@@ -25,6 +25,8 @@ deployment or release cut date.
   while reusing existing configuration and credentials.
 - First-run setup now recommends one evidence-backed project with one to three
   datasets from already-authorized working context.
+- Successful first-run setup now ends with a short personalized recommendation
+  and direct creation question instead of a technical recap.
 
 ## 2026-07-30
 
