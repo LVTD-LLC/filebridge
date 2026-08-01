@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-08-01
+
+### Added
+- Added a reviewable AI data-collection guide covering authorized source registries,
+  capture checkpoints, provenance, validation, acceptance decisions, and verified publication.
+
 ## 2026-07-31
 
 ### Fixed

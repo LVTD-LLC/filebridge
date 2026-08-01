@@ -35,6 +35,7 @@
 | 2026-07-26 | AI Customer Feedback Analysis: A Reviewable Workflow | how-to / operational guide | `/blog/ai-customer-feedback-analysis` | AI customer feedback analysis | 10 | n/a | feedback triage, dataset instructions, schema design, MCP, Dataset API, HITL, idempotency, safe sharing, pricing | #357 |
 | 2026-07-27 | What Is AI-Ready Data? A Practical Agent Checklist | definition / decision guide | `/blog/ai-ready-data` | what is AI-ready data | 110 | 6 | schema design, index-column guide, MCP, Dataset API, idempotency, HITL, safe sharing, QA tracker, pricing | #358 |
 | 2026-07-30 | AI Agent for Data Entry: A Safe Structured Workflow | how-to / operational guide | `/blog/ai-agent-data-entry` | AI agent for data entry | 20 | n/a | agent-managed datasets, data cleaning, index-column guide, idempotency, schema design, MCP, Dataset API, pricing | #374 |
+| 2026-08-01 | AI Data Collection: A Reviewable Agent Workflow | how-to / operational guide | `/blog/ai-data-collection` | AI data collection | 210 | 2 | agent-managed datasets, data entry, source registry, checkpoints, provenance, schema design, MCP, Dataset API, pricing | #TBD |
 
 ---
 
@@ -61,6 +62,9 @@
 | 17 | AI agent for data entry | how-to / operational guide | AI agent for data entry | 20 | n/a | transactional | shipped (19) | Shipped 2026-07-30 as `/blog/ai-agent-data-entry`; differentiated with a source -> entry envelope -> destination contract. |
 | 18 | AI agent for data quality | how-to / operational guide | AI agent for data quality | 10 | n/a | transactional | 16 | Defer: lower demand and substantial overlap with the data-cleaning and AI-ready-data guides. |
 | 19 | Data engineering AI agent | pillar / use-case guide | data engineering AI agent | 30 | 1 | informational | 14 | Defer: Rowset is not a data-engineering platform, and the SERP expects broader pipeline capabilities than the product supports. |
+| 20 | AI data collection | how-to / operational guide | AI data collection | 210 | 2 | informational | shipped (20) | Shipped 2026-08-01 as `/blog/ai-data-collection`; differentiated with a four-record collection control plane for authorized sources, capture runs, observation envelopes, and acceptance decisions. |
+| 21 | AI agents for data analysis | pillar / commercial guide | AI agents for data analysis | 260 | 2 | commercial | 17 | Defer: measured demand is attractive, but Rowset stores structured rows and does not provide a first-party analysis agent or analytics surface. |
+| 22 | AI for operations | pillar / use-case guide | AI for operations | 90 | 1 | commercial | 15 | Defer: the query expects a broad operational AI platform; Rowset has a credible structured-state role but not enough surface breadth for the head term. |
 
 ---
 
@@ -68,7 +72,7 @@
 
 | Cluster / theme | Pieces shipped | Gaps still open |
 |---|---|---|
-| Agent-managed datasets | `/blog/agent-managed-datasets`, `/blog/choose-index-column-agent-rows`, `/blog/structure-dataset-instructions-ai-agents`, `/blog/rowset-id-vs-business-keys`, `/blog/relationship-modeling-agent-datasets`, `/blog/ai-agent-memory-vs-state`, `/blog/idempotent-ai-agent-updates`, `/blog/share-ai-agent-data-safely`, `/blog/human-in-the-loop-ai-agents`, `/blog/ai-agent-audit-trail`, `/blog/database-for-ai-agents`, `/blog/ai-data-cleaning-agent`, `/blog/ai-agent-crm`, `/blog/ai-agent-task-management`, `/blog/ai-agent-inventory-management`, `/blog/ai-customer-feedback-analysis`, `/blog/ai-ready-data`, `/blog/ai-agent-data-entry` | Generated-index migration patterns |
+| Agent-managed datasets | `/blog/agent-managed-datasets`, `/blog/choose-index-column-agent-rows`, `/blog/structure-dataset-instructions-ai-agents`, `/blog/rowset-id-vs-business-keys`, `/blog/relationship-modeling-agent-datasets`, `/blog/ai-agent-memory-vs-state`, `/blog/idempotent-ai-agent-updates`, `/blog/share-ai-agent-data-safely`, `/blog/human-in-the-loop-ai-agents`, `/blog/ai-agent-audit-trail`, `/blog/database-for-ai-agents`, `/blog/ai-data-cleaning-agent`, `/blog/ai-agent-crm`, `/blog/ai-agent-task-management`, `/blog/ai-agent-inventory-management`, `/blog/ai-customer-feedback-analysis`, `/blog/ai-ready-data`, `/blog/ai-agent-data-entry`, `/blog/ai-data-collection` | Generated-index migration patterns |
 | MCP and Dataset API | `/blog/mcp-vs-rest-ai-agents`, `/blog/connect-ai-agent-to-dataset-api`, `/blog/relationship-modeling-agent-datasets`, `/blog/ai-agent-inventory-management`, `/blog/ai-agent-data-entry` | More REST/MCP setup examples with concrete datasets |
 | Spreadsheet/database alternatives | `/blog/airtable-alternatives`, `/blog/google-sheets-alternatives`, `/blog/baserow-alternatives`, `/blog/nocodb-alternatives`, `/blog/spreadsheet-database-for-ai-agents`, `/vs/airtable`, `/vs/google-sheets` | Migration examples for specific human-to-agent workflows |
 
