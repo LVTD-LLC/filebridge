@@ -26,6 +26,11 @@ Create a `content_queue` dataset indexed by `slug`.
 - Attach canonical URLs, owners, and completion evidence.
 - Export the queue for editors, scripts, or downstream systems.
 
+When an agent gathers research from recurring APIs, feeds, files, or approved web sources, use a
+separate [AI data collection control plane](/blog/ai-data-collection) for source authorization,
+capture checkpoints, provenance, and acceptance. Put only accepted findings into the content
+queue so research acquisition and editorial state do not become one ambiguous workflow.
+
 ## Workflow rules
 
 Define stages before agents start editing: `idea`, `brief`, `draft`, `review`,

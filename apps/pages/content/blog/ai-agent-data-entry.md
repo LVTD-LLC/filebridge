@@ -72,6 +72,11 @@ That output is a useful input to the agent, but it is not automatically a valid 
 record. A detected date may use the wrong locale. A company name may match an existing account.
 A total may be readable but inconsistent with its line items.
 
+If the agent must first find source items across recurring APIs, feeds, files, or pages, use the
+[AI data collection workflow](/blog/ai-data-collection) to register authorized sources,
+checkpoint each capture run, and stage observations. This data-entry workflow begins after a
+source item is already available for mapping into a destination record.
+
 The practical distinction is:
 
 - extraction answers, "What appears to be in the source?"
@@ -444,4 +449,3 @@ store, export, or share the resulting rows.
 Do not measure an AI data-entry workflow by how many fields it fills. Measure whether every
 accepted record can answer five questions: which source produced it, which mapping transformed
 it, which rules validated it, who or what approved it, and what the destination stored.
-

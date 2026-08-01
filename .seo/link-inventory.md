@@ -90,6 +90,7 @@
 | `/blog/ai-customer-feedback-analysis` | https://rowset.lvtd.dev/blog/ai-customer-feedback-analysis | AI Customer Feedback Analysis: A Reviewable Workflow | AI customer feedback analysis, reviewable feedback workflow, source analysis decision action contract, versioned feedback classification, agent-managed feedback triage |
 | `/blog/ai-ready-data` | https://rowset.lvtd.dev/blog/ai-ready-data | What Is AI-Ready Data? A Practical Agent Checklist | what is AI-ready data, AI-ready operational data, data readiness for AI agents, agent-ready data checklist, seven-question readiness test |
 | `/blog/ai-agent-data-entry` | https://rowset.lvtd.dev/blog/ai-agent-data-entry | AI Agent for Data Entry: A Safe Structured Workflow | AI agent for data entry, safe AI data-entry workflow, source entry envelope destination contract, reviewable automated data entry, structured data entry for agents |
+| `/blog/ai-data-collection` | https://rowset.lvtd.dev/blog/ai-data-collection | AI Data Collection: A Reviewable Agent Workflow | AI data collection, AI data collection workflow, collection control plane, source registry and capture runs, reviewable agent-collected records |
 
 ## Shipped SEO Sprint Pages
 
@@ -218,3 +219,8 @@ These route families remain retired and must not be selected as internal-link ta
 - source entry envelope destination contract
 - reviewable automated data entry
 - structured data entry for agents
+- AI data collection
+- reviewable AI data collection workflow
+- collection control plane for agents
+- source registry and capture runs
+- reviewable agent-collected records

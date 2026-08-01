@@ -88,6 +88,10 @@ schema, provenance, access, and verification path before an agent writes to it.
 If the agent will turn forms, documents, messages, or exports into new rows,
 follow the [AI data-entry workflow](/blog/ai-agent-data-entry) to keep source
 evidence, validation, deduplication, approval, and read-back separate.
+If the agent must repeatedly discover those source items across APIs, feeds,
+files, or pages, start one step earlier with the [AI data collection
+workflow](/blog/ai-data-collection) so source authorization, capture checkpoints,
+provenance, and acceptance decisions remain inspectable.
 
 The dataset usually needs five properties.
 
