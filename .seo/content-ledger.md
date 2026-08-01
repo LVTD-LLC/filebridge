@@ -35,7 +35,7 @@
 | 2026-07-26 | AI Customer Feedback Analysis: A Reviewable Workflow | how-to / operational guide | `/blog/ai-customer-feedback-analysis` | AI customer feedback analysis | 10 | n/a | feedback triage, dataset instructions, schema design, MCP, Dataset API, HITL, idempotency, safe sharing, pricing | #357 |
 | 2026-07-27 | What Is AI-Ready Data? A Practical Agent Checklist | definition / decision guide | `/blog/ai-ready-data` | what is AI-ready data | 110 | 6 | schema design, index-column guide, MCP, Dataset API, idempotency, HITL, safe sharing, QA tracker, pricing | #358 |
 | 2026-07-30 | AI Agent for Data Entry: A Safe Structured Workflow | how-to / operational guide | `/blog/ai-agent-data-entry` | AI agent for data entry | 20 | n/a | agent-managed datasets, data cleaning, index-column guide, idempotency, schema design, MCP, Dataset API, pricing | #374 |
-| 2026-08-01 | AI Data Collection: A Reviewable Agent Workflow | how-to / operational guide | `/blog/ai-data-collection` | AI data collection | 210 | 2 | agent-managed datasets, data entry, source registry, checkpoints, provenance, schema design, MCP, Dataset API, pricing | #TBD |
+| 2026-08-01 | AI Data Collection: A Reviewable Agent Workflow | how-to / operational guide | `/blog/ai-data-collection` | AI data collection | 210 | 2 | agent-managed datasets, data entry, source registry, checkpoints, provenance, schema design, MCP, Dataset API, pricing | #391 |
 
 ---
 
