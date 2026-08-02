@@ -3,12 +3,18 @@ import pytest
 from apps.core.choices import ProfileStates
 from apps.core.models import Profile
 from apps.core.stripe_webhooks import (
+    handle_checkout_completed,
     handle_created_subscription,
     handle_deleted_subscription,
     handle_payment_failed,
     handle_updated_subscription,
 )
 from apps.core.tests.test_helpers import build_subscription_event
+
+
+@pytest.fixture(autouse=True)
+def configured_rowset_prices(settings):
+    settings.STRIPE_PRICE_IDS = {"monthly": "price_test"}
 
 
 @pytest.mark.django_db
@@ -27,6 +33,78 @@ def test_handle_created_subscription_starts_trial(sync_state_transitions, profil
     assert profile.stripe_customer_id == "cus_trial"
     assert profile.stripe_subscription_id == "sub_trial"
     assert profile.state == ProfileStates.TRIAL_STARTED
+
+
+@pytest.mark.django_db
+def test_other_product_subscription_cannot_change_rowset_access(profile):
+    event = build_subscription_event(
+        status="active",
+        customer_id="cus_other",
+        subscription_id="sub_other",
+        metadata={"user_id": profile.user_id, "plan": "monthly"},
+        price_id="price_other_product",
+    )
+
+    handle_created_subscription(event)
+
+    profile.refresh_from_db()
+    assert profile.stripe_customer_id == ""
+    assert profile.stripe_subscription_id == ""
+    assert profile.state != ProfileStates.SUBSCRIBED
+
+
+@pytest.mark.django_db
+def test_other_product_checkout_cannot_associate_rowset_ids(profile):
+    handle_checkout_completed(
+        {
+            "id": "evt_checkout_other",
+            "data": {
+                "object": {
+                    "id": "cs_other",
+                    "customer": "cus_other",
+                    "subscription": "sub_other",
+                    "payment_status": "paid",
+                    "mode": "subscription",
+                    "metadata": {
+                        "user_id": profile.user_id,
+                        "price_id": "price_other_product",
+                        "plan": "monthly",
+                    },
+                }
+            },
+        }
+    )
+
+    profile.refresh_from_db()
+    assert profile.stripe_customer_id == ""
+    assert profile.stripe_subscription_id == ""
+
+
+@pytest.mark.django_db
+def test_rowset_checkout_associates_subscription_ids(profile):
+    handle_checkout_completed(
+        {
+            "id": "evt_checkout_rowset",
+            "data": {
+                "object": {
+                    "id": "cs_rowset",
+                    "customer": "cus_rowset",
+                    "subscription": "sub_rowset",
+                    "payment_status": "paid",
+                    "mode": "subscription",
+                    "metadata": {
+                        "user_id": profile.user_id,
+                        "price_id": "price_test",
+                        "plan": "monthly",
+                    },
+                }
+            },
+        }
+    )
+
+    profile.refresh_from_db()
+    assert profile.stripe_customer_id == "cus_rowset"
+    assert profile.stripe_subscription_id == "sub_rowset"
 
 
 @pytest.mark.django_db

@@ -100,7 +100,8 @@ def test_stripe_webhook_does_not_log_django_request_object(captured_events):
     assert not any(event.get("event") == "Stripe webhook received" for event in captured_events)
 
 
-def test_stripe_checkout_log_replaces_arbitrary_metadata_with_count(captured_events):
+def test_stripe_checkout_log_replaces_arbitrary_metadata_with_count(captured_events, settings):
+    settings.STRIPE_PRICE_IDS = {"pro": "price_test"}
     event = {
         "id": "evt_1",
         "data": {
@@ -110,7 +111,11 @@ def test_stripe_checkout_log_replaces_arbitrary_metadata_with_count(captured_eve
                 "subscription": "sub_1",
                 "payment_status": "unpaid",
                 "mode": "subscription",
-                "metadata": {"private": "dataset value", "plan": "pro"},
+                "metadata": {
+                    "private": "dataset value",
+                    "plan": "pro",
+                    "price_id": "price_test",
+                },
             }
         },
     }
@@ -118,7 +123,7 @@ def test_stripe_checkout_log_replaces_arbitrary_metadata_with_count(captured_eve
     stripe_webhooks.handle_checkout_completed(event)
 
     log_event = captured_events.event("stripe.checkout.completed")
-    assert log_event["metadata_count"] == 2
+    assert log_event["metadata_count"] == 3
     assert "metadata" not in log_event
     assert "dataset value" not in str(log_event)
 

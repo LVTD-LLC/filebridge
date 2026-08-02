@@ -278,6 +278,7 @@ def test_checkout_session_passes_stripe_context(auth_client, profile, monkeypatc
     assert response.status_code == 303
     assert response["Location"] == "https://checkout.stripe.test/session"
     assert calls[0]["stripe_context"] == "acct_test"
+    assert calls[0]["subscription_data"]["metadata"]["price_id"] == "price_test"
     assert tracked_events[0][1]["session_id"] == "session-123"
 
 
