@@ -8,12 +8,14 @@ def build_subscription_event(
     price_id="price_test",
     **overrides,
 ):
+    subscription_metadata = {"plan": "monthly"}
+    subscription_metadata.update(metadata or {})
     data = {
         "id": subscription_id,
         "customer": customer_id,
         "status": status,
         "cancel_at_period_end": cancel_at_period_end,
-        "metadata": metadata or {},
+        "metadata": subscription_metadata,
         "items": {
             "data": [
                 {
