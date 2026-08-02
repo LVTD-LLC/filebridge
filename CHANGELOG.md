@@ -25,6 +25,10 @@ deployment or release cut date.
 - Dataset column headers now show semantic type and index or formula roles, and
   matching cell text is highlighted when searching rows.
 
+### Fixed
+- Dataset column menus can extend beyond short filtered tables without exposing
+  an unthemed page canvas.
+
 ## 2026-08-02
 
 ### Added

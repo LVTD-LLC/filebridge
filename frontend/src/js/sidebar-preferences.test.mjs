@@ -7,12 +7,24 @@ const template = fs.readFileSync(
   new URL("../../templates/base_app.html", import.meta.url),
   "utf8",
 );
+const landingTemplate = fs.readFileSync(
+  new URL("../../templates/base_landing.html", import.meta.url),
+  "utf8",
+);
 
 function inlineScript(attribute) {
   const match = template.match(new RegExp(`<script ${attribute}>([\\s\\S]*?)<\\/script>`));
   assert.ok(match, `Missing ${attribute} script`);
   return match[1];
 }
+
+test("page canvases preserve their active shell theme below overflowing content", () => {
+  assert.match(template, /<body class="min-h-dvh bg-white dark:bg-slate-950"/);
+  assert.match(
+    landingTemplate,
+    /<body class="min-h-dvh bg-white font-sans dark:bg-neutral-950"/,
+  );
+});
 
 test("saved sidebar size and collapsed state are applied before Alpine loads", () => {
   const classes = new Set();
