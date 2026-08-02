@@ -21,6 +21,8 @@ deployment or release cut date.
 ### Fixed
 - Stripe webhooks now ignore unrelated products in the shared LVTD Stripe account and mutate
   Rowset billing state only for the configured plan and Price.
+- Stripe webhook deliveries now normalize SDK `Event` objects before dispatch so valid signed
+  events return a successful response instead of falling through the custom server-error redirect.
 
 ### Added
 - Added an MCP OAuth versus API-key decision guide with a five-question delegation test for

@@ -126,6 +126,12 @@ def stripe_request_options():
     return {}
 
 
+def normalize_stripe_event(event):
+    if hasattr(event, "to_dict"):
+        return event.to_dict()
+    return event
+
+
 def stripe_redirect(url: str) -> HttpResponse:
     response = redirect(url)
     response.status_code = 303
@@ -862,6 +868,7 @@ def stripe_webhook(request):
             sig_header=sig_header,
             secret=settings.STRIPE_WEBHOOK_SECRET,
         )
+        event = normalize_stripe_event(event)
     except ValueError:
         return HttpResponseBadRequest("Invalid payload")
     except stripe.error.SignatureVerificationError:
