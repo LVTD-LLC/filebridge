@@ -887,6 +887,7 @@ def _row_table_cells(
     for index, header in enumerate(headers):
         display_value = _cell_value(row_data.get(header, ""))
         cell = {
+            "header": header,
             "value": display_value,
             "is_first": index == 0,
         }
@@ -1393,6 +1394,7 @@ def _row_filter_fields(
                 "header": column["name"],
                 "type": column_type,
                 "type_label": column["type_label"],
+                "is_index": column["name"] == dataset.index_column,
                 "description": (column["description"] if include_column_descriptions else ""),
                 "is_formula": is_formula,
                 "formula": column.get("formula", "") if is_formula else "",
@@ -1504,6 +1506,21 @@ def _dataset_row_query_context(
     for field in filter_fields:
         field["is_active_filter"] = field["header"] in row_query["filters"]
         field["is_active_sort"] = row_query["sort"] == field["sort_value"]
+        if field["is_active_filter"]:
+            display_values = list(field["selected_values"])
+            if field["is_boolean"]:
+                display_values = [value.title() for value in display_values]
+            display_value = ", ".join(display_values)
+            if field["operator"] != field["default_operator"]:
+                display_value = f"{field['operator'].title()} {display_value}"
+            field["active_filter_label"] = f"{field['header']}: {display_value}"
+        else:
+            field["active_filter_label"] = ""
+
+    selected_sort_option = next(
+        option for option in _row_sort_options(dataset, row_query["sort"]) if option["selected"]
+    )
+    sort_direction_label = "descending" if row_query["direction"] == ROW_SORT_DESC else "ascending"
     return queryset, {
         "row_search_query": row_query["query"],
         "row_filter_fields": filter_fields,
@@ -1524,8 +1541,24 @@ def _dataset_row_query_context(
                 "selected": row_query["direction"] == ROW_SORT_DESC,
             },
         ],
+        "active_row_filter_count": len(row_query["filters"]),
+        "active_row_filter_fields": [field for field in filter_fields if field["is_active_filter"]],
+        "row_has_custom_sort": (
+            row_query["sort"] != ROW_DEFAULT_SORT or row_query["direction"] == ROW_SORT_DESC
+        ),
+        "row_active_sort_label": (f"{selected_sort_option['label']}, {sort_direction_label}"),
         "has_row_filters": row_query["has_filters"],
         "row_filters_reset_url": request.path,
+    }
+
+
+def _row_page_visibility_context(dataset: Dataset, page_obj) -> dict[str, int]:
+    match_count = page_obj.paginator.count
+    return {
+        "row_match_count": match_count,
+        "row_range_start": page_obj.start_index() if match_count else 0,
+        "row_range_end": page_obj.end_index() if match_count else 0,
+        "row_total_count": dataset.row_count,
     }
 
 
@@ -2170,17 +2203,14 @@ class DatasetDetailView(LoginRequiredMixin, DetailView):
         context["rows_heading"] = "Rows" if has_imported_rows else "Sample rows"
         context["rows_show_actor"] = has_imported_rows
         context["row_show_column_controls"] = has_imported_rows
-        context["rows_selectable"] = has_imported_rows and dataset.archived_at is None
-        context["hide_column_filter_section"] = True
-        context["rows_colspan"] = (
-            len(dataset.headers) + int(has_imported_rows) + int(context["rows_selectable"])
-        )
+        context["rows_colspan"] = len(dataset.headers) + int(has_imported_rows) + 1
         context["rows_empty_message"] = (
             "No rows match these filters."
             if context.get("has_row_filters")
             else "No rows are available yet."
         )
         context["row_page_obj"] = row_page_obj
+        context.update(_row_page_visibility_context(dataset, row_page_obj))
         if row_page_obj.has_previous():
             context["previous_row_page_url"] = _querystring_for_page(
                 self.request,
@@ -3160,6 +3190,7 @@ def public_dataset(request, public_key):
             "public_preview_robots_policy": PUBLIC_PREVIEW_ROBOTS_POLICY,
             "page_obj": page_obj,
             "public_rows_with_values": public_rows_with_values,
+            "public_rows_colspan": len(dataset.headers) + 1,
             "public_empty_message": (
                 "No rows match these filters."
                 if row_query_context.get("has_row_filters")
@@ -3176,6 +3207,7 @@ def public_dataset(request, public_key):
                 else ""
             ),
             **row_query_context,
+            **(_row_page_visibility_context(dataset, page_obj) if page_obj else {}),
         },
     )
     response["X-Robots-Tag"] = PUBLIC_PREVIEW_ROBOTS_POLICY

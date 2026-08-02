@@ -1,14 +1,30 @@
-<th scope="col" class="min-w-44">
+<th
+  scope="col"
+  class="fb-grid-sticky-header sticky top-0 z-20 min-w-44"
+  data-grid-column-key="{{ column.header }}"
+  x-show="columnVisible('{{ column.header|escapejs }}')"
+  :class="{ 'fb-grid-pinned-header left-16 z-30 shadow-[1px_0_0_0_rgba(15,23,42,0.1)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.1)]': columnPinned('{{ column.header|escapejs }}') }"
+>
   <div x-data="rowColumnMenu">
     <button
       type="button"
-      class="fb-focus -mx-2 inline-flex max-w-64 items-center gap-1.5 rounded-md px-2 py-1 text-left font-semibold text-slate-700 hover:bg-slate-950/5 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
+      class="fb-focus -mx-2 inline-flex max-w-64 items-start gap-1.5 rounded-md px-2 py-1 text-left font-semibold text-slate-700 hover:bg-slate-950/5 hover:text-slate-950 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
       title="{% firstof column.description column.header %}"
       aria-haspopup="dialog"
       @click="open($event)"
       @contextmenu="open($event)"
     >
-      <span class="truncate">{{ column.header }}</span>
+      <span class="min-w-0">
+        <span class="block truncate">{{ column.header }}</span>
+        <span class="mt-0.5 flex items-center gap-1 text-[0.6875rem] font-medium text-slate-400 dark:text-slate-500">
+          {% if column.is_index %}<span>Index</span><span aria-hidden="true">·</span>{% endif %}
+          {% if column.is_formula %}
+            <span>Formula</span><span aria-hidden="true">·</span><span>{{ column.formula_result_type_label }}</span>
+          {% else %}
+            <span>{{ column.type_label }}</span>
+          {% endif %}
+        </span>
+      </span>
       {% if column.is_active_filter or column.is_active_sort %}
         <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden="true"></span>
         <span class="sr-only">Active column control</span>

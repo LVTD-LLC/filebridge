@@ -16,6 +16,19 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-08-03
+
+### Changed
+- Dataset tables now expose row search, semantic filters, sorting, active query
+  summaries, sticky row identity, explicit row links, and browser-local column
+  visibility and pinning controls in authenticated and public read-only views.
+- Dataset column headers now show semantic type and index or formula roles, and
+  matching cell text is highlighted when searching rows.
+
+### Fixed
+- Dataset column menus can extend beyond short filtered tables without exposing
+  an unthemed page canvas.
+
 ## 2026-08-02
 
 ### Fixed

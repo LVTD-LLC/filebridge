@@ -13,11 +13,11 @@
 {% endif %}
 <details
   x-data
-  class="relative inline-block text-left"
+  class="relative {% if export_menu_full_width %}w-full sm:w-auto{% else %}inline-block{% endif %} text-left"
   @keydown.escape.window="$el.open = false"
   @click.outside="$el.open = false"
 >
-  <summary class="fb-button-secondary fb-menu-summary" aria-label="Export dataset">
+  <summary class="fb-button-secondary fb-menu-summary{% if export_menu_full_width %} w-full justify-center sm:w-auto{% endif %}" aria-label="Export dataset">
     Export
     <span aria-hidden="true" class="ml-2 text-xs text-slate-500 dark:text-slate-400">&#9662;</span>
   </summary>
