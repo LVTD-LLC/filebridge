@@ -131,6 +131,49 @@ function loadCommandPalette(results = []) {
   return { ...loaded, component };
 }
 
+function loadDatasetGrid(storedValues = {}) {
+  const loaded = loadAlpineComponents({ storedValues });
+  const component = loaded.components.get("datasetGrid")();
+  component.$root = {
+    dataset: {
+      gridDefaultPinnedColumn: "email",
+      gridSearchQuery: "",
+      gridStorageKey: "private:people",
+    },
+    querySelectorAll(selector) {
+      assert.equal(selector, "thead [data-grid-column-key]");
+      return ["name", "email", "score", "active"].map((gridColumnKey) => ({
+        dataset: { gridColumnKey },
+      }));
+    },
+  };
+  component.$nextTick = (callback) => callback();
+  return { ...loaded, component };
+}
+
+test("dataset grid restores and persists local column visibility without changing data", () => {
+  const storageKey = "rowsetDatasetGrid:private:people";
+  const { component, storageWrites } = loadDatasetGrid({
+    [storageKey]: JSON.stringify({ hiddenColumns: ["name", "email"], pinnedColumn: "email" }),
+  });
+
+  component.init();
+
+  assert.deepEqual(Array.from(component.hiddenColumns), ["name"]);
+  assert.equal(component.columnPinned("email"), true);
+  assert.equal(component.columnVisible("name"), false);
+
+  component.pinColumn("name");
+  component.toggleColumn("email");
+
+  assert.equal(component.columnPinned("name"), true);
+  assert.equal(component.columnVisible("email"), false);
+  assert.deepEqual(
+    JSON.parse(storageWrites.at(-1)[1]),
+    { hiddenColumns: ["email"], pinnedColumn: "name" },
+  );
+});
+
 test("app shell restores sidebar size, visibility, and disclosure preferences", () => {
   const { component } = loadAppShell({
     rowsetSidebarCollapsed: "true",

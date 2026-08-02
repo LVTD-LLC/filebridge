@@ -378,8 +378,16 @@ def test_dataset_detail_renders_headers_for_sample_rows(auth_client, profile):
     assert response.status_code == 200
     assert response.context["rows_heading"] == "Sample rows"
     assert response.context["row_show_column_controls"] is False
-    assert re.search(r'<th scope="col">\s*sample_customer_id\s*</th>', content)
-    assert re.search(r'<th scope="col">\s*sample_plan\s*</th>', content)
+    assert re.search(
+        r'<th scope="col" class="fb-grid-sticky-header sticky top-0 z-20">'
+        r"\s*sample_customer_id\s*</th>",
+        content,
+    )
+    assert re.search(
+        r'<th scope="col" class="fb-grid-sticky-header sticky top-0 z-20">'
+        r"\s*sample_plan\s*</th>",
+        content,
+    )
     assert "C-1001" in content
     assert "Scale" in content
 
@@ -1960,6 +1968,62 @@ def test_dataset_detail_shows_column_descriptions_on_header_hover(
     assert 'id="row-column-menu-description-0"' in content
     assert 'name="row_sort" value="col_0"' in content
     assert "Contains text" in content
+
+
+def test_dataset_detail_makes_grid_state_and_semantic_columns_visible(
+    auth_client,
+    profile,
+):
+    dataset = configure_filterable_dataset(create_ready_dataset(profile))
+
+    response = auth_client.get(
+        dataset.get_absolute_url(),
+        {
+            "row_q": "ada",
+            "filter_3": "true",
+            "row_sort": "col_2",
+            "row_dir": "desc",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.context["row_match_count"] == 1
+    assert response.context["row_range_start"] == 1
+    assert response.context["row_range_end"] == 1
+    assert response.context["active_row_filter_count"] == 1
+    assert response.context["row_active_sort_label"] == "score, descending"
+    content = response.content.decode()
+    assert 'aria-labelledby="dataset-rows-heading"' in content
+    assert 'class="fb-table-concept rounded-lg border' in content
+    assert 'class="fb-table-concept overflow-hidden' not in content
+    assert ">Rows<" in content
+    assert "Showing 1–1 of 1 match · 3 total rows" in content
+    assert "Search: ada" in content
+    assert "active: True" in content
+    assert "Sorted by score, descending" in content
+    assert 'data-grid-search-query="ada"' in content
+    assert 'data-grid-default-pinned-column="email"' in content
+    assert content.count('data-grid-column-key="email"') >= 2
+    assert content.count("fb-grid-sticky-header") >= 5
+    assert "dark:group-hover:bg-slate-900" in content
+    assert "dark:group-hover:bg-slate-900/70" not in content
+    assert "Index" in content
+    assert "Email" in content
+    assert "Number" in content
+    assert 'aria-label="Open row 1"' in content
+    assert "Clear all" in content
+
+
+def test_dataset_detail_grid_empty_query_summary_uses_zero_range(auth_client, profile):
+    dataset = configure_filterable_dataset(create_ready_dataset(profile))
+
+    response = auth_client.get(dataset.get_absolute_url(), {"row_q": "missing"})
+
+    assert response.status_code == 200
+    assert response.context["row_match_count"] == 0
+    assert response.context["row_range_start"] == 0
+    assert response.context["row_range_end"] == 0
+    assert "Showing 0–0 of 0 matches · 3 total rows" in response.content.decode()
 
 
 def test_dataset_detail_shows_formula_metadata_in_column_modal(
