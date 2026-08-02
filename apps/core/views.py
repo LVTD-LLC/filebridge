@@ -709,7 +709,7 @@ def create_checkout_session(request, pk, plan):
             "price_id": price_id,
             "plan": plan,
         },
-        "subscription_data": {"metadata": {"user_id": user.id, "plan": plan}},
+        "subscription_data": {"metadata": {"user_id": user.id, "price_id": price_id, "plan": plan}},
     }
 
     try:

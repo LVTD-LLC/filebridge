@@ -18,6 +18,10 @@ deployment or release cut date.
 
 ## 2026-08-02
 
+### Fixed
+- Stripe webhooks now ignore unrelated products in the shared LVTD Stripe account and mutate
+  Rowset billing state only for the configured plan and Price.
+
 ### Added
 - Added an MCP OAuth versus API-key decision guide with a five-question delegation test for
   trusted agents, third-party clients, user consent, audit identity, and credential lifecycle.

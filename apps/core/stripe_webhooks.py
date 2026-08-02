@@ -1,3 +1,5 @@
+from collections.abc import Mapping
+
 import stripe
 from django.conf import settings
 
@@ -17,6 +19,51 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = get_rowset_logger(__name__)
 
 PROFILE_LOOKUP_ERRORS = (Profile.DoesNotExist, ValueError, TypeError)
+
+
+def _log_ignored_product(event):
+    logger.info(
+        "stripe.webhook.product_ignored",
+        event_id=event.get("id"),
+        event_type=event.get("type"),
+        operation_status="unrelated_product",
+        outcome="success",
+    )
+
+
+def _configured_price_for_plan(plan):
+    price_ids = settings.STRIPE_PRICE_IDS
+    return price_ids.get(plan) if isinstance(price_ids, Mapping) and plan else None
+
+
+def _is_rowset_subscription(subscription_data):
+    if not isinstance(subscription_data, Mapping):
+        return False
+    items = subscription_data.get("items")
+    if not isinstance(items, Mapping):
+        return False
+    item_data = items.get("data")
+    if not isinstance(item_data, list) or len(item_data) != 1:
+        return False
+    item = item_data[0]
+    if not isinstance(item, Mapping) or item.get("quantity") != 1:
+        return False
+    metadata = subscription_data.get("metadata")
+    plan = metadata.get("plan") if isinstance(metadata, Mapping) else None
+    expected_price_id = _configured_price_for_plan(plan)
+    price = item.get("price")
+    price_id = price.get("id") if isinstance(price, Mapping) else price
+    return bool(expected_price_id) and price_id == expected_price_id
+
+
+def _is_rowset_checkout(checkout_data):
+    if not isinstance(checkout_data, Mapping):
+        return False
+    metadata = checkout_data.get("metadata")
+    if not isinstance(metadata, Mapping):
+        return False
+    expected_price_id = _configured_price_for_plan(metadata.get("plan"))
+    return bool(expected_price_id) and metadata.get("price_id") == expected_price_id
 
 
 def get_profile_for_customer(customer_id, metadata=None):
@@ -76,6 +123,9 @@ def get_subscription_target_state(subscription_data, previous_status=None):
 def handle_created_subscription(event):
     event_id = event.get("id")
     subscription_data = event["data"]["object"]
+    if not _is_rowset_subscription(subscription_data):
+        _log_ignored_product(event)
+        return
     customer_id = subscription_data.get("customer")
     subscription_id = subscription_data.get("id")
 
@@ -136,6 +186,9 @@ def handle_created_subscription(event):
 def handle_updated_subscription(event):
     event_id = event.get("id")
     subscription_data = event["data"]["object"]
+    if not _is_rowset_subscription(subscription_data):
+        _log_ignored_product(event)
+        return
     customer_id = subscription_data.get("customer")
     subscription_id = subscription_data.get("id")
 
@@ -226,6 +279,9 @@ def handle_updated_subscription(event):
 def handle_deleted_subscription(event):
     event_id = event.get("id")
     subscription_data = event["data"]["object"]
+    if not _is_rowset_subscription(subscription_data):
+        _log_ignored_product(event)
+        return
     customer_id = subscription_data.get("customer")
     subscription_id = subscription_data.get("id")
 
@@ -277,6 +333,9 @@ def handle_deleted_subscription(event):
 def handle_checkout_completed(event):
     event_id = event.get("id")
     checkout_data = event["data"]["object"]
+    if not _is_rowset_checkout(checkout_data):
+        _log_ignored_product(event)
+        return
     customer_id = checkout_data.get("customer")
     checkout_id = checkout_data.get("id")
     subscription_id = checkout_data.get("subscription")
