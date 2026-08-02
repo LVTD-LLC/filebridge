@@ -2,7 +2,7 @@
   "product": "Rowset",
   "domain": "https://rowset.lvtd.dev",
   "created_at": "2026-07-04",
-  "updated_at": "2026-08-01",
+  "updated_at": "2026-08-02",
   "mode": "measured_reaudit",
   "source": "blended",
   "sources": [
@@ -17,7 +17,7 @@
     "repo",
     "production_site"
   ],
-  "as_of": "2026-07-15",
+  "as_of": "2026-08-02",
   "confidence": "measured",
   "notes": [
     "GSC remains sparse: 8 impressions and 0 clicks across three query/page rows in the last 90 days, with no meaningful striking-distance opportunity.",
@@ -26,7 +26,8 @@
     "PostHog now contains product activation events, but all 90-day events belong to one distinct person, so it is not yet valid for conversion-weighted SEO prioritization.",
     "DataForSEO surfaced mcp database as the strongest newly measured cluster: 480 US searches/month, KD 5, and $14.12 CPC.",
     "The live route audit found 17 stale URLs in the SEO inventory after the docs/use-case migration.",
-    "A 2026-08-01 DataForSEO refresh selected ai data collection at 210 US searches/month, KD 2, and $17.20 CPC; adjacent analysis and broad operations terms were deferred for weaker product fit."
+    "A 2026-08-01 DataForSEO refresh selected ai data collection at 210 US searches/month, KD 2, and $17.20 CPC; adjacent analysis and broad operations terms were deferred for weaker product fit.",
+    "A 2026-08-02 DataForSEO refresh selected mcp oauth at 390 US searches/month, KD 9, and $38.48 CPC. The live SERP is led by official protocol documentation and implementation guides; the Rowset piece uses a distinct OAuth-versus-provisioned-key delegation test."
   ],
   "tool_evidence": [
     {
@@ -195,6 +196,10 @@
     }
   },
   "keywords": [
+    {"keyword": "mcp oauth", "source": "dataforseo", "search_volume": 390, "keyword_difficulty": 9, "cpc": 38.48, "intent": "navigational", "as_of": "2026-08-02"},
+    {"keyword": "mcp authentication", "source": "dataforseo", "search_volume": 720, "keyword_difficulty": 21, "cpc": 38.63, "intent": "navigational", "as_of": "2026-08-02"},
+    {"keyword": "mcp api key", "source": "dataforseo", "search_volume": 20, "keyword_difficulty": null, "cpc": 4.62, "intent": "navigational", "as_of": "2026-08-02"},
+    {"keyword": "mcp security best practices", "source": "dataforseo", "search_volume": 110, "keyword_difficulty": 27, "cpc": 36.26, "intent": "commercial", "as_of": "2026-08-02"},
     {"keyword": "ai data collection", "source": "dataforseo", "search_volume": 210, "keyword_difficulty": 2, "cpc": 17.2, "intent": "informational", "as_of": "2026-08-01"},
     {"keyword": "ai agents for data analysis", "source": "dataforseo", "search_volume": 260, "keyword_difficulty": 2, "cpc": 28.29, "intent": "commercial", "as_of": "2026-08-01"},
     {"keyword": "ai for operations", "source": "dataforseo", "search_volume": 90, "keyword_difficulty": 1, "cpc": 29.87, "intent": "commercial", "as_of": "2026-08-01"},
@@ -231,6 +236,14 @@
     {"keyword": "database for ai agents", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": 7, "cpc": 19.47, "intent": "commercial", "as_of": "2026-07-15"}
   ],
   "opportunities": [
+    {
+      "cluster": "mcp oauth",
+      "target_url": "/blog/mcp-oauth-vs-api-keys",
+      "status": "shipped",
+      "priority": 12,
+      "signals": {"primary_volume": 390, "primary_kd": 9, "primary_cpc": 38.48},
+      "notes": "Selected 2026-08-02 as a product-led comparison and decision guide. The piece distinguishes delegated user access from operator-provisioned trusted-agent access through a five-question delegation test and states Rowset's current bearer-key boundary plainly."
+    },
     {
       "cluster": "ai data collection",
       "target_url": "/blog/ai-data-collection",

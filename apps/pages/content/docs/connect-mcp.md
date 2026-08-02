@@ -13,6 +13,8 @@ If you are deciding whether your workflow belongs in Rowset, start with
 [What is an agent-managed dataset?](/blog/agent-managed-datasets). If you are
 choosing between MCP and plain HTTP, read
 [When should an AI agent use MCP instead of REST?](/blog/mcp-vs-rest-ai-agents).
+If you are deciding between delegated OAuth and a provisioned bearer key, use
+the [MCP OAuth vs API keys decision guide](/blog/mcp-oauth-vs-api-keys).
 
 ## 1. Get the MCP URL
 

@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-08-02
+
+### Added
+- Added an MCP OAuth versus API-key decision guide with a five-question delegation test for
+  trusted agents, third-party clients, user consent, audit identity, and credential lifecycle.
+
 ## 2026-08-01
 
 ### Added
