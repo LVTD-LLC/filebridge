@@ -9,6 +9,10 @@ keywords: Rowset schema, column types, choice columns, reference columns, datase
 Good Rowset datasets are explicit. The goal is not only to store rows, but to
 give future agents enough context to read and update the right fields.
 
+If a model produces JSON before an agent writes rows, use the [structured-output
+validation guide](/blog/ai-agent-structured-output) to separate schema validity,
+business-rule checks, and retry-safe persistence.
+
 ## Use semantic column types
 
 Rowset supports these semantic types:

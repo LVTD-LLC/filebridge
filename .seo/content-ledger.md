@@ -37,6 +37,7 @@
 | 2026-07-30 | AI Agent for Data Entry: A Safe Structured Workflow | how-to / operational guide | `/blog/ai-agent-data-entry` | AI agent for data entry | 20 | n/a | agent-managed datasets, data cleaning, index-column guide, idempotency, schema design, MCP, Dataset API, pricing | #374 |
 | 2026-08-01 | AI Data Collection: A Reviewable Agent Workflow | how-to / operational guide | `/blog/ai-data-collection` | AI data collection | 210 | 2 | agent-managed datasets, data entry, source registry, checkpoints, provenance, schema design, MCP, Dataset API, pricing | #391 |
 | 2026-08-02 | MCP OAuth vs API Keys: Choose the Right Auth | comparison / decision guide | `/blog/mcp-oauth-vs-api-keys` | MCP OAuth | 390 | 9 | MCP setup, agent access, MCP vs REST, safe sharing, pricing | #392 |
+| 2026-08-03 | AI Agent Structured Output: Validate Before You Store | how-to / operational decision guide | `/blog/ai-agent-structured-output` | AI agent structured output | unmeasured | n/a | schema design, data entry, idempotent updates, MCP, Dataset API, pricing | #TBD |
 
 ---
 
@@ -69,6 +70,7 @@
 | 23 | MCP OAuth vs API keys | comparison / decision guide | MCP OAuth | 390 | 9 | navigational / implementation | shipped (20) | Selected 2026-08-02 after live DataForSEO and SERP research. The product-led angle is a five-question delegation test that distinguishes third-party user delegation from a provisioned key for a trusted agent. |
 | 24 | MCP authentication | pillar / implementation guide | MCP authentication | 720 | 21 | navigational | 17 | Defer: measured demand is strong, but KD exceeds the conservative authority band and the SERP is dominated by protocol and platform documentation. Revisit after this narrower OAuth decision guide earns traction. |
 | 25 | MCP security best practices | security guide | MCP security best practices | 110 | 27 | commercial | 14 | Defer: KD is above the current authority band and the broad topic would overlap existing safe-sharing, approval, audit, and authentication content. |
+| 26 | AI agent structured output | how-to / operational decision guide | AI agent structured output | unmeasured | n/a | implementation / informational | shipped (19) | Selected 2026-08-03 after live SERP research. Product-led angle: a shape -> meaning -> write contract that connects provider schema output to staged, retry-safe Rowset rows without treating valid JSON as proof of correctness. |
 
 ---
 
@@ -77,7 +79,7 @@
 | Cluster / theme | Pieces shipped | Gaps still open |
 |---|---|---|
 | Agent-managed datasets | `/blog/agent-managed-datasets`, `/blog/choose-index-column-agent-rows`, `/blog/structure-dataset-instructions-ai-agents`, `/blog/rowset-id-vs-business-keys`, `/blog/relationship-modeling-agent-datasets`, `/blog/ai-agent-memory-vs-state`, `/blog/idempotent-ai-agent-updates`, `/blog/share-ai-agent-data-safely`, `/blog/human-in-the-loop-ai-agents`, `/blog/ai-agent-audit-trail`, `/blog/database-for-ai-agents`, `/blog/ai-data-cleaning-agent`, `/blog/ai-agent-crm`, `/blog/ai-agent-task-management`, `/blog/ai-agent-inventory-management`, `/blog/ai-customer-feedback-analysis`, `/blog/ai-ready-data`, `/blog/ai-agent-data-entry`, `/blog/ai-data-collection` | Generated-index migration patterns |
-| MCP and Dataset API | `/blog/mcp-vs-rest-ai-agents`, `/blog/connect-ai-agent-to-dataset-api`, `/blog/relationship-modeling-agent-datasets`, `/blog/ai-agent-inventory-management`, `/blog/ai-agent-data-entry`, `/blog/mcp-oauth-vs-api-keys` | More REST/MCP setup examples with concrete datasets |
+| MCP and Dataset API | `/blog/mcp-vs-rest-ai-agents`, `/blog/connect-ai-agent-to-dataset-api`, `/blog/relationship-modeling-agent-datasets`, `/blog/ai-agent-inventory-management`, `/blog/ai-agent-data-entry`, `/blog/mcp-oauth-vs-api-keys`, `/blog/ai-agent-structured-output` | More REST/MCP setup examples with concrete datasets |
 | Spreadsheet/database alternatives | `/blog/airtable-alternatives`, `/blog/google-sheets-alternatives`, `/blog/baserow-alternatives`, `/blog/nocodb-alternatives`, `/blog/spreadsheet-database-for-ai-agents`, `/vs/airtable`, `/vs/google-sheets` | Migration examples for specific human-to-agent workflows |
 
 ---

@@ -224,6 +224,10 @@ patterns. Its `format` keyword may be annotation-only depending on the validator
 an `email` or `date` format is enforced unless your selected validator enables that behavior
 ([JSON Schema reference, checked July 2026](https://json-schema.org/understanding-json-schema/reference/type)).
 
+When the model provider returns schema-constrained JSON, use the [AI agent structured-output
+guide](/blog/ai-agent-structured-output) to keep format validation, semantic checks, and the final
+database write as separate gates.
+
 Keep semantic or contextual checks separate. A model may help decide whether "Acme Co." and
 "Acme Incorporated" refer to the same organization, but that judgment should produce evidence
 and a review state. It should not bypass the exact-key lookup.

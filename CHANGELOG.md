@@ -18,6 +18,10 @@ deployment or release cut date.
 
 ## 2026-08-03
 
+### Added
+- Added an AI agent structured-output guide covering JSON Schema, semantic validation, staging,
+  stable identity, retry-safe writes, and destination read-back.
+
 ### Changed
 - Dataset tables now expose row search, semantic filters, sorting, active query
   summaries, sticky row identity, explicit row links, and browser-local column
