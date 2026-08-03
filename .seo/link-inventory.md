@@ -92,6 +92,7 @@
 | `/blog/ai-agent-data-entry` | https://rowset.lvtd.dev/blog/ai-agent-data-entry | AI Agent for Data Entry: A Safe Structured Workflow | AI agent for data entry, safe AI data-entry workflow, source entry envelope destination contract, reviewable automated data entry, structured data entry for agents |
 | `/blog/ai-data-collection` | https://rowset.lvtd.dev/blog/ai-data-collection | AI Data Collection: A Reviewable Agent Workflow | AI data collection, AI data collection workflow, collection control plane, source registry and capture runs, reviewable agent-collected records |
 | `/blog/mcp-oauth-vs-api-keys` | https://rowset.lvtd.dev/blog/mcp-oauth-vs-api-keys | MCP OAuth vs API Keys: Choose the Right Auth | MCP OAuth vs API keys, MCP authorization decision guide, provisioned API key for agents, delegated MCP access, agent authentication delegation test |
+| `/blog/ai-agent-structured-output` | https://rowset.lvtd.dev/blog/ai-agent-structured-output | AI Agent Structured Output: Validate Before You Store | AI agent structured output, structured output validation for agents, shape meaning write contract, JSON Schema to durable rows, validated agent output workflow |
 
 ## Shipped SEO Sprint Pages
 
@@ -230,3 +231,8 @@ These route families remain retired and must not be selected as internal-link ta
 - provisioned API key for trusted agents
 - delegated MCP access
 - agent authentication delegation test
+- AI agent structured output
+- structured output validation for agents
+- shape meaning write contract
+- JSON Schema to durable rows
+- validated agent output workflow
