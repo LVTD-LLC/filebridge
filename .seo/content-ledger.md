@@ -37,7 +37,7 @@
 | 2026-07-30 | AI Agent for Data Entry: A Safe Structured Workflow | how-to / operational guide | `/blog/ai-agent-data-entry` | AI agent for data entry | 20 | n/a | agent-managed datasets, data cleaning, index-column guide, idempotency, schema design, MCP, Dataset API, pricing | #374 |
 | 2026-08-01 | AI Data Collection: A Reviewable Agent Workflow | how-to / operational guide | `/blog/ai-data-collection` | AI data collection | 210 | 2 | agent-managed datasets, data entry, source registry, checkpoints, provenance, schema design, MCP, Dataset API, pricing | #391 |
 | 2026-08-02 | MCP OAuth vs API Keys: Choose the Right Auth | comparison / decision guide | `/blog/mcp-oauth-vs-api-keys` | MCP OAuth | 390 | 9 | MCP setup, agent access, MCP vs REST, safe sharing, pricing | #392 |
-| 2026-08-03 | AI Agent Structured Output: Validate Before You Store | how-to / operational decision guide | `/blog/ai-agent-structured-output` | AI agent structured output | unmeasured | n/a | schema design, data entry, idempotent updates, MCP, Dataset API, pricing | #TBD |
+| 2026-08-03 | AI Agent Structured Output: Validate Before You Store | how-to / operational decision guide | `/blog/ai-agent-structured-output` | AI agent structured output | unmeasured | n/a | schema design, data entry, idempotent updates, MCP, Dataset API, pricing | #396 |
 
 ---
 
