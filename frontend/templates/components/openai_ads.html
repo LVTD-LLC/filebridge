@@ -1,0 +1,32 @@
+{% load static %}
+{% if openai_ads_pixel_id %}
+  <script>
+    (function (w, d, s, u) {
+      if (w.oaiq) return;
+      var q = function () { q.q.push(arguments); };
+      q.q = [];
+      w.oaiq = q;
+      var js = d.createElement(s);
+      js.async = true;
+      js.src = u;
+      var firstScript = d.getElementsByTagName(s)[0];
+      firstScript.parentNode.insertBefore(js, firstScript);
+    })(window, document, "script", "https://bzrcdn.openai.com/sdk/oaiq.min.js");
+
+    oaiq(
+      "consent",
+      document.cookie.split(";").some(function (part) {
+        return part.trim() === "rowset_analytics_consent=granted";
+      })
+    );
+    oaiq("init", {
+      pixelId: "{{ openai_ads_pixel_id|escapejs }}"{% if openai_ads_debug %},
+      debug: true{% endif %}
+    });
+    window.Rowset = window.Rowset || {};
+    window.Rowset.openAiAds = {
+      registrationCompleted: {{ openai_ads_registration_completed|yesno:"true,false" }}
+    };
+  </script>
+  <script defer src="{% static 'js/openai-ads.js' %}"></script>
+{% endif %}

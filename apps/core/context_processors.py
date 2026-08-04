@@ -7,6 +7,7 @@ from django.conf import settings
 from django.db.models import Prefetch
 
 from apps.core.choices import ProfileStates
+from apps.core.openai_ads import REGISTRATION_COMPLETED_SESSION_KEY
 from apps.datasets.models import Dataset, Project, ProjectSection
 from rowset.traffic import classify_traffic
 from rowset.utils import get_rowset_logger
@@ -161,6 +162,19 @@ def posthog_api_key(request):
         context["posthog_distinct_id"] = str(request.user.profile.id)
         context["posthog_user_email"] = request.user.email
     return context
+
+
+def openai_ads(request):
+    session = getattr(request, "session", None)
+    registration_completed = bool(
+        session.pop(REGISTRATION_COMPLETED_SESSION_KEY, False) if session is not None else False
+    )
+    pixel_id = settings.OPENAI_ADS_PIXEL_ID
+    return {
+        "openai_ads_debug": bool(pixel_id and settings.ENVIRONMENT != "prod"),
+        "openai_ads_pixel_id": pixel_id,
+        "openai_ads_registration_completed": bool(pixel_id and registration_completed),
+    }
 
 
 def chatwoot_config(request):

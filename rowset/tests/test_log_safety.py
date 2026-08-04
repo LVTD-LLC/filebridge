@@ -76,7 +76,7 @@ def test_signup_signal_logs_safe_newsletter_job_context(captured_events, monkeyp
         sender=object(),
         email_address="private@example.com",
     )
-    core_signals.email_confirmation_callback(
+    core_signals.handle_user_signed_up(
         sender=object(),
         request=object(),
         user=SimpleNamespace(id=7),

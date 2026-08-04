@@ -19,6 +19,7 @@ deployment or release cut date.
 ## 2026-08-04
 
 ### Added
+- Added consent-aware OpenAI Ads conversion measurement for completed account registrations.
 - Added a guide for migrating agent-managed datasets from generated row identity to a stable
   business key with mapping, mirrored writes, verification, cutover, and rollback.
 

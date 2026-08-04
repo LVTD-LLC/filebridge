@@ -152,6 +152,7 @@ POSTHOG_AI_OBSERVABILITY_ENABLED = env.bool(
     "POSTHOG_AI_OBSERVABILITY_ENABLED",
     default=False,
 )
+OPENAI_ADS_PIXEL_ID = env("OPENAI_ADS_PIXEL_ID", default="").strip()
 
 
 # Quick-start development settings - unsuitable for production
@@ -283,6 +284,7 @@ TEMPLATES = [
                 "apps.core.context_processors.app_navigation",
                 "apps.core.context_processors.current_state",
                 "apps.core.context_processors.posthog_api_key",
+                "apps.core.context_processors.openai_ads",
                 "apps.core.context_processors.chatwoot_config",
                 "apps.core.context_processors.mjml_url",
                 "apps.core.context_processors.available_social_providers",

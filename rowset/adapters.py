@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from apps.core.choices import EmailType
+from apps.core.openai_ads import mark_registration_completed
 from apps.core.utils import send_transactional_email
 
 User = get_user_model()
@@ -20,6 +21,12 @@ class CustomAccountAdapter(DefaultAccountAdapter):
     def is_open_for_signup(self, request):
         """Allow operators to pause new registrations without affecting existing users."""
         return getattr(settings, "ALLOW_SIGNUPS", True) and super().is_open_for_signup(request)
+
+    def post_login(self, request, user, **kwargs):
+        response = super().post_login(request, user, **kwargs)
+        if kwargs.get("signup"):
+            mark_registration_completed(request)
+        return response
 
     def send_confirmation_mail(self, request, emailconfirmation, signup):
         """
