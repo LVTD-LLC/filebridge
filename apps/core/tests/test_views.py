@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 import pytest
+import stripe
 from allauth.account.models import EmailAddress
 from django.contrib import messages as message_constants
 from django.contrib.messages import get_messages
@@ -29,6 +30,30 @@ ATTRIBUTION_COOKIE_VALUE = (
     "%22latest_touch%22%3A%7B%22utm_source%22%3A%22newsletter%22%2C%22utm_campaign%22%3A"
     "%22return%22%7D%7D"
 )
+
+
+@override_settings(STRIPE_WEBHOOK_SECRET="whsec_test")
+def test_stripe_webhook_normalizes_sdk_event(client, monkeypatch):
+    monkeypatch.setattr(
+        "apps.core.views.stripe.Webhook.construct_event",
+        lambda **_kwargs: stripe.Event.construct_from(
+            {
+                "id": "evt_sdk",
+                "type": "test.event",
+                "data": {"object": {}},
+            },
+            "sk_test_value",
+        ),
+    )
+
+    response = client.post(
+        reverse("stripe_webhook"),
+        data=b"{}",
+        content_type="application/json",
+        HTTP_STRIPE_SIGNATURE="t=123,v1=test",
+    )
+
+    assert response.status_code == 200
 
 
 def _broken_view(_request):
@@ -278,6 +303,7 @@ def test_checkout_session_passes_stripe_context(auth_client, profile, monkeypatc
     assert response.status_code == 303
     assert response["Location"] == "https://checkout.stripe.test/session"
     assert calls[0]["stripe_context"] == "acct_test"
+    assert calls[0]["subscription_data"]["metadata"]["price_id"] == "price_test"
     assert tracked_events[0][1]["session_id"] == "session-123"
 
 

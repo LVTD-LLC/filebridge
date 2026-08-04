@@ -27,19 +27,19 @@
           </p>
         {% endif %}
       </div>
-      <div class="flex flex-col gap-2 sm:flex-row">
-        {% include "components/dataset_export_menu.html" %}
-        <a href="{{ dataset.get_changes_url }}" class="fb-button-secondary">Changes</a>
-        <a href="{{ dataset.get_settings_url }}" class="fb-button-secondary">Settings</a>
+      <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row">
+        {% include "components/dataset_export_menu.html" with export_menu_full_width=True %}
+        <a href="{{ dataset.get_changes_url }}" class="fb-button-secondary justify-center">Changes</a>
+        <a href="{{ dataset.get_settings_url }}" class="fb-button-secondary justify-center">Settings</a>
         {% if dataset.archived_at %}
-          <form method="post" action="{% url 'dataset_restore' dataset.key %}" onsubmit="return confirm('Unarchive {{ dataset.name|escapejs }}? It will return to normal dataset and project lists.');">
+          <form method="post" action="{% url 'dataset_restore' dataset.key %}" class="min-w-0" onsubmit="return confirm('Unarchive {{ dataset.name|escapejs }}? It will return to normal dataset and project lists.');">
             {% csrf_token %}
-            <button type="submit" class="fb-button-primary">Unarchive</button>
+            <button type="submit" class="fb-button-primary w-full justify-center">Unarchive</button>
           </form>
         {% else %}
-          <form method="post" action="{% url 'dataset_archive' dataset.key %}" onsubmit="return confirm('Archive {{ dataset.name|escapejs }}? It will leave normal lists and public preview sharing will turn off.');">
+          <form method="post" action="{% url 'dataset_archive' dataset.key %}" class="min-w-0" onsubmit="return confirm('Archive {{ dataset.name|escapejs }}? It will leave normal lists and public preview sharing will turn off.');">
             {% csrf_token %}
-            <button type="submit" class="fb-button-secondary border-amber-300 text-amber-800 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-200 dark:hover:bg-amber-950/30">Archive</button>
+            <button type="submit" class="fb-button-secondary w-full justify-center border-amber-300 text-amber-800 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-200 dark:hover:bg-amber-950/30">Archive</button>
           </form>
         {% endif %}
       </div>
@@ -137,21 +137,36 @@
         </details>
       {% endif %}
 
-      <section class="fb-table-concept overflow-hidden" aria-labelledby="dataset-rows-heading">
-        <h2 id="dataset-rows-heading" class="sr-only">{{ rows_heading }}</h2>
-        <div>
-          <div class="overflow-x-auto">
+      <section
+        class="fb-table-concept rounded-lg border border-slate-950/10 dark:border-white/10"
+        aria-labelledby="dataset-rows-heading"
+        x-data="datasetGrid"
+        data-grid-storage-key="private:{{ dataset.key }}"
+        data-grid-default-pinned-column="{{ dataset.index_column }}"
+        data-grid-search-query="{{ row_search_query }}"
+      >
+        <div class="flex items-center justify-between gap-3 border-b border-slate-950/10 px-4 py-3 dark:border-white/10">
+          <div>
+            <h2 id="dataset-rows-heading" class="fb-section-title">{{ rows_heading }}</h2>
+            <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Inspect the current dataset state. Use an authenticated agent for row changes.</p>
+          </div>
+        </div>
+        {% if row_show_column_controls %}
+          {% include "datasets/partials/row_table_controls.html" %}
+        {% endif %}
+        <div class="max-h-[min(65vh,44rem)] overflow-auto">
             <table class="fb-table">
               <caption class="sr-only">{{ rows_heading }} for {{ dataset.name }}</caption>
               <thead class="bg-slate-50 dark:bg-slate-900">
                 <tr>
+                  <th scope="col" class="fb-grid-sticky-header sticky left-0 top-0 z-40 w-16 min-w-16 text-center" aria-label="Row number">#</th>
                   {% if row_show_column_controls %}
                     {% for column in row_filter_fields %}
                       {% include "datasets/partials/row_column_header.html" with column=column %}
                     {% endfor %}
                   {% else %}
                     {% for column in column_definitions %}
-                      <th scope="col">
+                      <th scope="col" class="fb-grid-sticky-header sticky top-0 z-20">
                         {% if column.description %}
                           <span title="{{ column.description }}">{{ column.name }}</span>
                         {% else %}
@@ -161,18 +176,24 @@
                     {% endfor %}
                   {% endif %}
                   {% if rows_show_actor %}
-                    <th scope="col">Touched by</th>
+                    <th scope="col" class="fb-grid-sticky-header sticky top-0 z-20">Touched by</th>
                   {% endif %}
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 bg-white dark:divide-slate-800 dark:bg-slate-950">
                 {% for row in rows_with_values %}
-                  <tr class="{% if row.url %}transition hover:bg-slate-50 dark:hover:bg-slate-900/70{% endif %}">
+                  <tr class="group {% if row.url %}transition hover:bg-slate-50 dark:hover:bg-slate-900/70{% endif %}">
+                    <td class="sticky left-0 z-20 w-16 min-w-16 bg-white text-center tabular-nums group-hover:bg-slate-50 dark:bg-slate-950 dark:group-hover:bg-slate-900">
+                      {% if row.url %}
+                        <a href="{{ row.url }}" class="fb-focus inline-flex min-h-8 min-w-8 items-center justify-center gap-1 rounded-md font-semibold text-slate-600 hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300" aria-label="Open row {{ row.row_number }}">
+                          {{ row.row_number }}<span aria-hidden="true">›</span>
+                        </a>
+                      {% else %}
+                        <span class="text-slate-500 dark:text-slate-400">{{ row.row_number }}</span>
+                      {% endif %}
+                    </td>
                 {% for cell in row.cells %}
-                  <td>
-                    {% if cell.is_first and row.url and not row.has_accessible_row_link %}
-                      <a href="{{ row.url }}" class="sr-only">View row {{ row.row_number }} details</a>
-                    {% endif %}
+                  <td data-grid-cell{% if row_show_column_controls %} data-grid-column-key="{{ cell.header }}" x-show="columnVisible('{{ cell.header|escapejs }}')" :class="{ 'sticky left-16 z-10 bg-white group-hover:bg-slate-50 dark:bg-slate-950 dark:group-hover:bg-slate-900 shadow-[1px_0_0_0_rgba(15,23,42,0.1)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.1)]': columnPinned('{{ cell.header|escapejs }}') }"{% endif %}>
                     {% if cell.is_image %}
                       <div class="flex max-w-64 items-center gap-3">
                         <a href="{{ cell.image_full_url }}" class="fb-focus block h-14 w-14 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900" aria-label="Open image {{ cell.value }}">
@@ -258,10 +279,9 @@
                 {% endfor %}
               </tbody>
             </table>
-          </div>
         </div>
       {% if rows_show_actor and row_page_obj.has_other_pages %}
-        <nav class="mt-4 flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between" aria-label="Dataset row pagination">
+        <nav class="flex flex-col gap-3 border-t border-slate-950/10 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between dark:border-white/10" aria-label="Dataset row pagination">
           <p class="text-slate-600 dark:text-slate-300">Page {{ row_page_obj.number }} of {{ row_page_obj.paginator.num_pages }}</p>
           <div class="flex flex-wrap gap-2">
             {% if row_page_obj.has_previous %}

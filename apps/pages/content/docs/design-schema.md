@@ -9,6 +9,10 @@ keywords: Rowset schema, column types, choice columns, reference columns, datase
 Good Rowset datasets are explicit. The goal is not only to store rows, but to
 give future agents enough context to read and update the right fields.
 
+If a model produces JSON before an agent writes rows, use the [structured-output
+validation guide](/blog/ai-agent-structured-output) to separate schema validity,
+business-rule checks, and retry-safe persistence.
+
 ## Use semantic column types
 
 Rowset supports these semantic types:
@@ -111,6 +115,10 @@ update_dataset_column_types
 Index columns cannot be dropped, and generated index columns cannot be renamed.
 Columns used by relationships must be unlinked before destructive schema
 changes.
+
+If a generated index no longer fits an active workflow, do not change row identity under running
+agents. Use the [business-key migration guide](/blog/migrate-agent-dataset-business-key) to build
+a verified old-to-new key map, copy rows into a new dataset, cut over, and preserve rollback.
 
 ## Use references for Rowset objects
 

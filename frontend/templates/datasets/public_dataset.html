@@ -79,14 +79,25 @@
         </div>
       </div>
     {% else %}
-      <section class="fb-table-concept" aria-labelledby="public-table-heading">
-        <h2 id="public-table-heading" class="sr-only">Rows in {{ dataset.name }}</h2>
-        <div class="-mx-4 -my-2 overflow-x-auto whitespace-nowrap sm:-mx-6 lg:-mx-8">
-          <div class="inline-block min-w-full px-4 py-2 align-middle sm:px-6 lg:px-8">
+      <section
+        class="fb-table-concept rounded-lg border border-slate-950/10 dark:border-white/10"
+        aria-labelledby="public-table-heading"
+        x-data="datasetGrid"
+        data-grid-storage-key="public:{{ dataset.public_key }}"
+        data-grid-default-pinned-column="{{ dataset.index_column }}"
+        data-grid-search-query="{{ row_search_query }}"
+      >
+        <div class="border-b border-slate-950/10 px-4 py-3 dark:border-white/10">
+          <h2 id="public-table-heading" class="fb-section-title">Rows</h2>
+          <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Search, filter, and inspect this read-only public dataset.</p>
+        </div>
+        {% include "datasets/partials/row_table_controls.html" %}
+        <div class="max-h-[min(65vh,44rem)] overflow-auto">
             <table class="fb-table">
             <caption class="sr-only">Public preview table for {{ dataset.name }}</caption>
             <thead class="bg-slate-50 dark:bg-slate-950">
               <tr>
+                <th scope="col" class="fb-grid-sticky-header sticky left-0 top-0 z-40 w-16 min-w-16 text-center" aria-label="Row number">#</th>
                 {% for column in row_filter_fields %}
                   {% include "datasets/partials/row_column_header.html" with column=column %}
                 {% endfor %}
@@ -94,12 +105,19 @@
             </thead>
             <tbody class="divide-y divide-slate-100 bg-white dark:divide-slate-800 dark:bg-slate-950">
               {% for public_row in public_rows_with_values %}
-                <tr class="transition hover:bg-slate-50 dark:hover:bg-slate-900/70">
+                <tr class="group transition hover:bg-slate-50 dark:hover:bg-slate-900/70">
+                  <td class="sticky left-0 z-20 w-16 min-w-16 bg-white text-center tabular-nums group-hover:bg-slate-50 dark:bg-slate-950 dark:group-hover:bg-slate-900">
+                    <a href="{{ public_row.url }}" class="fb-focus inline-flex min-h-8 min-w-8 items-center justify-center gap-1 rounded-md font-semibold text-slate-600 hover:text-emerald-700 dark:text-slate-300 dark:hover:text-emerald-300" aria-label="Open row {{ public_row.row_number }}">
+                      {{ public_row.row_number }}<span aria-hidden="true">›</span>
+                    </a>
+                  </td>
                   {% for cell in public_row.cells %}
-                    <td>
-                      {% if cell.is_first and public_row.url and not public_row.has_accessible_row_link %}
-                        <a href="{{ public_row.url }}" class="sr-only">View row {{ public_row.row_number }} details</a>
-                      {% endif %}
+                    <td
+                      data-grid-cell
+                      data-grid-column-key="{{ cell.header }}"
+                      x-show="columnVisible('{{ cell.header|escapejs }}')"
+                      :class="{ 'sticky left-16 z-10 bg-white group-hover:bg-slate-50 dark:bg-slate-950 dark:group-hover:bg-slate-900 shadow-[1px_0_0_0_rgba(15,23,42,0.1)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.1)]': columnPinned('{{ cell.header|escapejs }}') }"
+                    >
                       {% if cell.is_image %}
                         <div class="flex max-w-64 items-center gap-3">
                           <a href="{{ cell.image_full_url }}" class="fb-focus block h-14 w-14 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900" aria-label="Open image {{ cell.value }}">
@@ -160,11 +178,10 @@
                   {% endfor %}
                 </tr>
               {% empty %}
-                <tr><td colspan="{{ dataset.headers|length }}" class="px-3 py-6 text-center text-base text-slate-500 dark:text-slate-400 sm:text-sm">{{ public_empty_message }}</td></tr>
+                <tr><td colspan="{{ public_rows_colspan }}" class="px-3 py-6 text-center text-base text-slate-500 dark:text-slate-400 sm:text-sm">{{ public_empty_message }}</td></tr>
               {% endfor %}
             </tbody>
             </table>
-          </div>
         </div>
       </section>
 

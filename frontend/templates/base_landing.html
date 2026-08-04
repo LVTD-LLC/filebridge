@@ -82,7 +82,7 @@
         <script defer src="{% static 'js/app.js' %}"></script>
         <script defer src="{% static 'js/posthog-identity.js' %}"></script>
     </head>
-    <body class="font-sans"
+    <body class="min-h-dvh bg-white font-sans dark:bg-neutral-950"
           data-csrf-token="{{ csrf_token }}"
           {% if posthog_pageview_enabled %}data-posthog-pageview-enabled="true"
           data-posthog-route="{{ posthog_pageview_route }}"

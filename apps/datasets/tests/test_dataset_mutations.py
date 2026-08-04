@@ -13,7 +13,10 @@ from apps.datasets.views import DATASET_CHANGES_PAGE_SIZE
 pytestmark = pytest.mark.django_db
 
 
-def test_dataset_detail_omits_row_mutation_chrome(auth_client, profile):
+def test_dataset_detail_exposes_row_inspection_controls_without_mutation_chrome(
+    auth_client,
+    profile,
+):
     dataset = create_ready_dataset(profile)
 
     response = auth_client.get(dataset.get_absolute_url())
@@ -24,8 +27,10 @@ def test_dataset_detail_omits_row_mutation_chrome(auth_client, profile):
     assert reverse("dataset_rows_bulk_action", args=[dataset.key]) not in content
     assert "Delete selected rows" not in content
     assert 'x-data="rowBulkActions"' not in content
-    assert 'id="row-search"' not in content
-    assert 'id="row-sort"' not in content
+    assert 'id="row-search"' in content
+    assert 'id="row-sort"' in content
+    assert "Search rows" in content
+    assert "Columns" in content
 
 
 def test_dataset_changes_paginates_mutation_history(auth_client, profile):

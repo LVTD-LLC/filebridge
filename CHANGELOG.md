@@ -20,8 +20,33 @@ deployment or release cut date.
 
 ### Added
 - Added consent-aware OpenAI Ads conversion measurement for completed account registrations.
+- Added a guide for migrating agent-managed datasets from generated row identity to a stable
+  business key with mapping, mirrored writes, verification, cutover, and rollback.
+
+## 2026-08-03
+
+### Added
+- Added an AI agent structured-output guide covering JSON Schema, semantic validation, staging,
+  stable identity, retry-safe writes, and destination read-back.
+
+### Changed
+- Dataset tables now expose row search, semantic filters, sorting, active query
+  summaries, sticky row identity, explicit row links, and browser-local column
+  visibility and pinning controls in authenticated and public read-only views.
+- Dataset column headers now show semantic type and index or formula roles, and
+  matching cell text is highlighted when searching rows.
+
+### Fixed
+- Dataset column menus can extend beyond short filtered tables without exposing
+  an unthemed page canvas.
 
 ## 2026-08-02
+
+### Fixed
+- Stripe webhooks now ignore unrelated products in the shared LVTD Stripe account and mutate
+  Rowset billing state only for the configured plan and Price.
+- Stripe webhook deliveries now normalize SDK `Event` objects before dispatch so valid signed
+  events return a successful response instead of falling through the custom server-error redirect.
 
 ### Added
 - Added an MCP OAuth versus API-key decision guide with a five-question delegation test for

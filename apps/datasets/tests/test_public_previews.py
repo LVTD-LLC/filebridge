@@ -685,6 +685,35 @@ def test_public_dataset_view_filters_and_sorts_rows(client, profile):
     assert sort_content.index("Grace Hopper") < sort_content.index("Ada Lovelace")
 
 
+def test_public_dataset_grid_exposes_read_only_discovery_controls(client, profile):
+    dataset = configure_filterable_dataset(create_ready_dataset(profile))
+    dataset.public_enabled = True
+    dataset.save(update_fields=["public_enabled"])
+
+    response = client.get(
+        dataset.get_public_url(),
+        {"row_q": "ada", "filter_3": "true"},
+    )
+
+    assert response.status_code == 200
+    assert response.context["row_match_count"] == 1
+    content = response.content.decode()
+    assert 'class="fb-table-concept rounded-lg border' in content
+    assert 'class="fb-table-concept overflow-hidden' not in content
+    assert 'id="row-search"' in content
+    assert "Showing 1–1 of 1 match · 3 total rows" in content
+    assert 'data-grid-search-query="ada"' in content
+    assert 'data-grid-default-pinned-column="email"' in content
+    assert content.count('data-grid-column-key="email"') >= 2
+    assert content.count("fb-grid-sticky-header") >= 5
+    assert "dark:group-hover:bg-slate-900" in content
+    assert "dark:group-hover:bg-slate-900/70" not in content
+    assert "Search: ada" in content
+    assert "active: True" in content
+    assert 'aria-label="Open row 1"' in content
+    assert "Create row" not in content
+
+
 def test_public_dataset_pagination_preserves_row_filters(client, profile):
     dataset = configure_filterable_dataset(create_ready_dataset(profile))
     dataset.public_enabled = True

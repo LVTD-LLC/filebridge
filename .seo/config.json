@@ -37,10 +37,10 @@
     "content_ledger_dataset_key": "9ae7d0d3-1138-43a0-b3b8-aa05fac12a96",
     "research_briefs_dataset_key": "3a004cfa-0a7e-4c3a-a517-caca902f38d6",
     "schema_version": 1,
-    "last_sync_at": "2026-08-02"
+    "last_sync_at": "2026-08-04"
   },
   "created_at": "2026-07-04",
-  "updated_at": "2026-08-02",
+  "updated_at": "2026-08-04",
   "notes": [
     "Initialized from latest origin/main after fast-forwarding from c11f1de to 2d9389b.",
     "Refreshed from current origin/main b93e5d6 with GSC, Plausible, PostHog, DataForSEO, Exa, Firecrawl, Jina, and live HTTP checks on 2026-07-15.",

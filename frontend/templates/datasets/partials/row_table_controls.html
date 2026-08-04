@@ -1,5 +1,5 @@
-<form method="get" action="" class="mt-4 rounded-lg border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
-  <div class="grid gap-3 lg:grid-cols-[minmax(12rem,1.2fr)_minmax(10rem,0.8fr)_minmax(9rem,0.6fr)_auto] lg:items-end">
+<div class="border-b border-slate-950/10 bg-slate-50/70 p-4 dark:border-white/10 dark:bg-slate-900/40">
+  <form method="get" action="" class="grid gap-3 lg:grid-cols-[minmax(15rem,1fr)_minmax(10rem,0.55fr)_minmax(9rem,0.45fr)_auto] lg:items-end">
     <div>
       <label for="row-search" class="block text-sm font-semibold text-slate-800 dark:text-slate-100">Search rows</label>
       <input
@@ -7,17 +7,13 @@
         name="row_q"
         type="search"
         value="{{ row_search_query }}"
-        placeholder="Any column"
+        placeholder="Search any column"
         class="mt-1 block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-950"
       >
     </div>
     <div>
       <label for="row-sort" class="block text-sm font-semibold text-slate-800 dark:text-slate-100">Sort by</label>
-      <select
-        id="row-sort"
-        name="row_sort"
-        class="mt-1 block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-950"
-      >
+      <select id="row-sort" name="row_sort" class="mt-1 block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-950">
         {% for option in row_sort_options %}
           <option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>
         {% endfor %}
@@ -25,11 +21,7 @@
     </div>
     <div>
       <label for="row-sort-direction" class="block text-sm font-semibold text-slate-800 dark:text-slate-100">Direction</label>
-      <select
-        id="row-sort-direction"
-        name="row_dir"
-        class="mt-1 block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-950"
-      >
+      <select id="row-sort-direction" name="row_dir" class="mt-1 block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-950">
         {% for option in row_sort_direction_options %}
           <option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>
         {% endfor %}
@@ -38,67 +30,81 @@
     <div class="flex flex-wrap gap-2">
       <button type="submit" class="fb-button-primary min-h-10">Apply</button>
       {% if has_row_filters %}
-        <a href="{{ row_filters_reset_url }}" class="fb-button-secondary min-h-10">Clear</a>
+        <a href="{{ row_filters_reset_url }}" class="fb-button-secondary min-h-10">Clear all</a>
       {% endif %}
     </div>
-  </div>
 
-  {% if not hide_column_filter_section %}
-    <details class="mt-3"{% if has_row_filters %} open{% endif %}>
-      <summary class="fb-focus inline-flex cursor-pointer rounded-md text-sm font-semibold text-slate-700 hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300">Column filters</summary>
-      <div class="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+    <details class="lg:col-span-4"{% if active_row_filter_count %} open{% endif %}>
+      <summary class="fb-focus inline-flex min-h-9 cursor-pointer items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-slate-400 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-white">
+        Filters{% if active_row_filter_count %} · {{ active_row_filter_count }} active{% endif %}
+      </summary>
+      <div class="mt-3 grid gap-3 border-t border-slate-200 pt-3 md:grid-cols-2 xl:grid-cols-3 dark:border-slate-800">
         {% for row_filter in row_filter_fields %}
           <div>
             <label for="row-filter-{{ row_filter.param_name }}" class="block truncate text-sm font-semibold text-slate-800 dark:text-slate-100" title="{% firstof row_filter.description row_filter.header %}">{{ row_filter.header }}</label>
             {% if row_filter.is_choice %}
-              <div class="mt-1">
-                {% include "datasets/partials/choice_filter.html" with choice_filter=row_filter control_id="row-filter" %}
-              </div>
+              <div class="mt-1">{% include "datasets/partials/choice_filter.html" with choice_filter=row_filter control_id="row-filter" %}</div>
             {% elif row_filter.is_boolean %}
-              <select
-                id="row-filter-{{ row_filter.param_name }}"
-                name="{{ row_filter.param_name }}"
-                class="mt-1 block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-950"
-              >
-                <option value="">Any</option>
+              <select id="row-filter-{{ row_filter.param_name }}" name="{{ row_filter.param_name }}" class="mt-1 block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                <option value="">Any value</option>
                 <option value="true"{% if row_filter.value == "true" %} selected{% endif %}>True</option>
                 <option value="false"{% if row_filter.value == "false" %} selected{% endif %}>False</option>
               </select>
-            {% elif row_filter.is_numeric_filter %}
+            {% elif row_filter.is_ordered_filter %}
               <div class="mt-1 grid gap-2 sm:grid-cols-[8rem_1fr]">
                 <label for="row-filter-operator-{{ row_filter.param_name }}" class="sr-only">Operator</label>
-                <select
-                  id="row-filter-operator-{{ row_filter.param_name }}"
-                  name="{{ row_filter.operator_param_name }}"
-                  class="block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-950"
-                >
-                  {% for operator in row_filter.operator_options %}
-                    <option value="{{ operator.value }}"{% if operator.selected %} selected{% endif %}>{{ operator.label }}</option>
-                  {% endfor %}
+                <select id="row-filter-operator-{{ row_filter.param_name }}" name="{{ row_filter.operator_param_name }}" class="block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                  {% for operator in row_filter.operator_options %}<option value="{{ operator.value }}"{% if operator.selected %} selected{% endif %}>{{ operator.label }}</option>{% endfor %}
                 </select>
-                <input
-                  id="row-filter-{{ row_filter.param_name }}"
-                  name="{{ row_filter.param_name }}"
-                  type="{{ row_filter.input_type }}"
-                  value="{{ row_filter.value }}"
-                  step="any"
-                  placeholder="{{ row_filter.type_label }}"
-                  class="block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-950"
-                >
+                <input id="row-filter-{{ row_filter.param_name }}" name="{{ row_filter.param_name }}" type="{{ row_filter.input_type }}" value="{{ row_filter.value }}" step="any" placeholder="{{ row_filter.type_label }}" class="block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
               </div>
             {% else %}
-              <input
-                id="row-filter-{{ row_filter.param_name }}"
-                name="{{ row_filter.param_name }}"
-                type="{{ row_filter.input_type }}"
-                value="{{ row_filter.value }}"
-                placeholder="{{ row_filter.operator_label }} {{ row_filter.type_label|lower }}"
-                class="mt-1 block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-950"
-              >
+              <input id="row-filter-{{ row_filter.param_name }}" name="{{ row_filter.param_name }}" type="{{ row_filter.input_type }}" value="{{ row_filter.value }}" placeholder="{{ row_filter.operator_label }} {{ row_filter.type_label|lower }}" class="mt-1 block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
             {% endif %}
           </div>
         {% endfor %}
       </div>
     </details>
-  {% endif %}
-</form>
+  </form>
+
+  <div class="mt-3 flex flex-col gap-3 border-t border-slate-200 pt-3 sm:flex-row sm:items-start sm:justify-between dark:border-slate-800">
+    <div class="min-w-0">
+      <p class="text-sm text-slate-600 dark:text-slate-300">
+        {% if has_row_filters %}
+          Showing {{ row_range_start }}–{{ row_range_end }} of {{ row_match_count }} match{{ row_match_count|pluralize:"es" }} · {{ row_total_count }} total row{{ row_total_count|pluralize }}
+        {% else %}
+          Showing {{ row_range_start }}–{{ row_range_end }} of {{ row_total_count }} row{{ row_total_count|pluralize }}
+        {% endif %}
+      </p>
+      {% if has_row_filters %}
+        <div class="mt-2 flex flex-wrap gap-2" aria-label="Active row query">
+          {% if row_search_query %}<span class="fb-grid-query-chip">Search: {{ row_search_query }}</span>{% endif %}
+          {% for field in active_row_filter_fields %}<span class="fb-grid-query-chip">{{ field.active_filter_label }}</span>{% endfor %}
+          {% if row_has_custom_sort %}<span class="fb-grid-query-chip">Sorted by {{ row_active_sort_label }}</span>{% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <details class="relative shrink-0">
+      <summary class="fb-focus inline-flex min-h-9 cursor-pointer list-none items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-slate-400 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:text-white">Columns</summary>
+      <div class="absolute right-0 z-40 mt-2 w-72 rounded-lg border border-slate-200 bg-white p-3 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+        <p class="text-xs leading-5 text-slate-500 dark:text-slate-400">Choose visible columns and pin one beside the row number. This changes only your browser view.</p>
+        <div class="mt-3 max-h-72 space-y-2 overflow-y-auto">
+          {% for column in row_filter_fields %}
+            <div class="grid grid-cols-[1fr_auto] items-center gap-3 rounded-md border border-slate-200 px-2.5 py-2 dark:border-slate-700">
+              <label class="flex min-w-0 items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                <input type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" :checked="columnVisible('{{ column.header|escapejs }}')" :disabled="columnPinned('{{ column.header|escapejs }}')" @change="toggleColumn('{{ column.header|escapejs }}')">
+                <span class="truncate">{{ column.header }}</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                <input type="radio" name="grid-pinned-column" value="{{ column.header }}" class="border-slate-300 text-emerald-600 focus:ring-emerald-500" :checked="columnPinned('{{ column.header|escapejs }}')" @change="pinColumn('{{ column.header|escapejs }}')">
+                Pin
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+        <button type="button" class="fb-focus mt-3 rounded-md text-sm font-semibold text-emerald-700 hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200" @click="resetColumns">Reset columns</button>
+      </div>
+    </details>
+  </div>
+</div>

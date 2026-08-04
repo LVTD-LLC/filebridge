@@ -969,6 +969,131 @@
       },
     }));
 
+    Alpine.data("datasetGrid", () => ({
+      hiddenColumns: [],
+      pinnedColumn: "",
+      storageKey: "",
+      defaultPinnedColumn: "",
+
+      init() {
+        this.storageKey = `rowsetDatasetGrid:${this.$root.dataset.gridStorageKey}`;
+        const columnKeys = Array.from(
+          this.$root.querySelectorAll("thead [data-grid-column-key]"),
+          (column) => column.dataset.gridColumnKey,
+        );
+        this.defaultPinnedColumn = this.$root.dataset.gridDefaultPinnedColumn || columnKeys[0];
+        if (!columnKeys.includes(this.defaultPinnedColumn)) {
+          this.defaultPinnedColumn = columnKeys[0] || "";
+        }
+        this.pinnedColumn = this.defaultPinnedColumn;
+
+        try {
+          const savedState = JSON.parse(localStorage.getItem(this.storageKey) || "null");
+          if (savedState && Array.isArray(savedState.hiddenColumns)) {
+            this.hiddenColumns = savedState.hiddenColumns.filter(
+              (columnKey) => typeof columnKey === "string" && columnKeys.includes(columnKey),
+            );
+          }
+          if (
+            savedState &&
+            typeof savedState.pinnedColumn === "string" &&
+            columnKeys.includes(savedState.pinnedColumn)
+          ) {
+            this.pinnedColumn = savedState.pinnedColumn;
+          }
+        } catch {
+          this.hiddenColumns = [];
+          this.pinnedColumn = this.defaultPinnedColumn;
+        }
+
+        this.hiddenColumns = this.hiddenColumns.filter(
+          (columnKey) => columnKey !== this.pinnedColumn,
+        );
+        this.$nextTick(() => this.highlightSearchMatches());
+      },
+
+      columnVisible(columnKey) {
+        return !this.hiddenColumns.includes(columnKey);
+      },
+
+      columnPinned(columnKey) {
+        return this.pinnedColumn === columnKey;
+      },
+
+      toggleColumn(columnKey) {
+        if (this.columnPinned(columnKey)) {
+          return;
+        }
+        if (this.columnVisible(columnKey)) {
+          this.hiddenColumns = [...this.hiddenColumns, columnKey];
+        } else {
+          this.hiddenColumns = this.hiddenColumns.filter((key) => key !== columnKey);
+        }
+        this.persistColumns();
+      },
+
+      pinColumn(columnKey) {
+        this.pinnedColumn = columnKey;
+        this.hiddenColumns = this.hiddenColumns.filter((key) => key !== columnKey);
+        this.persistColumns();
+      },
+
+      resetColumns() {
+        this.hiddenColumns = [];
+        this.pinnedColumn = this.defaultPinnedColumn;
+        this.persistColumns();
+      },
+
+      persistColumns() {
+        localStorage.setItem(
+          this.storageKey,
+          JSON.stringify({
+            hiddenColumns: this.hiddenColumns,
+            pinnedColumn: this.pinnedColumn,
+          }),
+        );
+      },
+
+      highlightSearchMatches() {
+        const query = (this.$root.dataset.gridSearchQuery || "").trim();
+        if (!query) {
+          return;
+        }
+
+        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const matcher = new RegExp(`(${escapedQuery})`, "gi");
+        this.$root.querySelectorAll("[data-grid-cell]").forEach((cell) => {
+          const walker = document.createTreeWalker(cell, window.NodeFilter.SHOW_TEXT);
+          const textNodes = [];
+          while (walker.nextNode()) {
+            if (!walker.currentNode.parentElement.closest("mark, script, style")) {
+              textNodes.push(walker.currentNode);
+            }
+          }
+          textNodes.forEach((textNode) => {
+            const text = textNode.textContent || "";
+            if (!matcher.test(text)) {
+              matcher.lastIndex = 0;
+              return;
+            }
+            matcher.lastIndex = 0;
+            const fragment = document.createDocumentFragment();
+            text.split(matcher).forEach((part) => {
+              if (part.toLocaleLowerCase() === query.toLocaleLowerCase()) {
+                const mark = document.createElement("mark");
+                mark.className = "fb-grid-search-match";
+                mark.textContent = part;
+                fragment.append(mark);
+              } else if (part) {
+                fragment.append(document.createTextNode(part));
+              }
+            });
+            textNode.replaceWith(fragment);
+          });
+        });
+      },
+    }));
+
     Alpine.data("rowColumnMenu", () => ({
       repositionFrame: null,
       triggerElement: null,

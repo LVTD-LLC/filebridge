@@ -2,7 +2,7 @@
   "product": "Rowset",
   "domain": "https://rowset.lvtd.dev",
   "created_at": "2026-07-04",
-  "updated_at": "2026-08-02",
+  "updated_at": "2026-08-03",
   "mode": "measured_reaudit",
   "source": "blended",
   "sources": [
@@ -17,7 +17,7 @@
     "repo",
     "production_site"
   ],
-  "as_of": "2026-08-02",
+  "as_of": "2026-08-03",
   "confidence": "measured",
   "notes": [
     "GSC remains sparse: 8 impressions and 0 clicks across three query/page rows in the last 90 days, with no meaningful striking-distance opportunity.",
@@ -27,7 +27,8 @@
     "DataForSEO surfaced mcp database as the strongest newly measured cluster: 480 US searches/month, KD 5, and $14.12 CPC.",
     "The live route audit found 17 stale URLs in the SEO inventory after the docs/use-case migration.",
     "A 2026-08-01 DataForSEO refresh selected ai data collection at 210 US searches/month, KD 2, and $17.20 CPC; adjacent analysis and broad operations terms were deferred for weaker product fit.",
-    "A 2026-08-02 DataForSEO refresh selected mcp oauth at 390 US searches/month, KD 9, and $38.48 CPC. The live SERP is led by official protocol documentation and implementation guides; the Rowset piece uses a distinct OAuth-versus-provisioned-key delegation test."
+    "A 2026-08-02 DataForSEO refresh selected mcp oauth at 390 US searches/month, KD 9, and $38.48 CPC. The live SERP is led by official protocol documentation and implementation guides; the Rowset piece uses a distinct OAuth-versus-provisioned-key delegation test.",
+    "A 2026-08-03 live SERP refresh selected AI agent structured output as an unmeasured but strongly product-aligned implementation topic. Provider docs explain schema-constrained responses; the Rowset piece adds the shape, meaning, and retry-safe write boundary."
   ],
   "tool_evidence": [
     {
@@ -233,9 +234,26 @@
     {"keyword": "mcp database server", "source": "dataforseo", "search_volume": 30, "keyword_difficulty": 19, "cpc": null, "intent": "navigational", "as_of": "2026-07-15"},
     {"keyword": "mcp vector database", "source": "dataforseo", "search_volume": 20, "keyword_difficulty": 2, "cpc": null, "intent": "informational", "as_of": "2026-07-15"},
     {"keyword": "ai agent database", "source": "dataforseo", "search_volume": 20, "keyword_difficulty": 7, "cpc": null, "intent": "commercial", "as_of": "2026-07-15"},
-    {"keyword": "database for ai agents", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": 7, "cpc": 19.47, "intent": "commercial", "as_of": "2026-07-15"}
+    {"keyword": "database for ai agents", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": 7, "cpc": 19.47, "intent": "commercial", "as_of": "2026-07-15"},
+    {"keyword": "business key database", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": null, "cpc": null, "intent": "commercial", "as_of": "2026-08-04"}
   ],
   "opportunities": [
+    {
+      "cluster": "business-key migration for agent datasets",
+      "target_url": "/blog/migrate-agent-dataset-business-key",
+      "status": "shipped",
+      "priority": 14,
+      "signals": {"primary_volume": 10, "primary_kd": null, "primary_cpc": null},
+      "notes": "Selected 2026-08-04 from the coverage map's highest-priority open product-native gap after remaining measured backlog candidates were deferred. The guide adds a map -> mirror -> verify -> cut over -> retire identity migration contract for agent-managed rows."
+    },
+    {
+      "cluster": "AI agent structured output",
+      "target_url": "/blog/ai-agent-structured-output",
+      "status": "shipped",
+      "priority": 13,
+      "signals": {"primary_volume": null, "primary_kd": null, "primary_cpc": null},
+      "notes": "Selected 2026-08-03 after live SERP research. Provider and framework docs dominate implementation coverage; the Rowset guide adds a product-led shape -> meaning -> write contract for staged, retry-safe durable rows."
+    },
     {
       "cluster": "mcp oauth",
       "target_url": "/blog/mcp-oauth-vs-api-keys",
@@ -334,6 +352,18 @@
     }
   ],
   "serp_snapshots": {
+    "database primary key migration": {
+      "source": "dataforseo live organic SERP + primary-source extraction",
+      "as_of": "2026-08-04",
+      "top_domains": ["docs.cloud.google.com", "dba.stackexchange.com", "ibm.com", "stackoverflow.com", "learn.microsoft.com"],
+      "notes": "The SERP contains an AI Overview, vendor documentation, forum answers, and PAA questions about primary-key changes. The Rowset guide differentiates with agent configuration, retry, relationship translation, deterministic mirroring, canary, and rollback controls."
+    },
+    "AI agent structured output": {
+      "source": "live web search + primary-source extraction",
+      "as_of": "2026-08-03",
+      "top_domains": ["code.claude.com", "ai.google.dev", "json-schema.org", "tanstack.com", "docs.ag2.ai", "learn.microsoft.com"],
+      "notes": "The SERP is documentation-heavy and explains schema-constrained generation. The Rowset post differentiates by separating format validity, semantic and policy validity, staging, retry-safe writes, and destination read-back."
+    },
     "ai data collection": {
       "source": "dataforseo + live page extraction",
       "as_of": "2026-08-01",
