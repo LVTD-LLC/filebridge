@@ -16,6 +16,11 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-08-04
+
+### Added
+- Added consent-aware OpenAI Ads conversion measurement for completed account registrations.
+
 ## 2026-08-02
 
 ### Added

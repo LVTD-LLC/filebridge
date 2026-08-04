@@ -8,6 +8,7 @@ from django_q.tasks import async_task
 from apps.core.analytics import track_user_logged_in_event
 from apps.core.choices import TrialReward
 from apps.core.models import Profile, ProfileStates
+from apps.core.openai_ads import mark_registration_completed
 from apps.core.tasks import add_email_to_buttondown
 from apps.core.trials import claim_trial_reward
 from rowset.utils import get_rowset_logger
@@ -64,7 +65,8 @@ def track_user_logged_in(sender, request, user, **kwargs):
 
 
 @receiver(user_signed_up)
-def email_confirmation_callback(sender, request, user, **kwargs):
+def handle_user_signed_up(sender, request, user, **kwargs):
+    mark_registration_completed(request)
     if "sociallogin" in kwargs:
         email = kwargs["sociallogin"].user.email
         if email:
