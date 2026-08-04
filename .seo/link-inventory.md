@@ -93,6 +93,7 @@
 | `/blog/ai-data-collection` | https://rowset.lvtd.dev/blog/ai-data-collection | AI Data Collection: A Reviewable Agent Workflow | AI data collection, AI data collection workflow, collection control plane, source registry and capture runs, reviewable agent-collected records |
 | `/blog/mcp-oauth-vs-api-keys` | https://rowset.lvtd.dev/blog/mcp-oauth-vs-api-keys | MCP OAuth vs API Keys: Choose the Right Auth | MCP OAuth vs API keys, MCP authorization decision guide, provisioned API key for agents, delegated MCP access, agent authentication delegation test |
 | `/blog/ai-agent-structured-output` | https://rowset.lvtd.dev/blog/ai-agent-structured-output | AI Agent Structured Output: Validate Before You Store | AI agent structured output, structured output validation for agents, shape meaning write contract, JSON Schema to durable rows, validated agent output workflow |
+| `/blog/migrate-agent-dataset-business-key` | https://rowset.lvtd.dev/blog/migrate-agent-dataset-business-key | Migrate an AI-Agent Dataset to a Business Key | business-key migration for agent datasets, migrate generated row identity, agent dataset index migration, map mirror verify cutover retire, move from rowset_id to a business key |
 
 ## Shipped SEO Sprint Pages
 
@@ -236,3 +237,8 @@ These route families remain retired and must not be selected as internal-link ta
 - shape meaning write contract
 - JSON Schema to durable rows
 - validated agent output workflow
+- business-key migration for agent datasets
+- migrate generated row identity
+- agent dataset index migration
+- map mirror verify cutover retire
+- move from `rowset_id` to a business key

@@ -130,6 +130,10 @@ Generated indexes are useful for:
 - one-off review lists that still need safe updates
 - imported rows where the apparent identifier is optional or duplicated
 
+If a stable upstream ID becomes available later, follow the [agent-dataset business-key migration
+guide](/blog/migrate-agent-dataset-business-key). It uses a new dataset, an explicit key map,
+mirrored changes, and a rollback window instead of changing identity under active agents.
+
 The tradeoff is that `rowset_id` is Rowset-owned identity. It is stable inside
 the Rowset dataset, but it may not mean anything to the upstream system unless
 you export it and keep it with the source. If the upstream workflow already has
