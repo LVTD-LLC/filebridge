@@ -234,9 +234,18 @@
     {"keyword": "mcp database server", "source": "dataforseo", "search_volume": 30, "keyword_difficulty": 19, "cpc": null, "intent": "navigational", "as_of": "2026-07-15"},
     {"keyword": "mcp vector database", "source": "dataforseo", "search_volume": 20, "keyword_difficulty": 2, "cpc": null, "intent": "informational", "as_of": "2026-07-15"},
     {"keyword": "ai agent database", "source": "dataforseo", "search_volume": 20, "keyword_difficulty": 7, "cpc": null, "intent": "commercial", "as_of": "2026-07-15"},
-    {"keyword": "database for ai agents", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": 7, "cpc": 19.47, "intent": "commercial", "as_of": "2026-07-15"}
+    {"keyword": "database for ai agents", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": 7, "cpc": 19.47, "intent": "commercial", "as_of": "2026-07-15"},
+    {"keyword": "business key database", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": null, "cpc": null, "intent": "commercial", "as_of": "2026-08-04"}
   ],
   "opportunities": [
+    {
+      "cluster": "business-key migration for agent datasets",
+      "target_url": "/blog/migrate-agent-dataset-business-key",
+      "status": "shipped",
+      "priority": 14,
+      "signals": {"primary_volume": 10, "primary_kd": null, "primary_cpc": null},
+      "notes": "Selected 2026-08-04 from the coverage map's highest-priority open product-native gap after remaining measured backlog candidates were deferred. The guide adds a map -> mirror -> verify -> cut over -> retire identity migration contract for agent-managed rows."
+    },
     {
       "cluster": "AI agent structured output",
       "target_url": "/blog/ai-agent-structured-output",
@@ -343,6 +352,12 @@
     }
   ],
   "serp_snapshots": {
+    "database primary key migration": {
+      "source": "dataforseo live organic SERP + primary-source extraction",
+      "as_of": "2026-08-04",
+      "top_domains": ["docs.cloud.google.com", "dba.stackexchange.com", "ibm.com", "stackoverflow.com", "learn.microsoft.com"],
+      "notes": "The SERP contains an AI Overview, vendor documentation, forum answers, and PAA questions about primary-key changes. The Rowset guide differentiates with agent configuration, retry, relationship translation, deterministic mirroring, canary, and rollback controls."
+    },
     "AI agent structured output": {
       "source": "live web search + primary-source extraction",
       "as_of": "2026-08-03",
