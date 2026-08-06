@@ -39,7 +39,7 @@
 | 2026-08-02 | MCP OAuth vs API Keys: Choose the Right Auth | comparison / decision guide | `/blog/mcp-oauth-vs-api-keys` | MCP OAuth | 390 | 9 | MCP setup, agent access, MCP vs REST, safe sharing, pricing | #392 |
 | 2026-08-03 | AI Agent Structured Output: Validate Before You Store | how-to / operational decision guide | `/blog/ai-agent-structured-output` | AI agent structured output | unmeasured | n/a | schema design, data entry, idempotent updates, MCP, Dataset API, pricing | #396 |
 | 2026-08-04 | Migrate an AI-Agent Dataset to a Business Key | how-to / operational decision guide | `/blog/migrate-agent-dataset-business-key` | business key database | 10 | n/a | index-column guide, rowset_id vs business keys, schema design, row operations, idempotent updates, MCP, pricing | #397 |
-| 2026-08-06 | Composite Primary Keys for AI-Agent Datasets | definition / implementation decision guide | `/blog/composite-primary-key-ai-agents` | composite primary key | 590 | 0 | index-column guide, business-key migration, Dataset API, schema design, idempotency, relationships, pricing, quickstart | PR TBD |
+| 2026-08-06 | Composite Primary Keys for AI-Agent Datasets | definition / implementation decision guide | `/blog/composite-primary-key-ai-agents` | composite primary key | 590 | 0 | index-column guide, business-key migration, Dataset API, schema design, idempotency, relationships, pricing, quickstart | #399 |
 
 ---
 
