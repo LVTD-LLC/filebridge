@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-08-06
+
+### Added
+- Added a composite-primary-key guide for agent-managed datasets with a deterministic SCOPE
+  identity contract, collision-safe component encoding, retry guidance, and Rowset examples.
+
 ## 2026-08-04
 
 ### Added

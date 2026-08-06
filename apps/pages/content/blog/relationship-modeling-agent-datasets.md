@@ -123,6 +123,10 @@ the target value should be unique, required, stable, recognizable to the agent,
 and present in exports or upstream systems. If the target value can change
 during normal work, do not use it as the relationship handle.
 
+If the target is unique only by a tuple such as `(workspace_id, sku)`, define that identity before
+adding links. The [composite-primary-key guide](/blog/composite-primary-key-ai-agents) provides a
+versioned encoding contract for carrying the complete tuple through one Rowset index value.
+
 Bad relationship keys usually look convenient:
 
 - `name`, because names change and collide

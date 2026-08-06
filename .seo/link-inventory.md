@@ -94,6 +94,7 @@
 | `/blog/mcp-oauth-vs-api-keys` | https://rowset.lvtd.dev/blog/mcp-oauth-vs-api-keys | MCP OAuth vs API Keys: Choose the Right Auth | MCP OAuth vs API keys, MCP authorization decision guide, provisioned API key for agents, delegated MCP access, agent authentication delegation test |
 | `/blog/ai-agent-structured-output` | https://rowset.lvtd.dev/blog/ai-agent-structured-output | AI Agent Structured Output: Validate Before You Store | AI agent structured output, structured output validation for agents, shape meaning write contract, JSON Schema to durable rows, validated agent output workflow |
 | `/blog/migrate-agent-dataset-business-key` | https://rowset.lvtd.dev/blog/migrate-agent-dataset-business-key | Migrate an AI-Agent Dataset to a Business Key | business-key migration for agent datasets, migrate generated row identity, agent dataset index migration, map mirror verify cutover retire, move from rowset_id to a business key |
+| `/blog/composite-primary-key-ai-agents` | https://rowset.lvtd.dev/blog/composite-primary-key-ai-agents | Composite Primary Keys for AI-Agent Datasets | composite identity, deterministic row index, multi-field business key, SCOPE identity contract |
 
 ## Shipped SEO Sprint Pages
 

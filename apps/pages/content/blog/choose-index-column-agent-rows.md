@@ -99,6 +99,11 @@ Use this checklist before creating an agent-managed dataset.
 If a candidate fails any of those tests, it can still be a useful column. It
 just should not be the index.
 
+Sometimes no single field is unique, but a stable tuple is. The guide to
+[composite primary keys for AI-agent datasets](/blog/composite-primary-key-ai-agents) shows how to
+keep those component fields and derive one deterministic index for a single-index MCP or REST
+surface.
+
 ## Good index columns by workflow
 
 The right index depends on the job the dataset is doing.
