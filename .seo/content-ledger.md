@@ -40,7 +40,7 @@
 | 2026-08-03 | AI Agent Structured Output: Validate Before You Store | how-to / operational decision guide | `/blog/ai-agent-structured-output` | AI agent structured output | unmeasured | n/a | schema design, data entry, idempotent updates, MCP, Dataset API, pricing | #396 |
 | 2026-08-04 | Migrate an AI-Agent Dataset to a Business Key | how-to / operational decision guide | `/blog/migrate-agent-dataset-business-key` | business key database | 10 | n/a | index-column guide, rowset_id vs business keys, schema design, row operations, idempotent updates, MCP, pricing | #397 |
 | 2026-08-06 | Composite Primary Keys for AI-Agent Datasets | definition / implementation decision guide | `/blog/composite-primary-key-ai-agents` | composite primary key | 590 | 0 | index-column guide, business-key migration, Dataset API, schema design, idempotency, relationships, pricing, quickstart | #399 |
-| 2026-08-07 | Crosswalk Table for AI Agents: Map IDs Safely | definition-led implementation guide | `/blog/crosswalk-table-ai-agents` | crosswalk table | 170 | 2 | business-key guide, composite-key guide, HITL, schema design, relationships, idempotency, pricing, quickstart | pending PR |
+| 2026-08-07 | Crosswalk Table for AI Agents: Map IDs Safely | definition-led implementation guide | `/blog/crosswalk-table-ai-agents` | crosswalk table | 170 | 2 | business-key guide, composite-key guide, HITL, schema design, relationships, idempotency, pricing, quickstart | #400 |
 
 ---
 
