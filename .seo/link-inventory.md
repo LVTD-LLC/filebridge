@@ -95,6 +95,7 @@
 | `/blog/ai-agent-structured-output` | https://rowset.lvtd.dev/blog/ai-agent-structured-output | AI Agent Structured Output: Validate Before You Store | AI agent structured output, structured output validation for agents, shape meaning write contract, JSON Schema to durable rows, validated agent output workflow |
 | `/blog/migrate-agent-dataset-business-key` | https://rowset.lvtd.dev/blog/migrate-agent-dataset-business-key | Migrate an AI-Agent Dataset to a Business Key | business-key migration for agent datasets, migrate generated row identity, agent dataset index migration, map mirror verify cutover retire, move from rowset_id to a business key |
 | `/blog/composite-primary-key-ai-agents` | https://rowset.lvtd.dev/blog/composite-primary-key-ai-agents | Composite Primary Keys for AI-Agent Datasets | composite identity, deterministic row index, multi-field business key, SCOPE identity contract |
+| `/blog/crosswalk-table-ai-agents` | https://rowset.lvtd.dev/blog/crosswalk-table-ai-agents | Crosswalk Table for AI Agents: Map IDs Safely | crosswalk table, identity mapping table, source ID to canonical ID, TRACE mapping contract, reviewed ID mappings |
 
 ## Shipped SEO Sprint Pages
 
@@ -243,3 +244,8 @@ These route families remain retired and must not be selected as internal-link ta
 - agent dataset index migration
 - map mirror verify cutover retire
 - move from `rowset_id` to a business key
+- crosswalk table for AI agents
+- identity mapping table
+- map source IDs to canonical IDs
+- TRACE mapping contract
+- reviewed cross-system ID mappings

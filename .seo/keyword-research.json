@@ -2,7 +2,7 @@
   "product": "Rowset",
   "domain": "https://rowset.lvtd.dev",
   "created_at": "2026-07-04",
-  "updated_at": "2026-08-03",
+  "updated_at": "2026-08-07",
   "mode": "measured_reaudit",
   "source": "blended",
   "sources": [
@@ -17,7 +17,7 @@
     "repo",
     "production_site"
   ],
-  "as_of": "2026-08-03",
+  "as_of": "2026-08-07",
   "confidence": "measured",
   "notes": [
     "GSC remains sparse: 8 impressions and 0 clicks across three query/page rows in the last 90 days, with no meaningful striking-distance opportunity.",
@@ -28,7 +28,8 @@
     "The live route audit found 17 stale URLs in the SEO inventory after the docs/use-case migration.",
     "A 2026-08-01 DataForSEO refresh selected ai data collection at 210 US searches/month, KD 2, and $17.20 CPC; adjacent analysis and broad operations terms were deferred for weaker product fit.",
     "A 2026-08-02 DataForSEO refresh selected mcp oauth at 390 US searches/month, KD 9, and $38.48 CPC. The live SERP is led by official protocol documentation and implementation guides; the Rowset piece uses a distinct OAuth-versus-provisioned-key delegation test.",
-    "A 2026-08-03 live SERP refresh selected AI agent structured output as an unmeasured but strongly product-aligned implementation topic. Provider docs explain schema-constrained responses; the Rowset piece adds the shape, meaning, and retry-safe write boundary."
+    "A 2026-08-03 live SERP refresh selected AI agent structured output as an unmeasured but strongly product-aligned implementation topic. Provider docs explain schema-constrained responses; the Rowset piece adds the shape, meaning, and retry-safe write boundary.",
+    "A 2026-08-07 DataForSEO refresh selected crosswalk table at 170 US searches/month, KD 2, and transactional intent. The mixed SERP has an AI Overview, a thin identifier-mapping result, and no agent-safe identity contract; the Rowset piece adds TRACE mapping and reviewed exact lookup."
   ],
   "tool_evidence": [
     {
@@ -197,6 +198,11 @@
     }
   },
   "keywords": [
+    {"keyword": "crosswalk table", "source": "dataforseo", "search_volume": 170, "keyword_difficulty": 2, "cpc": null, "intent": "transactional", "as_of": "2026-08-07"},
+    {"keyword": "data crosswalk", "source": "dataforseo", "search_volume": 170, "keyword_difficulty": 0, "cpc": null, "intent": "navigational", "as_of": "2026-08-07"},
+    {"keyword": "natural key vs surrogate key", "source": "dataforseo", "search_volume": 210, "keyword_difficulty": 11, "cpc": null, "intent": "informational", "as_of": "2026-08-07"},
+    {"keyword": "entity resolution", "source": "dataforseo", "search_volume": 720, "keyword_difficulty": 16, "cpc": 19.85, "intent": "informational", "as_of": "2026-08-07"},
+    {"keyword": "canonical id", "source": "dataforseo", "search_volume": 90, "keyword_difficulty": 4, "cpc": null, "intent": "informational", "as_of": "2026-08-07"},
     {"keyword": "mcp oauth", "source": "dataforseo", "search_volume": 390, "keyword_difficulty": 9, "cpc": 38.48, "intent": "navigational", "as_of": "2026-08-02"},
     {"keyword": "mcp authentication", "source": "dataforseo", "search_volume": 720, "keyword_difficulty": 21, "cpc": 38.63, "intent": "navigational", "as_of": "2026-08-02"},
     {"keyword": "mcp api key", "source": "dataforseo", "search_volume": 20, "keyword_difficulty": null, "cpc": 4.62, "intent": "navigational", "as_of": "2026-08-02"},
@@ -238,6 +244,14 @@
     {"keyword": "business key database", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": null, "cpc": null, "intent": "commercial", "as_of": "2026-08-04"}
   ],
   "opportunities": [
+    {
+      "cluster": "crosswalk table for AI-agent identity",
+      "target_url": "/blog/crosswalk-table-ai-agents",
+      "status": "shipped",
+      "priority": 15,
+      "signals": {"primary_volume": 170, "primary_kd": 2, "primary_cpc": null},
+      "notes": "Selected 2026-08-07 as the highest-priority open product-native identity gap. The definition-led implementation guide adds a TRACE contract for directional, reviewed source-ID-to-canonical-ID mappings with evidence and exact Rowset lookup."
+    },
     {
       "cluster": "business-key migration for agent datasets",
       "target_url": "/blog/migrate-agent-dataset-business-key",
@@ -352,6 +366,12 @@
     }
   ],
   "serp_snapshots": {
+    "crosswalk table": {
+      "source": "dataforseo live organic SERP + primary-source extraction",
+      "as_of": "2026-08-07",
+      "top_domains": ["wikipedia.org", "dataobservatory.eu", "sciencedirect.com", "edutoolbox.org", "stackoverflow.com", "dot.gov", "mit.edu"],
+      "notes": "The SERP mixes schema crosswalks, value mappings, transportation results, and one identifier-matching question. It includes an AI Overview and PAA for definition and Excel creation. The Rowset guide differentiates with directional identity mapping, review state, provenance, TRACE, exact lookup, and relationship enforcement."
+    },
     "database primary key migration": {
       "source": "dataforseo live organic SERP + primary-source extraction",
       "as_of": "2026-08-04",

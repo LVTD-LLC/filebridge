@@ -84,6 +84,10 @@ Common examples include:
 | Membership record | `(team_id, person_id)` | A person can belong to several teams. |
 | Source synchronization | `(source_system, source_id)` | Different systems can issue the same local ID. |
 
+When several source-local IDs refer to one canonical entity, the composite pair identifies the
+mapping row, not the entity itself. Use a [crosswalk table for AI agents](/blog/crosswalk-table-ai-agents)
+to preserve each alias, record the canonical target, and keep uncertain matches in review.
+
 Do not add components merely because they are available. If `event_id` is already globally unique,
 then `(workspace_id, event_id)` usually gives agents a wider, more fragile handle without improving
 identity. The [index-column decision guide](/blog/choose-index-column-agent-rows) applies the same
