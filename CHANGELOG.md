@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-08-07
+
+### Added
+- Added a crosswalk-table guide for AI-agent workflows with a TRACE identity-mapping contract,
+  reviewed source-to-canonical mappings, exact Rowset lookups, and relationship guidance.
+
 ## 2026-08-06
 
 ### Added

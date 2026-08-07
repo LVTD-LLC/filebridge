@@ -48,6 +48,11 @@ source dataset stores that target index value in a normal column. The
 relationship definition says, in effect: `Messages.person_id` points to
 `People.person_id`.
 
+If another system calls the same person `contact_731` instead of `person_009`, do not put both IDs
+into the relationship field. Translate the source-local alias through an
+[identity crosswalk table](/blog/crosswalk-table-ai-agents), then store the canonical target index
+the relationship expects.
+
 That is close to the foreign-key idea in relational databases. PostgreSQL's
 current docs describe foreign keys as a way to keep references valid between
 tables and note that using them improves data quality
