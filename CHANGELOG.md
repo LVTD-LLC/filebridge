@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-08-11
+
+### Added
+- Added a referential-integrity guide for AI-agent datasets with a VALID mutation contract,
+  orphan-audit workflow, delete-action guidance, and Rowset relationship enforcement examples.
+
 ## 2026-08-07
 
 ### Added

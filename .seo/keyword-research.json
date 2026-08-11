@@ -241,9 +241,21 @@
     {"keyword": "mcp vector database", "source": "dataforseo", "search_volume": 20, "keyword_difficulty": 2, "cpc": null, "intent": "informational", "as_of": "2026-07-15"},
     {"keyword": "ai agent database", "source": "dataforseo", "search_volume": 20, "keyword_difficulty": 7, "cpc": null, "intent": "commercial", "as_of": "2026-07-15"},
     {"keyword": "database for ai agents", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": 7, "cpc": 19.47, "intent": "commercial", "as_of": "2026-07-15"},
-    {"keyword": "business key database", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": null, "cpc": null, "intent": "commercial", "as_of": "2026-08-04"}
+    {"keyword": "business key database", "source": "dataforseo", "search_volume": 10, "keyword_difficulty": null, "cpc": null, "intent": "commercial", "as_of": "2026-08-04"},
+    {"keyword": "referential integrity", "source": "dataforseo", "search_volume": 1600, "keyword_difficulty": 4, "cpc": null, "intent": "informational", "as_of": "2026-08-11"},
+    {"keyword": "data reconciliation", "source": "dataforseo", "search_volume": 720, "keyword_difficulty": 0, "cpc": null, "intent": "informational", "as_of": "2026-08-11"},
+    {"keyword": "data provenance", "source": "dataforseo", "search_volume": 1300, "keyword_difficulty": 11, "cpc": null, "intent": "informational", "as_of": "2026-08-11"},
+    {"keyword": "data lineage", "source": "dataforseo", "search_volume": 2400, "keyword_difficulty": 11, "cpc": 16.37, "intent": "informational", "as_of": "2026-08-11"}
   ],
   "opportunities": [
+    {
+      "cluster": "referential integrity for AI-agent datasets",
+      "target_url": "/blog/referential-integrity-ai-agents",
+      "status": "shipped",
+      "priority": 16,
+      "signals": {"primary_volume": 1600, "primary_kd": 4, "primary_cpc": null},
+      "notes": "Selected 2026-08-11 as the highest-priority product-native relationship-safety gap. The guide adds a VALID contract for target verification, parent-first creation, exact linking, read-back, and deliberate target mutation."
+    },
     {
       "cluster": "crosswalk table for AI-agent identity",
       "target_url": "/blog/crosswalk-table-ai-agents",
@@ -366,6 +378,12 @@
     }
   ],
   "serp_snapshots": {
+    "referential integrity": {
+      "source": "dataforseo live organic SERP + primary-source extraction",
+      "as_of": "2026-08-11",
+      "top_domains": ["ibm.com", "acceldata.io", "reddit.com", "wikipedia.org", "geeksforgeeks.org", "synthesized.io", "microsoft.com"],
+      "notes": "The SERP has an AI Overview and PAA for definition, violations, integrity types, and data-integrity distinctions. Ranking pages explain foreign keys and referential actions; the Rowset guide differentiates with a multi-call agent mutation and recovery contract."
+    },
     "crosswalk table": {
       "source": "dataforseo live organic SERP + primary-source extraction",
       "as_of": "2026-08-07",

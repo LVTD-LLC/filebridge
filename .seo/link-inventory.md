@@ -96,6 +96,7 @@
 | `/blog/migrate-agent-dataset-business-key` | https://rowset.lvtd.dev/blog/migrate-agent-dataset-business-key | Migrate an AI-Agent Dataset to a Business Key | business-key migration for agent datasets, migrate generated row identity, agent dataset index migration, map mirror verify cutover retire, move from rowset_id to a business key |
 | `/blog/composite-primary-key-ai-agents` | https://rowset.lvtd.dev/blog/composite-primary-key-ai-agents | Composite Primary Keys for AI-Agent Datasets | composite identity, deterministic row index, multi-field business key, SCOPE identity contract |
 | `/blog/crosswalk-table-ai-agents` | https://rowset.lvtd.dev/blog/crosswalk-table-ai-agents | Crosswalk Table for AI Agents: Map IDs Safely | crosswalk table, identity mapping table, source ID to canonical ID, TRACE mapping contract, reviewed ID mappings |
+| `/blog/referential-integrity-ai-agents` | https://rowset.lvtd.dev/blog/referential-integrity-ai-agents | Referential Integrity for AI-Agent Datasets | referential integrity, agent dataset integrity, prevent orphan records, VALID integrity contract, safe linked-dataset writes |
 
 ## Shipped SEO Sprint Pages
 
@@ -249,3 +250,8 @@ These route families remain retired and must not be selected as internal-link ta
 - map source IDs to canonical IDs
 - TRACE mapping contract
 - reviewed cross-system ID mappings
+- referential integrity for AI-agent datasets
+- agent dataset integrity
+- prevent orphan records in agent workflows
+- VALID integrity contract
+- safe linked-dataset writes
