@@ -13,6 +13,7 @@ MARKDOWN_EXTENSIONS = ["fenced_code", "tables"]
 
 CURATED_PUBLIC_PAGE_SOURCES: dict[str, str] = {
     "blog": "public/blog.md",
+    "build-vs-buy": "public/build-vs-buy.md",
     "index": "public/index.md",
     "pricing": "public/pricing.md",
     "privacy-policy": "public/privacy-policy.md",

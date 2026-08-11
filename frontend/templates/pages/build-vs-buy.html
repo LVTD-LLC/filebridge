@@ -1,0 +1,222 @@
+{% extends "base_landing.html" %}
+{% block meta %}
+    <title>Build vs buy an AI-agent data backend · Rowset</title>
+    <meta name="description"
+          content="Compare building a custom AI-agent data backend with self-hosting Rowset or using hosted Rowset. See the scope, maintenance, control, and cost tradeoffs." />
+    <meta name="robots" content="{{ search_robots_policy }}" />
+    <link rel="canonical" href="{{ canonical_url }}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title"
+          content="Build an AI-agent data backend or use Rowset?" />
+    <meta property="og:url" content="{{ canonical_url }}" />
+    <meta property="og:description"
+          content="A practical comparison of custom build, self-hosted Rowset, and hosted Rowset." />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:title"
+          content="Build an AI-agent data backend or use Rowset?" />
+    <meta name="twitter:description"
+          content="A practical comparison of custom build, self-hosted Rowset, and hosted Rowset." />
+{% endblock meta %}
+{% block content %}
+    <article>
+        <header class="bg-[#1313a4] text-white">
+            <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+                <h1 class="max-w-[17ch] font-display text-6xl font-semibold tracking-tight text-balance sm:text-8xl">Build your own agent data backend?</h1>
+                <div class="mt-10 grid gap-6 border-t border-white/30 pt-6 lg:grid-cols-[3fr_2fr] lg:items-end">
+                    <p class="max-w-[44ch] text-2xl text-pretty text-blue-100 sm:text-xl">You can. The useful question is whether the backend is the product you want to own—or infrastructure your agents need so they can do the real work.</p>
+                    <a href="{% url 'account_signup' %}"
+                       data-posthog-cta="signup"
+                       data-posthog-cta-location="build_vs_buy_hero"
+                       class="inline-flex min-h-12 items-center justify-center bg-[#ffdd3d] px-4 py-3 font-semibold text-[#1313a4] hover:bg-white lg:justify-self-end">Test hosted Rowset for 7 days →</a>
+                </div>
+            </div>
+        </header>
+        <section class="bg-[#ffdd3d] text-[#1313a4]"
+                 aria-labelledby="three-paths-heading">
+            <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+                <h2 id="three-paths-heading"
+                    class="max-w-[22ch] font-display text-5xl font-semibold tracking-tight text-balance sm:text-7xl">There are three honest options.</h2>
+                <div class="mt-12 grid border-y-2 border-[#1313a4] lg:grid-cols-3">
+                    <section class="py-8 lg:pr-8" aria-labelledby="custom-build-heading">
+                        <h3 id="custom-build-heading"
+                            class="text-3xl font-semibold tracking-tight">Build custom</h3>
+                        <p class="mt-4 text-pretty">Own the code, product decisions, deployment, and maintenance. Best when the backend itself creates strategic advantage or your requirements are genuinely unusual.</p>
+                    </section>
+                    <section class="border-t-2 border-[#1313a4] py-8 lg:border-l-2 lg:border-t-0 lg:px-8"
+                             aria-labelledby="self-host-heading">
+                        <h3 id="self-host-heading" class="text-3xl font-semibold tracking-tight">Self-host Rowset</h3>
+                        <p class="mt-4 text-pretty">Start with the open-source product, run it on your infrastructure, and keep deployment control. Best when you can operate the stack but do not want to design the whole data product.</p>
+                    </section>
+                    <section class="border-t-2 border-[#1313a4] py-8 lg:border-l-2 lg:border-t-0 lg:pl-8"
+                             aria-labelledby="hosted-heading">
+                        <h3 id="hosted-heading" class="text-3xl font-semibold tracking-tight">Use hosted Rowset</h3>
+                        <p class="mt-4 text-pretty">Connect an agent and use the managed service. Best when your time belongs in the workflow that uses the data, not in operating its backend.</p>
+                    </section>
+                </div>
+            </div>
+        </section>
+        <section class="bg-white text-slate-950 dark:bg-neutral-950 dark:text-white"
+                 aria-labelledby="scope-heading">
+            <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+                <div class="grid gap-6 lg:grid-cols-[3fr_2fr] lg:items-end">
+                    <h2 id="scope-heading"
+                        class="max-w-[20ch] text-5xl font-semibold tracking-tight text-balance sm:text-6xl">The first endpoint is the easy part.</h2>
+                    <p class="max-w-[44ch] text-xl text-pretty text-slate-600 dark:text-neutral-300">A useful agent backend is not just a table and a CRUD route. It is the full path from authenticated tool call to safe, inspectable, portable data.</p>
+                </div>
+                <dl class="mt-12 grid gap-px border-2 border-slate-950 bg-slate-950/15 sm:grid-cols-2 lg:grid-cols-4 dark:border-white dark:bg-white/15">
+                    <div class="bg-white p-6 dark:bg-neutral-950">
+                        <dt class="text-xl font-semibold">Agent access</dt>
+                        <dd class="mt-3 text-pretty text-slate-600 dark:text-neutral-300">
+                            Hosted MCP tools, REST endpoints, a CLI, bearer-key authentication, and discoverable capability guidance.
+                        </dd>
+                    </div>
+                    <div class="bg-[#f5f5ff] p-6 dark:bg-neutral-900">
+                        <dt class="text-xl font-semibold">Data behavior</dt>
+                        <dd class="mt-3 text-pretty text-slate-600 dark:text-neutral-300">
+                            Typed columns, stable indexes, row validation, exact lookup, semantic search, and predictable updates.
+                        </dd>
+                    </div>
+                    <div class="bg-white p-6 dark:bg-neutral-950">
+                        <dt class="text-xl font-semibold">Human control</dt>
+                        <dd class="mt-3 text-pretty text-slate-600 dark:text-neutral-300">
+                            A dashboard to inspect state, manage access, review schemas, and deliberately enable read-only public previews.
+                        </dd>
+                    </div>
+                    <div class="bg-[#f5f5ff] p-6 dark:bg-neutral-900">
+                        <dt class="text-xl font-semibold">Portability</dt>
+                        <dd class="mt-3 text-pretty text-slate-600 dark:text-neutral-300">
+                            Exports to CSV, JSONL, XLSX, SQLite, and Parquet, plus the work required to keep every path reliable.
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+        <section class="border-y border-slate-950/10 bg-[#f5f5ff] text-slate-950 dark:border-white/15 dark:bg-neutral-950 dark:text-white"
+                 aria-labelledby="cost-heading">
+            <div class="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-24">
+                <div>
+                    <h2 id="cost-heading"
+                        class="max-w-[18ch] text-5xl font-semibold tracking-tight text-balance sm:text-6xl">Use your numbers, not a fake estimate.</h2>
+                    <p class="mt-6 max-w-[48ch] text-xl text-pretty text-slate-600 dark:text-neutral-300">There is no universal token or engineering estimate. Your stack, security requirements, traffic, and team all change the answer. The comparison becomes useful when you include maintenance instead of stopping at the first working demo.</p>
+                </div>
+                <div class="border-2 border-slate-950 bg-white p-6 dark:border-white dark:bg-neutral-900">
+                    <p class="font-mono text-sm font-semibold text-[#1313a4] dark:text-[#ffdd3d]">YOUR ANNUAL BUILD COST</p>
+                    <p class="mt-5 font-mono text-xl leading-9 text-pretty">
+                        initial engineering
+                        <br />
+                        + infrastructure
+                        <br />
+                        + monitoring and backups
+                        <br />
+                        + security and dependency updates
+                        <br />
+                        + integration changes
+                        <br />
+                        + incident response
+                        <br />
+                        + opportunity cost
+                    </p>
+                    <p class="mt-6 border-t border-slate-950/15 pt-6 text-pretty text-slate-600 dark:border-white/20 dark:text-neutral-300">Compare that total with <strong class="text-slate-950 dark:text-white">$50/month for hosted Rowset</strong>, or with the infrastructure and operating time required to self-host the open-source version.</p>
+                </div>
+            </div>
+        </section>
+        <section class="bg-white text-slate-950 dark:bg-neutral-950 dark:text-white"
+                 aria-labelledby="decision-heading">
+            <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+                <h2 id="decision-heading"
+                    class="max-w-[20ch] text-5xl font-semibold tracking-tight text-balance sm:text-6xl">Choose based on what you want to own.</h2>
+                <div class="mt-12 overflow-x-auto border-2 border-slate-950 dark:border-white">
+                    <table class="w-full min-w-[48rem] border-collapse text-left">
+                        <thead class="bg-slate-950 text-white dark:bg-white dark:text-slate-950">
+                            <tr>
+                                <th scope="col" class="p-4">Question</th>
+                                <th scope="col" class="p-4">Build custom</th>
+                                <th scope="col" class="p-4">Self-host Rowset</th>
+                                <th scope="col" class="p-4">Hosted Rowset</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-950/15 dark:divide-white/20">
+                            <tr>
+                                <th scope="row" class="p-4 font-semibold">Product design</th>
+                                <td class="p-4">You own it</td>
+                                <td class="p-4">Start from Rowset</td>
+                                <td class="p-4">Rowset manages it</td>
+                            </tr>
+                            <tr class="bg-[#f5f5ff] dark:bg-neutral-900">
+                                <th scope="row" class="p-4 font-semibold">Infrastructure</th>
+                                <td class="p-4">You operate it</td>
+                                <td class="p-4">You operate it</td>
+                                <td class="p-4">Managed</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="p-4 font-semibold">Maintenance</th>
+                                <td class="p-4">Your queue</td>
+                                <td class="p-4">Shared code, your deployment</td>
+                                <td class="p-4">Managed</td>
+                            </tr>
+                            <tr class="bg-[#f5f5ff] dark:bg-neutral-900">
+                                <th scope="row" class="p-4 font-semibold">Customization</th>
+                                <td class="p-4">Unlimited</td>
+                                <td class="p-4">Fork or contribute</td>
+                                <td class="p-4">Product boundaries</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="p-4 font-semibold">Best fit</th>
+                                <td class="p-4">Unique strategic system</td>
+                                <td class="p-4">Control without a blank slate</td>
+                                <td class="p-4">Fastest path to agent-managed data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <section class="border-t border-slate-950/10 bg-[#f5f5ff] text-slate-950 dark:border-white/15 dark:bg-neutral-950 dark:text-white"
+                 aria-labelledby="questions-heading">
+            <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-24">
+                <div>
+                    <h2 id="questions-heading"
+                        class="max-w-[18ch] text-5xl font-semibold tracking-tight text-balance">Questions before you choose.</h2>
+                </div>
+                <dl class="divide-y divide-slate-950/15 dark:divide-white/20">
+                    <div class="py-6 first:pt-0">
+                        <dt class="text-xl font-semibold">When does building a custom agent data backend make sense?</dt>
+                        <dd class="mt-3 text-pretty text-slate-600 dark:text-neutral-300">
+                            Build when the system itself is strategic, your requirements are genuinely unusual, or your team wants to own every implementation and maintenance decision.
+                        </dd>
+                    </div>
+                    <div class="py-6">
+                        <dt class="text-xl font-semibold">Can I self-host Rowset?</dt>
+                        <dd class="mt-3 text-pretty text-slate-600 dark:text-neutral-300">
+                            Yes. Rowset is open source and includes deployment paths for teams that want to operate it on their own infrastructure.
+                        </dd>
+                    </div>
+                    <div class="py-6 last:pb-0">
+                        <dt class="text-xl font-semibold">What does hosted Rowset cost?</dt>
+                        <dd class="mt-3 text-pretty text-slate-600 dark:text-neutral-300">
+                            Hosted Rowset includes full product access for 7 days, then costs $50 per month.
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+        <section class="bg-[#1313a4] text-white">
+            <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[3fr_2fr] lg:items-end lg:px-8 lg:py-24">
+                <div>
+                    <h2 class="max-w-[18ch] font-display text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Build your workflow, not another backend.</h2>
+                </div>
+                <div>
+                    <p class="max-w-[40ch] text-xl text-pretty text-blue-100">Try the full hosted product for 7 days with no credit card. Or inspect the source and run Rowset yourself.</p>
+                    <div class="mt-8 flex flex-col gap-3 sm:flex-row"><a href="{% url 'account_signup' %}"
+   data-posthog-cta="signup"
+   data-posthog-cta-location="build_vs_buy_bottom"
+   class="inline-flex min-h-12 items-center justify-center bg-[#ffdd3d] px-4 py-3 font-semibold text-[#1313a4] hover:bg-white">Start your 7-day trial →</a><a href="https://github.com/LVTD-LLC/rowset"
+   class="fb-focus inline-flex min-h-12 items-center justify-center border border-white/40 px-4 py-3 font-semibold hover:bg-white/10">View the source</a></div>
+                </div>
+            </div>
+        </section>
+    </article>
+{% endblock content %}
+{% block schema %}
+    <script type="application/ld+json">{{ schema_json|safe }}</script>
+{% endblock schema %}
