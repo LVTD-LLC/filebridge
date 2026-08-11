@@ -204,6 +204,11 @@ This is a data-quality choice, not a purity test. Enforcement is valuable when
 it turns a silent agent mistake into an explicit error the agent can report.
 It is harmful when it blocks legitimate work before the dataset is ready.
 
+Once the model is settled, use the [referential-integrity workflow for AI
+agents](/blog/referential-integrity-ai-agents) to order parent and child writes,
+recover from uncertain responses, audit existing orphan values, and handle
+target deletes or index changes deliberately.
+
 ## Relationship examples by workflow
 
 ### Personal CRM

@@ -37,15 +37,16 @@
     "content_ledger_dataset_key": "9ae7d0d3-1138-43a0-b3b8-aa05fac12a96",
     "research_briefs_dataset_key": "3a004cfa-0a7e-4c3a-a517-caca902f38d6",
     "schema_version": 1,
-    "last_sync_at": "2026-08-07"
+    "last_sync_at": "2026-08-11"
   },
   "created_at": "2026-07-04",
-  "updated_at": "2026-08-07",
+  "updated_at": "2026-08-11",
   "notes": [
     "Initialized from latest origin/main after fast-forwarding from c11f1de to 2d9389b.",
     "Refreshed from current origin/main b93e5d6 with GSC, Plausible, PostHog, DataForSEO, Exa, Firecrawl, Jina, and live HTTP checks on 2026-07-15.",
     "No Ahrefs project was available; use DataForSEO KD/backlink/SERP metrics until Ahrefs is connected.",
     "The July 15 re-audit found stale SEO inventory routes after the docs/use-case migration, no sitemap listed by the GSC sitemap API, missing homepage/pricing canonicals, and a stronger mcp database keyword cluster.",
-    "The July 21 Phase 5 recheck found the sitemap submitted and healthy in GSC, current homepage/pricing canonicals fixed, repetitive title boilerplate worth simplifying, and historical route families still returning 404 before the repair."
+    "The July 21 Phase 5 recheck found the sitemap submitted and healthy in GSC, current homepage/pricing canonicals fixed, repetitive title boilerplate worth simplifying, and historical route families still returning 404 before the repair.",
+    "The August 11 content refresh selected referential integrity from a product-native relationship-safety pool using live DataForSEO metrics and SERP evidence."
   ]
 }

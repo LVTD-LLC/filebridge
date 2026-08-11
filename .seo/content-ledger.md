@@ -41,6 +41,7 @@
 | 2026-08-04 | Migrate an AI-Agent Dataset to a Business Key | how-to / operational decision guide | `/blog/migrate-agent-dataset-business-key` | business key database | 10 | n/a | index-column guide, rowset_id vs business keys, schema design, row operations, idempotent updates, MCP, pricing | #397 |
 | 2026-08-06 | Composite Primary Keys for AI-Agent Datasets | definition / implementation decision guide | `/blog/composite-primary-key-ai-agents` | composite primary key | 590 | 0 | index-column guide, business-key migration, Dataset API, schema design, idempotency, relationships, pricing, quickstart | #399 |
 | 2026-08-07 | Crosswalk Table for AI Agents: Map IDs Safely | definition-led implementation guide | `/blog/crosswalk-table-ai-agents` | crosswalk table | 170 | 2 | business-key guide, composite-key guide, HITL, schema design, relationships, idempotency, pricing, quickstart | #400 |
+| 2026-08-11 | Referential Integrity for AI-Agent Datasets | definition-led implementation guide | `/blog/referential-integrity-ai-agents` | referential integrity | 1,600 | 4 | relationship modeling, crosswalks, composite keys, idempotency, audit trail, MCP, Dataset API, quickstart, pricing | #401 |
 
 ---
 
@@ -80,6 +81,10 @@
 | 30 | Natural key vs surrogate key | comparison / decision guide | natural key vs surrogate key | 210 | 11 | informational | 17 | Defer: winnable, but materially overlaps `/blog/rowset-id-vs-business-keys`. |
 | 31 | Entity resolution for agent workflows | definition / implementation guide | entity resolution | 720 | 16 | informational | 16 | Defer: just above the conservative low-authority KD band, and Rowset stores reviewed mappings rather than performing entity resolution. |
 | 32 | Canonical ID for cross-system records | definition / decision guide | canonical ID | 90 | 4 | informational | 13 | Defer: the live SERP is dominated by AWS canonical-user-ID intent. |
+| 33 | Referential integrity for AI-agent datasets | definition-led implementation guide | referential integrity | 1,600 | 4 | informational / implementation | shipped (22) | Selected 2026-08-11 after live DataForSEO and SERP research. Differentiated with a Verify -> Add parent -> Link exact index -> Inspect -> Delete deliberately contract for agent mutations. |
+| 34 | Data reconciliation for AI-agent workflows | operational guide | data reconciliation | 720 | 0 | informational | 17 | Defer: broad intent and substantial overlap with data cleaning, inventory reconciliation, and idempotent updates. |
+| 35 | Data provenance for AI-agent records | definition / implementation guide | data provenance | 1,300 | 11 | informational | 16 | Defer: credible product fit, but overlaps the data-collection and audit-trail guides without a narrower product surface. |
+| 36 | Data lineage for AI-agent datasets | pillar / definition guide | data lineage | 2,400 | 11 | informational | 13 | Defer: the head term expects lineage-platform capabilities Rowset does not provide. |
 
 ---
 
@@ -87,7 +92,7 @@
 
 | Cluster / theme | Pieces shipped | Gaps still open |
 |---|---|---|
-| Agent-managed datasets | `/blog/agent-managed-datasets`, `/blog/choose-index-column-agent-rows`, `/blog/structure-dataset-instructions-ai-agents`, `/blog/rowset-id-vs-business-keys`, `/blog/relationship-modeling-agent-datasets`, `/blog/ai-agent-memory-vs-state`, `/blog/idempotent-ai-agent-updates`, `/blog/share-ai-agent-data-safely`, `/blog/human-in-the-loop-ai-agents`, `/blog/ai-agent-audit-trail`, `/blog/database-for-ai-agents`, `/blog/ai-data-cleaning-agent`, `/blog/ai-agent-crm`, `/blog/ai-agent-task-management`, `/blog/ai-agent-inventory-management`, `/blog/ai-customer-feedback-analysis`, `/blog/ai-ready-data`, `/blog/ai-agent-data-entry`, `/blog/ai-data-collection`, `/blog/migrate-agent-dataset-business-key`, `/blog/composite-primary-key-ai-agents`, `/blog/crosswalk-table-ai-agents` | Cross-system identity lifecycle and collision-remediation patterns |
+| Agent-managed datasets | `/blog/agent-managed-datasets`, `/blog/choose-index-column-agent-rows`, `/blog/structure-dataset-instructions-ai-agents`, `/blog/rowset-id-vs-business-keys`, `/blog/relationship-modeling-agent-datasets`, `/blog/ai-agent-memory-vs-state`, `/blog/idempotent-ai-agent-updates`, `/blog/share-ai-agent-data-safely`, `/blog/human-in-the-loop-ai-agents`, `/blog/ai-agent-audit-trail`, `/blog/database-for-ai-agents`, `/blog/ai-data-cleaning-agent`, `/blog/ai-agent-crm`, `/blog/ai-agent-task-management`, `/blog/ai-agent-inventory-management`, `/blog/ai-customer-feedback-analysis`, `/blog/ai-ready-data`, `/blog/ai-agent-data-entry`, `/blog/ai-data-collection`, `/blog/migrate-agent-dataset-business-key`, `/blog/composite-primary-key-ai-agents`, `/blog/crosswalk-table-ai-agents`, `/blog/referential-integrity-ai-agents` | Cross-system identity lifecycle and collision-remediation patterns |
 | MCP and Dataset API | `/blog/mcp-vs-rest-ai-agents`, `/blog/connect-ai-agent-to-dataset-api`, `/blog/relationship-modeling-agent-datasets`, `/blog/ai-agent-inventory-management`, `/blog/ai-agent-data-entry`, `/blog/mcp-oauth-vs-api-keys`, `/blog/ai-agent-structured-output` | More REST/MCP setup examples with concrete datasets |
 | Spreadsheet/database alternatives | `/blog/airtable-alternatives`, `/blog/google-sheets-alternatives`, `/blog/baserow-alternatives`, `/blog/nocodb-alternatives`, `/blog/spreadsheet-database-for-ai-agents`, `/vs/airtable`, `/vs/google-sheets` | Migration examples for specific human-to-agent workflows |
 

@@ -25,6 +25,11 @@ Example:
 With enforcement enabled, row writes fail when a non-blank source value does not
 match an existing target row index. Blank values are allowed.
 
+Enforcement also blocks deleting a referenced target row or changing its index
+while source rows still point to it. Handle the dependent rows explicitly first.
+For the parent-first write, read-back, orphan-audit, and deletion workflow, read
+[Referential Integrity for AI-Agent Datasets](/blog/referential-integrity-ai-agents).
+
 ## MCP tools
 
 ```text
