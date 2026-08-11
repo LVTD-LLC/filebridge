@@ -95,6 +95,10 @@ urlpatterns = [
         RedirectView.as_view(pattern_name="use_case_page", permanent=True, query_string=True),
     ),
     path(
+        "build-vs-buy/",
+        RedirectView.as_view(pattern_name="build_vs_buy", permanent=True, query_string=True),
+    ),
+    path(
         "pricing/",
         RedirectView.as_view(pattern_name="pricing", permanent=True, query_string=True),
     ),
@@ -147,6 +151,7 @@ urlpatterns = [
         name="terms_of_service",
     ),
     path("pricing", views.PricingView.as_view(), name="pricing"),
+    path("build-vs-buy", views.BuildVsBuyView.as_view(), name="build_vs_buy"),
     path("changelog", views.changelog_view, name="changelog"),
     path("docs", views.docs_home_view, name="docs_home"),
     path("docs/<slug:slug>", views.docs_page_view, name="docs_page"),

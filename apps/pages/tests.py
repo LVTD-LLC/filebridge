@@ -391,6 +391,7 @@ def test_agent_onboarding_guidance_creates_confirmed_resources_safely():
 PUBLIC_CONTENT_PATH_PREFIXES = ("/blog/", "/docs/", "/use-cases/", "/vs/")
 PUBLIC_CONTENT_ROOT_PATHS = {
     "/blog",
+    "/build-vs-buy",
     "/changelog",
     "/docs",
     "/pricing",
@@ -518,6 +519,7 @@ def test_seo_link_inventory_uses_live_canonical_routes(client):
     "path",
     (
         "/index.md",
+        "/build-vs-buy.md",
         "/pricing.md",
         "/privacy-policy.md",
         "/terms-of-service.md",
@@ -543,6 +545,7 @@ def test_public_markdown_routes_return_markdown(client, path):
     ("path", "expected_heading"),
     (
         ("/index.md", "# Rowset"),
+        ("/build-vs-buy.md", "# Build your own agent data backend?"),
         ("/pricing.md", "# Rowset pricing"),
         ("/privacy-policy.md", "# Privacy Policy"),
         ("/terms-of-service.md", "# Terms of Service"),
@@ -574,6 +577,7 @@ def test_public_markdown_inventory_registry_reuses_canonical_sources():
 
     assert CURATED_PUBLIC_PAGE_SOURCES == {
         "blog": "public/blog.md",
+        "build-vs-buy": "public/build-vs-buy.md",
         "index": "public/index.md",
         "pricing": "public/pricing.md",
         "privacy-policy": "public/privacy-policy.md",
@@ -602,6 +606,7 @@ def test_public_markdown_route_name_and_missing_slug(client):
     ("path", "expected_markdown_url"),
     (
         ("/", "https://rowset.example/index.md"),
+        ("/build-vs-buy", "https://rowset.example/build-vs-buy.md"),
         ("/pricing", "https://rowset.example/pricing.md"),
         ("/privacy-policy", "https://rowset.example/privacy-policy.md"),
         ("/terms-of-service", "https://rowset.example/terms-of-service.md"),
@@ -1404,6 +1409,8 @@ def test_footer_has_a_separate_compare_column(client):
     assert response.status_code == 200
     footer_nav = _nav_html(response.content.decode(), "Footer navigation")
     assert ">Compare</h2>" in footer_nav
+    assert f'href="{reverse("build_vs_buy")}"' in footer_nav
+    assert ">Build vs buy</a>" in footer_nav
     assert f'href="{reverse("comparison_page", kwargs={"slug": "airtable"})}"' in footer_nav
     assert ">Rowset vs Airtable</a>" in footer_nav
     assert f'href="{reverse("comparison_page", kwargs={"slug": "google-sheets"})}"' in footer_nav
@@ -1661,7 +1668,15 @@ def test_landing_page_redirects_authenticated_users_to_home(client):
 @override_settings(SITE_URL="https://rowset.example")
 @pytest.mark.parametrize(
     "route_name",
-    ("landing", "changelog", "pricing", "privacy_policy", "terms_of_service", "uses"),
+    (
+        "landing",
+        "build_vs_buy",
+        "changelog",
+        "pricing",
+        "privacy_policy",
+        "terms_of_service",
+        "uses",
+    ),
 )
 def test_public_pages_use_the_hosted_rowset_social_card(client, route_name):
     response = client.get(reverse(route_name))
@@ -2250,6 +2265,34 @@ def test_pricing_offers_full_product_seven_day_trial(client):
     trial_offer = schema["offers"][0]
     assert trial_offer["name"] == "Rowset 7-day trial"
     assert trial_offer["priceSpecification"]["billingDuration"] == "P7D"
+
+
+def test_build_vs_buy_page_compares_all_three_paths_and_is_linked(client):
+    page_response = client.get(reverse("build_vs_buy"))
+    landing_response = client.get(reverse("landing"))
+    pricing_response = client.get(reverse("pricing"))
+
+    assert page_response.status_code == 200
+    content = page_response.content.decode()
+    assert "Build custom" in content
+    assert "Self-host Rowset" in content
+    assert "Use hosted Rowset" in content
+    assert "$50/month for hosted Rowset" in content
+    assert "Use your numbers, not a fake estimate." in content
+    assert f'href="{reverse("build_vs_buy")}"' in landing_response.content.decode()
+    assert f'href="{reverse("build_vs_buy")}"' in pricing_response.content.decode()
+
+
+@override_settings(SITE_URL="https://rowset.example")
+def test_build_vs_buy_page_has_article_faq_and_breadcrumb_schema(client):
+    response = client.get(reverse("build_vs_buy"), secure=True, HTTP_HOST="testserver")
+
+    assert response.status_code == 200
+    schema = json.loads(_json_ld_payload(response.content.decode()))
+    schema_types = {entry["@type"] for entry in schema}
+    assert schema_types == {"Article", "BreadcrumbList", "FAQPage"}
+    article = next(entry for entry in schema if entry["@type"] == "Article")
+    assert article["url"] == "https://rowset.example/build-vs-buy"
 
 
 def test_landing_and_footer_offer_trial_instead_of_free_tier(client):

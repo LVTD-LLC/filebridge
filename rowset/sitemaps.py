@@ -23,6 +23,7 @@ class StaticViewSitemap(sitemaps.Sitemap):
             "changelog",
             "uses",
             "pricing",
+            "build_vs_buy",
             "blog_posts",
         ]
 

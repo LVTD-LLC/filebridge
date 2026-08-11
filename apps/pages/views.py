@@ -194,6 +194,51 @@ class PricingView(PublicMarkdownContextMixin, TemplateView):
         return context
 
 
+class BuildVsBuyView(PublicMarkdownContextMixin, TemplateView):
+    template_name = "pages/build-vs-buy.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        path = reverse("build_vs_buy")
+        description = (
+            "Compare building a custom AI-agent data backend with self-hosting Rowset or using "
+            "hosted Rowset, including scope, maintenance, control, and cost."
+        )
+        context["schema_json"] = json_ld(
+            [
+                article_schema(
+                    headline="Build an AI-agent data backend or use Rowset?",
+                    description=description,
+                    path=path,
+                    date_published="2026-08-11",
+                    date_modified="2026-08-11",
+                ),
+                breadcrumb_list_schema((("Home", "/"), ("Build vs buy", path))),
+                faq_page_schema(
+                    (
+                        (
+                            "When does building a custom agent data backend make sense?",
+                            "Build when the system itself is strategic, your requirements are "
+                            "genuinely unusual, or your team wants to own every implementation "
+                            "and maintenance decision.",
+                        ),
+                        (
+                            "Can I self-host Rowset?",
+                            "Yes. Rowset is open source and includes deployment paths for teams "
+                            "that want to operate it on their own infrastructure.",
+                        ),
+                        (
+                            "What does hosted Rowset cost?",
+                            "Hosted Rowset includes full product access for 7 days, then costs "
+                            "$50 per month.",
+                        ),
+                    )
+                ),
+            ]
+        )
+        return context
+
+
 def docs_home_view(request):
     return redirect("docs_page", slug="quickstart", permanent=True)
 

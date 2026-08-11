@@ -19,6 +19,8 @@ deployment or release cut date.
 ## 2026-08-11
 
 ### Added
+- Added a build-versus-buy decision page comparing a custom agent data backend with self-hosted
+  and hosted Rowset.
 - Added a referential-integrity guide for AI-agent datasets with a VALID mutation contract,
   orphan-audit workflow, delete-action guidance, and Rowset relationship enforcement examples.
 
