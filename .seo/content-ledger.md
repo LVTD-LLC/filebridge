@@ -42,7 +42,7 @@
 | 2026-08-06 | Composite Primary Keys for AI-Agent Datasets | definition / implementation decision guide | `/blog/composite-primary-key-ai-agents` | composite primary key | 590 | 0 | index-column guide, business-key migration, Dataset API, schema design, idempotency, relationships, pricing, quickstart | #399 |
 | 2026-08-07 | Crosswalk Table for AI Agents: Map IDs Safely | definition-led implementation guide | `/blog/crosswalk-table-ai-agents` | crosswalk table | 170 | 2 | business-key guide, composite-key guide, HITL, schema design, relationships, idempotency, pricing, quickstart | #400 |
 | 2026-08-11 | Referential Integrity for AI-Agent Datasets | definition-led implementation guide | `/blog/referential-integrity-ai-agents` | referential integrity | 1,600 | 4 | relationship modeling, crosswalks, composite keys, idempotency, audit trail, MCP, Dataset API, quickstart, pricing | #401 |
-| 2026-08-18 | Data Matching for AI Agents: A Reviewable Workflow | definition-led operational guide | `/blog/data-matching-ai-agents` | data matching | 1,000 | 0 | data cleaning, crosswalks, composite keys, audit trail, schema design, MCP, Dataset API, pricing | PR TBD |
+| 2026-08-18 | Data Matching for AI Agents: A Reviewable Workflow | definition-led operational guide | `/blog/data-matching-ai-agents` | data matching | 1,000 | 0 | data cleaning, crosswalks, composite keys, audit trail, schema design, MCP, Dataset API, pricing | #403 |
 
 ---
 
