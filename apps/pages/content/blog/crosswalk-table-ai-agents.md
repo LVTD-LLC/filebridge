@@ -99,6 +99,10 @@ records probably describe the same entity. A crosswalk stores the durable result
 decision, along with its status and evidence. Rowset can hold proposed and approved mappings, but it
 does not claim to be an entity-resolution engine.
 
+The [data-matching workflow for AI agents](/blog/data-matching-ai-agents) covers the earlier stage:
+how to generate candidate pairs, preserve comparison evidence, review uncertainty, and hand only
+approved decisions to the crosswalk.
+
 <a id="trace-mapping-contract"></a>
 ## Use the TRACE mapping contract
 

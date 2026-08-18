@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-08-18
+
+### Added
+- Added a data-matching guide for AI-agent workflows with a MATCH candidate-review contract,
+  method-selection guidance, durable evidence, and approved canonical-identity handoff.
+
 ## 2026-08-11
 
 ### Added
