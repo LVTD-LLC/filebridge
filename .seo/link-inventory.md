@@ -97,6 +97,7 @@
 | `/blog/composite-primary-key-ai-agents` | https://rowset.lvtd.dev/blog/composite-primary-key-ai-agents | Composite Primary Keys for AI-Agent Datasets | composite identity, deterministic row index, multi-field business key, SCOPE identity contract |
 | `/blog/crosswalk-table-ai-agents` | https://rowset.lvtd.dev/blog/crosswalk-table-ai-agents | Crosswalk Table for AI Agents: Map IDs Safely | crosswalk table, identity mapping table, source ID to canonical ID, TRACE mapping contract, reviewed ID mappings |
 | `/blog/referential-integrity-ai-agents` | https://rowset.lvtd.dev/blog/referential-integrity-ai-agents | Referential Integrity for AI-Agent Datasets | referential integrity, agent dataset integrity, prevent orphan records, VALID integrity contract, safe linked-dataset writes |
+| `/blog/data-matching-ai-agents` | https://rowset.lvtd.dev/blog/data-matching-ai-agents | Data Matching for AI Agents: A Reviewable Workflow | data matching for AI agents, reviewable record linkage, MATCH data-matching contract, candidate-pair review, approved canonical identity |
 
 ## Shipped SEO Sprint Pages
 
@@ -255,3 +256,8 @@ These route families remain retired and must not be selected as internal-link ta
 - prevent orphan records in agent workflows
 - VALID integrity contract
 - safe linked-dataset writes
+- data matching for AI agents
+- reviewable record linkage
+- MATCH data-matching contract
+- candidate-pair review
+- approved canonical identity

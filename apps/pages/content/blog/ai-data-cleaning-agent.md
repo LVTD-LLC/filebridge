@@ -158,6 +158,10 @@ Also treat every text field as untrusted input. A customer note, CSV cell, or im
 
 Review by risk, not by a random sample alone. Send a proposal to a person when it changes identity, merges records, deletes data, fills a material fact, has low confidence, conflicts with another source, or falls outside a tested rule.
 
+When the proposal says two rows represent the same entity, use a separate
+[reviewable data-matching workflow](/blog/data-matching-ai-agents). Preserve both source rows,
+evaluate a candidate pair, and publish a canonical mapping only after approval.
+
 A practical policy is:
 
 - auto-approve deterministic rules that passed their test suite
