@@ -43,7 +43,7 @@
 | 2026-08-07 | Crosswalk Table for AI Agents: Map IDs Safely | definition-led implementation guide | `/blog/crosswalk-table-ai-agents` | crosswalk table | 170 | 2 | business-key guide, composite-key guide, HITL, schema design, relationships, idempotency, pricing, quickstart | #400 |
 | 2026-08-11 | Referential Integrity for AI-Agent Datasets | definition-led implementation guide | `/blog/referential-integrity-ai-agents` | referential integrity | 1,600 | 4 | relationship modeling, crosswalks, composite keys, idempotency, audit trail, MCP, Dataset API, quickstart, pricing | #401 |
 | 2026-08-18 | Data Matching for AI Agents: A Reviewable Workflow | definition-led operational guide | `/blog/data-matching-ai-agents` | data matching | 1,000 | 0 | data cleaning, crosswalks, composite keys, audit trail, schema design, MCP, Dataset API, pricing | #403 |
-| 2026-08-25 | Data Provenance for AI Agents: What to Record | definition-led implementation guide | `/blog/data-provenance-ai-agents` | data provenance | 1,300 | 11 | data collection, audit trail, data matching, schema design, MCP, Dataset API, index-column guide | #TBD |
+| 2026-08-25 | Data Provenance for AI Agents: What to Record | definition-led implementation guide | `/blog/data-provenance-ai-agents` | data provenance | 1,300 | 11 | data collection, audit trail, data matching, schema design, MCP, Dataset API, index-column guide | #404 |
 
 ---
 
