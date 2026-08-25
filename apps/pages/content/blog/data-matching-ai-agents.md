@@ -197,6 +197,10 @@ Preserve the candidate-pair ID, reviewer, evidence reference, matching version, 
 on the mapping. Then agents can resolve aliases by stable index before they read or mutate related
 records.
 
+Keep those fields as a durable [data-provenance chain](/blog/data-provenance-ai-agents) so a later
+agent can trace the canonical mapping to the exact source versions, matching activity, method, and
+review decision that produced it.
+
 If an approved match later proves wrong, retire the mapping and record the correction. Do not
 silently rewrite history. The [AI-agent audit-trail guide](/blog/ai-agent-audit-trail) shows how to
 capture the actor, before and after values, reason, evidence, and result.

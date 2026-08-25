@@ -16,6 +16,12 @@ deployment or release cut date.
 **Fixed** for any bug fixes.
 **Security** in case of vulnerabilities.
 
+## 2026-08-25
+
+### Added
+- Added a data-provenance guide for AI-agent records with a PROVE source, activity,
+  responsibility, method-version, evidence, and correction contract.
+
 ## 2026-08-18
 
 ### Added
