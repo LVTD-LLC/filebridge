@@ -223,6 +223,9 @@ producing data, which can support assessments of quality, reliability, or trustw
 PROV model for a small workflow. Source identity, source version, capture run, extractor version,
 and reviewer are a practical minimum chain.
 
+For a reusable row-level model that connects results to sources, activities, methods, and review
+decisions, use the [data-provenance guide for AI agents](/blog/data-provenance-ai-agents).
+
 Store only the evidence needed for review. If the source contains sensitive or licensed material,
 prefer a protected locator and a small permitted excerpt over copying the full source into every
 observation.

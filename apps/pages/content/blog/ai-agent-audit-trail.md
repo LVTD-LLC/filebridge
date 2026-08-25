@@ -186,6 +186,10 @@ proposal, decision, rule, and published value while preserving the raw source.
 
 Rowset can hold durable, private workflow evidence that agents access through [hosted MCP](/docs/connect-mcp) or the [Dataset API](/docs/dataset-api). Use an explicit index such as `event_id`, controlled event types, semantic column descriptions, and persistent dataset instructions. The [row operations guide](/docs/work-with-rows) documents the current read and mutation paths.
 
+When the question is how a particular result was derived rather than which action changed it, use a
+[row-level data-provenance record](/blog/data-provenance-ai-agents) that connects the result to its
+source version, generating activity, responsible agent, method, and evidence.
+
 Rowset's signed-in dataset page also records recent dataset changes. The current implementation stores the dataset, actor label, mutation type, target, metadata, and timestamps. Row updates can record changed fields with before-and-after values. Schema changes intentionally avoid copying existing row values into mutation metadata.
 
 Those details are useful for answering, "Which Rowset key or account changed this dataset, and what fields changed?" The actor label for an agent operation is the API-key name, so give keys distinct operational names rather than reusing one generic credential across agents.

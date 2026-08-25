@@ -261,3 +261,8 @@ These route families remain retired and must not be selected as internal-link ta
 - MATCH data-matching contract
 - candidate-pair review
 - approved canonical identity
+- data provenance for AI agents
+- row-level data provenance
+- PROVE provenance contract
+- source activity agent evidence chain
+- provenance records for agent-managed rows
